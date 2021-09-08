@@ -1,4 +1,4 @@
-CXX = clang++
+#CXX = clang++
 
 CPPFLAGS = -W -Wall -Wno-sign-compare -Wno-unused
 
