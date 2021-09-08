@@ -1,4 +1,4 @@
-Simulation started at Wed 2021-Sep-08 17:01:17
+Simulation started at Wed 2021-Sep-08 17:57:44
 T=0 - WARNING: Stability Analysis. (Hdiff=0)
 T=0 - WARNING: water depth changed to ensure constant discharge.
 Eerste keer stroming oplossing met SOLVE
@@ -43,4 +43,4 @@ T=10080 - WARNING: water depth changed to ensure constant discharge.
 T=10320 - WARNING: water depth changed to ensure constant discharge.
 T=10560 - WARNING: water depth changed to ensure constant discharge.
 T=10800 - WARNING: water depth changed to ensure constant discharge.
-Simulation ended at Wed 2021-Sep-08 17:04:30
+Simulation ended at Wed 2021-Sep-08 17:59:47
