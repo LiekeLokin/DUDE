@@ -1,0 +1,46 @@
+Simulation started at Wed 2021-Sep-08 17:01:17
+T=0 - WARNING: Stability Analysis. (Hdiff=0)
+T=0 - WARNING: water depth changed to ensure constant discharge.
+Eerste keer stroming oplossing met SOLVE
+T=1200 - WARNING: water depth changed to ensure constant discharge.
+T=1440 - WARNING: water depth changed to ensure constant discharge.
+T=1680 - WARNING: water depth changed to ensure constant discharge.
+T=1920 - WARNING: water depth changed to ensure constant discharge.
+T=2160 - WARNING: water depth changed to ensure constant discharge.
+T=2400 - WARNING: water depth changed to ensure constant discharge.
+T=2640 - WARNING: water depth changed to ensure constant discharge.
+T=2880 - WARNING: water depth changed to ensure constant discharge.
+T=3120 - WARNING: water depth changed to ensure constant discharge.
+T=3360 - WARNING: water depth changed to ensure constant discharge.
+T=3600 - WARNING: water depth changed to ensure constant discharge.
+T=3840 - WARNING: water depth changed to ensure constant discharge.
+T=4080 - WARNING: water depth changed to ensure constant discharge.
+T=4320 - WARNING: water depth changed to ensure constant discharge.
+T=4560 - WARNING: water depth changed to ensure constant discharge.
+T=4800 - WARNING: water depth changed to ensure constant discharge.
+T=5040 - WARNING: water depth changed to ensure constant discharge.
+T=5280 - WARNING: water depth changed to ensure constant discharge.
+T=5520 - WARNING: water depth changed to ensure constant discharge.
+T=5760 - WARNING: water depth changed to ensure constant discharge.
+T=6000 - WARNING: water depth changed to ensure constant discharge.
+T=6240 - WARNING: water depth changed to ensure constant discharge.
+T=6480 - WARNING: water depth changed to ensure constant discharge.
+T=6720 - WARNING: water depth changed to ensure constant discharge.
+T=6960 - WARNING: water depth changed to ensure constant discharge.
+T=7200 - WARNING: water depth changed to ensure constant discharge.
+T=7440 - WARNING: water depth changed to ensure constant discharge.
+T=7680 - WARNING: water depth changed to ensure constant discharge.
+T=7920 - WARNING: water depth changed to ensure constant discharge.
+T=8160 - WARNING: water depth changed to ensure constant discharge.
+T=8400 - WARNING: water depth changed to ensure constant discharge.
+T=8640 - WARNING: water depth changed to ensure constant discharge.
+T=8880 - WARNING: water depth changed to ensure constant discharge.
+T=9120 - WARNING: water depth changed to ensure constant discharge.
+T=9360 - WARNING: water depth changed to ensure constant discharge.
+T=9600 - WARNING: water depth changed to ensure constant discharge.
+T=9840 - WARNING: water depth changed to ensure constant discharge.
+T=10080 - WARNING: water depth changed to ensure constant discharge.
+T=10320 - WARNING: water depth changed to ensure constant discharge.
+T=10560 - WARNING: water depth changed to ensure constant discharge.
+T=10800 - WARNING: water depth changed to ensure constant discharge.
+Simulation ended at Wed 2021-Sep-08 17:04:30
