@@ -1,4 +1,4 @@
 
 *.o
 *.exe
-test\out_*.*
+test/out_*.*
