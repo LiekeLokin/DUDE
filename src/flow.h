@@ -6,8 +6,6 @@
 #include "admin.h"
 #include <fstream>
 #include <cstdlib>
-using namespace std;
-using namespace admin;
 
 class flow{
 	private:

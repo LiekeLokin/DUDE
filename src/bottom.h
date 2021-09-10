@@ -9,8 +9,6 @@
 #include "linalg.h"
 #include "admin.h"
 #include "fft.h"
-using namespace std;
-using namespace admin;
 
 class bottom{
 private:
@@ -19,13 +17,13 @@ private:
 	vec *flux;
 	vec *x;
 	vec *Sr;
-	vector<int> *fsz;
+	std::vector<int> *fsz;
 	void detQ(vec ub, vec &dhdx);
 	void detQcr(vec ub, vec &dhdx);
 	void sep_migr_lee(vec flux, vec oldb);
 	void sep_sort_fsz(int num);
 	vec sep_tau_distr(vec ub);
-	vector<int> setFSZ(int xsi, int nfsz, int wavelet);
+	std::vector<int> setFSZ(int xsi, int nfsz, int wavelet);
 	int paramSepline(int xsi, int xti, int xci, int nfsz);
 	vec paramFindNeighbors(double x_p, int xi);
 	vec crossPoint_migrlee(double xl, double xr, int max_it,int dir, double b1, double b2, double tol, int xi, int j);
@@ -35,8 +33,8 @@ private:
 	vec filter(int np, vec inp_arr);
 	void smooth_param(int np, int num);
 	vec fftBed(vec bed, int fftnum);
-	vector<complex<double> > fftbot(vec bed);
-	int maxloc_complex(vector<complex<double> > du);
+	std::vector<std::complex<double> > fftbot(vec bed);
+	int maxloc_complex(std::vector<std::complex<double> > du);
 	void avalanche(); //OLAV 2014 01 30
 	double detAlphaLag(vec ub, int method,int suppressoutput);
 	vec detDistributeFunc(double alpha_lag1,double deltax);
@@ -65,8 +63,8 @@ public:
 	void setMidSin(double amp, double length);
 	void setCustom(double amp, int n);
 	vec getShape(int sepflag);
-	vector<int> getFsz();
-	vector<double> getSr();
+	std::vector<int> getFsz();
+	std::vector<double> getSr();
 	double detint1(vec bed);
 	double detint2(vec bed);
 	vec detNd(vec bot);

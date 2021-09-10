@@ -7,7 +7,6 @@
 #include <vector>
 #include <fftw3.h>
 #include "linalg.h"
-using namespace std;
 
 class fft{
 private:
@@ -20,8 +19,8 @@ private:
 public:
 	fft(int Npx_in);
 	~fft();
-	void heen(vector<double> u_in,vector<complex<double> > &f_uit);
-	void terug(vector< complex<double> >f_in,vector<double> &u_uit);
+	void heen(std::vector<double> u_in, std::vector<std::complex<double> > &f_uit);
+	void terug(std::vector<std::complex<double> >f_in, std::vector<double> &u_uit);
 };
 
 #endif

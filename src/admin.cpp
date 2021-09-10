@@ -2,6 +2,8 @@
 
 #include "admin.h"
 
+using namespace std;
+
 namespace admin {
 
 int DebugOutput = 0;

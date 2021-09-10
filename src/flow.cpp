@@ -2,6 +2,9 @@
 
 #include "flow.h"
 
+using namespace std;
+using namespace admin;
+
 flow::flow(){
 	A=new spMat(nt,Npz+1);
 	prec=0;

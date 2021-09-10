@@ -2,6 +2,8 @@
 
 #include "fft.h"
 
+using namespace std;
+
 fft::fft(int Npx_in){
 	Npx=Npx_in;
 	Npxf=Npx/2+1;

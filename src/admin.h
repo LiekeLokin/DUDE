@@ -6,8 +6,6 @@
 #include <cmath>
 #include <iostream>
 
-using namespace std;
-
 extern double tijd; // JW wordt eigenlijk alleen gebruikt voor logging (en q_in interpolatie)
 extern double dz; // JW per definitie H/Npz
 extern double Av;
@@ -17,7 +15,7 @@ extern double L;
 extern double dx;
 extern double dt;
 //JW extern double q_in;
-extern ofstream outlog;
+extern std::ofstream outlog;
 
 namespace admin{
 	extern int DebugOutput; //2012 10 03 Olav

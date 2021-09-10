@@ -2,6 +2,8 @@
 
 #include "linalg.h"
 
+using namespace std;
+
 double interpolate(vec x,vec y,double x0){
 	int in_range = -999;
 	double y0;

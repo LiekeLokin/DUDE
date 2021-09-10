@@ -8,7 +8,6 @@
 #include "linalg.h"
 #include "admin.h"
 #include "Config.h"
-//#include "windows.h"
 #include <ctime>
 #include <cstring>
 
@@ -16,45 +15,47 @@
 #include <sstream>
 #include <string>
 
+using namespace admin;
+using namespace std;
+
 ofstream outlog("out_log.txt");
 
-double H=H0;
-double q_in=q_in1;
-//JW double Hi=H;
-double dt=dtr;
-//JW double ampbed=ampbeds;
-double L=1.;
-//JW double Hcrit=Hcrit_global; //Olav: origineel was 1., werd altijd 1 bij opgeteld, nu niet meer (2011 02 17)
-const double Hdiffi=H;
-//JW double Hdiff=H;
-//JW int doStab=0;
-//JW int readbed1=readbed;
+double H;
+double dt;
+double L;
+double dx;
+double dz;
+double tijd;
+double Av;
+double S;
 
-double dx=L/Npx;
-double dz=H/Npz;
-double tijd=0.;
-//JW double ustar=0.;
-double Av=0.;
-double S=0.;
-using namespace std;
-using namespace admin;
-void doStabAnalysis(int stabWrite);
-void doCheckQsp(vec bedflow);
+void copyConfigToAdmin(const Config& cfg);
+void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, double& q_in);
+void doCheckQsp(vec bedflow, flow& H2O, double& q_in);
 void setS_Av();
 double maxval(vec vinp);
-
-flow& H2O = *new flow();
-bottom& sand = *new bottom();
 
 int main (int argc, char * const argv[]) {
 
 std::string filename = (argc == 1) ? "config.cfg" : argv[1];
 Config cfg(filename);
 
-delete &H2O;
-H2O = *new flow();
-delete &sand;
-sand = *new bottom();
+copyConfigToAdmin(cfg);
+
+// Initialize global variables
+H = H0;
+dt = dtr;
+L = 1.0;
+dx = L / Npx;
+dz = H / Npz;
+tijd = 0.0;
+Av = 0.0;
+S = 0.0;
+
+double q_in = q_in1;
+
+flow H2O;
+bottom sand;
 
 if (dt_write==1.) {cerr<<endl<<endl<<endl<<endl<<endl<<"         ------ NOTE!! DT_WRITE==1!! -------"<<endl<<endl<<endl<<endl<<endl;}
 
@@ -65,7 +66,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	vec bedflow(Npx,0.0);
 	vec next(Npx,0.0);
 	vec state(nt,0.0);
-	vec u(nt,0.0); // hier zit �echte� snelheid in
+	vec u(nt,0.0); // hier zit "echte" snelheid in
 	vec u0_b(Npx,0.0);
 	double q_sp = 0.0;
 	vec bss1(Npx,0.0);
@@ -257,8 +258,8 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		if (readfw==1){q_in=interpolate(fw_t,fw_q,tijd);} // NEW STUFF, WRITTEN BY OLAV 2014
 
 		//OLAV: 2011 02 21 changed from 
-        //Hdiff=(H-Hdiffi)/Hdiffi;
-		const auto Hdiff=abs((H-Hdiffi)/Hdiffi); //equals 0 when exactly the same, 1 when the difference is 100%
+        //Hdiff=(H-H0)/H0;
+		const auto Hdiff=abs((H-H0)/H0); //equals 0 when exactly the same, 1 when the difference is 100%
 		const auto Hcrit = Hcrit_global;
 		cerr<<"Hdiff = " <<Hdiff <<" (Hcrit = "<<Hcrit<<")"<<endl;
 
@@ -271,7 +272,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		if (SimpleLength==0) { // OLAV 2012 09 06: added simple length implementation
 		   if ( (i==iinit1&&readbed==0) || doStab==1) {
 			  outlog<<"T="<<tijd<<" - WARNING: Stability Analysis. (Hdiff="<<Hdiff<<")"<<endl;
-			  doStabAnalysis(stabWrite);
+			  doStabAnalysis(stabWrite, H2O, sand, q_in);
 			  stabWrite=0;
 			  //OLAV: 2013 02 06 added doStab=0;
 			  doStab=0; 
@@ -288,7 +289,6 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			//cerr << "dx: " << dx << endl;
 	        setS_Av();
 	        dt=dtr;
-	        //JW Hdiffi=H;
 			doStab=0;
         }
 
@@ -339,7 +339,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			H2O.solve(bedflow);
 		}
 
-		doCheckQsp(bedflow);
+		doCheckQsp(bedflow, H2O, q_in);
 	  	H2O.u_b(u0_b);
 		
 		//cerr << "current: " << current[0] << " bedflow: " << bedflow[0] << endl; //OLAV 2014 03 31
@@ -470,9 +470,69 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
   outlog<<"run initialized; this file may be safely deleted"<<endl;
 
 }
-	delete &H2O;
-	delete &sand;
 	return 0;
+}
+
+void copyConfigToAdmin(const Config& cfg) {
+	DebugOutput = cfg.DebugOutput;
+	Npx = cfg.Npx;
+	Npz = cfg.Npz;
+	dtr = cfg.dtr;
+	dt_write = cfg.dt_write;
+	tend = cfg.tend;
+	ampbeds_factor = cfg.ampbeds_factor;
+	AllowFlowSep = cfg.AllowFlowSep;
+	AllowAvalanching = cfg.AllowAvalanching;
+	SimpleLength = cfg.SimpleLength;
+	SimpleLengthFactor = cfg.SimpleLengthFactor;
+	numStab = cfg.numStab;
+	Hifactor = cfg.Hifactor;
+	Hcrit_global = cfg.Hcrit_global;
+	transport_eq = cfg.transport_eq;
+	alpha_varies = cfg.alpha_varies;
+	alpha_lag = cfg.alpha_lag;
+	moeilijkdoen = cfg.moeilijkdoen;
+	correction_NT = cfg.correction_NT;
+	Npsl_min = cfg.Npsl_min;
+	stle_factor = cfg.stle_factor;
+
+	q_in1 = cfg.q_in1;
+	H0 = cfg.H0;
+	ii = cfg.ii;
+	D50 = cfg.D50;
+	thetacr = cfg.thetacr;
+	dts = cfg.dts;
+	nd = cfg.nd;
+	readbed = cfg.readbed;
+	readfw = cfg.readfw;
+
+	sepcritangle = cfg.sepcritangle;
+	g = cfg.g;
+	kappa = cfg.kappa;
+	tt = cfg.tt;
+	tresh = cfg.thresh;
+	max_it = cfg.max_it;
+
+	denswater = cfg.denswater;
+	epsilonp = cfg.epsilonp;
+	repose = cfg.repose;
+	m = cfg.m;
+	be = cfg.be;
+	F0 = cfg.F0;
+	A2_geom = cfg.A2_geom;
+	A3_geom = cfg.A3_geom;
+	k2 = cfg.k2;
+
+	alpha_2 = cfg.alpha_2;
+	alpha_min_SK = cfg.alpha_min_SK;
+	alpha_max_SK = cfg.alpha_max_SK;
+
+	alpha_min_S = cfg.alpha_min_S;
+	alpha_max_S = cfg.alpha_max_S;
+	theta_min_S = cfg.theta_min_S;
+	theta_max_S = cfg.theta_max_S;
+	H_ref = cfg.H_ref;
+	keepsgrowing = cfg.keepsgrowing;
 }
 
 double maxval(vec vinp) {
@@ -485,7 +545,7 @@ double maxval(vec vinp) {
 	return nm;
 }
 
-void doStabAnalysis(int stabWrite){
+void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, double& q_in){
 	int num=numStab; int cols=4;
 	// JW vector<vector<double> > dta(num+1,cols);
 	vector<vector<double> > dta(num+1,vector<double>(cols));
@@ -516,7 +576,7 @@ void doStabAnalysis(int stabWrite){
 		H2O.resetIu();
 		H2O.solve(bedstab);
 		if (p==0) {
-			doCheckQsp(bedstab);
+			doCheckQsp(bedstab, H2O, q_in);
 			cerr<<"H = "<<H<<"m"<<endl;
 		}
 		H2O.u_b(ubed);
@@ -579,10 +639,9 @@ void doStabAnalysis(int stabWrite){
 	cerr<<"Finished the stability analysis"<<endl<<endl;
 	cerr<<"L = "<<L<<endl;
 	cerr<<"H = "<<H<<endl;
-	// JW Hdiffi=H;
 }
 
-void doCheckQsp(vec bedflow){
+void doCheckQsp(vec bedflow, flow& H2O, double& q_in){
 	//checken van de specifieke afvoer
 	double q_sp=H2O.check_qsp();
 	cerr<<"check of specific discharge: "<<q_sp<<endl;

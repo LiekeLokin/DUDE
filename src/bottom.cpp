@@ -4,6 +4,9 @@
 #include <iomanip>
 #include <iostream> //OLAV
 
+using namespace std;
+using namespace admin;
+
 bottom::bottom(){
 	b=new vec(Npx,0.0);
 	bp=new vec(Npx,0.0);

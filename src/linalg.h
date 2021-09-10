@@ -6,12 +6,11 @@
 #include <map>
 #include <iostream>
 #include <cmath>
-using namespace std;
 
-#define mat vector<vector<double> >
-#define vec vector<double>
+#define mat std::vector<std::vector<double> >
+#define vec std::vector<double>
 
-ostream& operator<<(ostream&, const vec&);
+std::ostream& operator<<(std::ostream&, const vec&);
 class crLU{
 	public:
 		crLU(const mat &fm,int s);
@@ -41,7 +40,7 @@ class spMat{
 		~spMat();
 		void rmrow(int rj);
 		crLU LU();//destroys original matrix contents.
-		map<int,double* > *r;
+		std::map<int,double* > *r;
 		int bw;
 		int nrows;
 };
@@ -52,7 +51,7 @@ class crMat{
 		~crMat();
 		vec matvec(const vec &v);
 		vec colmatvec(const mat &v,int s,int c);
-		friend ostream& operator<<(ostream&, const crMat&);
+		friend std::ostream& operator<<(std::ostream&, const crMat&);
 	private:
 		int lvc;
 		int lri;
