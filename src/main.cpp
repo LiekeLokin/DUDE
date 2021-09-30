@@ -54,38 +54,31 @@ S = 0.0;
 
 double q_in = q_in1;
 
-flow H2O;
-bottom sand;
+flow H2O(Npx, Npz);
+bottom sand(Npx);
 
 if (dt_write==1.) {cerr<<endl<<endl<<endl<<endl<<endl<<"         ------ NOTE!! DT_WRITE==1!! -------"<<endl<<endl<<endl<<endl<<endl;}
 
 for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 
 	cerr.precision(16);
-	vec current(Npx,0.0);
-	vec bedflow(Npx,0.0);
-	vec next(Npx,0.0);
-	vec state(nt,0.0);
-	vec u(nt,0.0); // hier zit "echte" snelheid in
-	vec u0_b(Npx,0.0);
-	double q_sp = 0.0;
-	vec bss1(Npx,0.0);
-	vec bss2(Npx,0.0);
-	vec fluxtot(Npx,0.0);
-	vec dhdx(Npx,0.0);
-	vector<int> stateFsz(nf,0);
-	vec stateSr(nf2,0.0);
-	vec stateZeta(Npx,0.0);
+	//vec current(Npx,0.0);
+	//vec bedflow(Npx,0.0);
+	//vec next(Npx,0.0);
+	//vec u(nt,0.0); // hier zit "echte" snelheid in
+	//vec u0_b(Npx,0.0);
+	//vec bss1(Npx,0.0);
+	//vec bss2(Npx,0.0);
+	//vec fluxtot(Npx,0.0);
+	//vec dhdx(Npx,0.0);
 	int n_it_fl=0;
-	int n_it_b=0;
-	vec Dc(3,0.0);
-	int Nd=0; // number of dunes in domain
-	double norm=0.0;
-	double bint1; double bint2; double zetaint1; double zetaint2;
-	int solve_method=0; // determine in CheckFlowsep (=1 if bottom changes strongly)
+	//int Nd=0; // number of dunes in domain
+	//double norm=0.0;
+	//double bint1; double bint2; double zetaint1; double zetaint2;
+	//int solve_method=0; // determine in CheckFlowsep (=1 if bottom changes strongly)
 	int sepflag=0;
-	int nfsz=0;
-	cerr<<nt<<" is de dimensie van de matrix"<<endl;
+	//int nfsz=0;
+	//cerr<<nt<<" is de dimensie van de matrix"<<endl;
 	cerr<<F<<endl;
 	sand.setSin(ampbeds,1);
 //	sand.setRand(0.1*D50,(unsigned)time(0));
@@ -217,7 +210,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	data<<H<<endl<<L<<endl<<Npx<<endl<<dx<<endl<<Npz<<endl<<dz<<endl<<dt<<endl<<dt_write<<endl<<Av<<endl<<S<<endl<<q_in<<endl<<F<<endl<<1<<endl<<alpha<<endl<<be<<endl<<l1<<endl<<l2<<endl<<nd<<endl<<readfw;
 	data.close();
 
-	current=sand.getShape(sepflag);
+	auto current=sand.getShape(sepflag);
 
 	int write_teller = int(dt_write/dt);
 	int cor=1; if (dt_write==dt) cor=0;
@@ -243,7 +236,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	//OLD STUFF, WRITTEN BEFORE OLAV AND SULEYMAN
 	*/
 
-	bedflow=current;
+	auto bedflow=current;
 
   	struct tm  ts;
   	time_t     now;
@@ -293,18 +286,19 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
         }
 
 		//q_in=qa[i];
-	  	n_it_b=0;
 	  	
 	  	//2012 09 13 Olav 
 		if(AllowFlowSep == 1){ 
 			sand.checkFlowsep(); 
 		}
-	  	//2012 09 13 Olav  
-	  	stateFsz=sand.getFsz();
-	  	solve_method=stateFsz[nf-3];
+
+		//2012 09 13 Olav
+		const auto& stateFsz=sand.getFsz();
+		const auto nf = stateFsz.size();
+		int solve_method=stateFsz[nf-3];
 		sepflag=stateFsz[nf-2];
-		nfsz=stateFsz[nf-1];//} 	
-		
+		int nfsz=stateFsz[nf-1];//}
+
 		current=sand.getShape(0); // for determination of migration rate
 		bedflow=sand.getShape(sepflag);
 
@@ -340,6 +334,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		}
 
 		doCheckQsp(bedflow, H2O, q_in);
+		vec u0_b(Npx);
 	  	H2O.u_b(u0_b);
 		
 		//cerr << "current: " << current[0] << " bedflow: " << bedflow[0] << endl; //OLAV 2014 03 31
@@ -347,7 +342,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	  	if(write_teller==dt_write/dt){
 			//H2O.write_velocities(tijd,sand.getShape(sepflag),u0_b); //TEST: uncommented at 2011 03 21 (OLAV)
 			//H2O.write_zeta(tijd); 
-			stateZeta=H2O.getZeta();
+			const auto& stateZeta=H2O.getZeta();
 			outzeta<<tijd<<" ";	for(int i=0;i<stateZeta.size();i++)outzeta<<stateZeta[i]<<" "; outzeta<<endl;
 			//2014 01 27: changed q_sp to q_in
 			outbot<<tijd<<" "<<sepflag<<" "<<nfsz<<" "<<q_in<<" "<<H<<" "<<L<<" "; for(int i=0;i<current.size();i++)outbot<<current[i]<<" "; outbot<<endl;
@@ -358,12 +353,12 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		
 		//cerr << "bint1: " << bint1 << " bint2: " << bint2 << endl; //OLAV 2014 03 31
 
-		bint1=sand.detint1(current);
-		bint2=sand.detint2(current);
-		zetaint1=H2O.zetaint1();
-		zetaint2=H2O.zetaint2();
-		Dc=sand.detNd_fft(sand.getShape(0),2); // dune characteristics
-		Nd=int(Dc[0]);
+		auto bint1=sand.detint1(current);
+		auto bint2=sand.detint2(current);
+		auto zetaint1=H2O.zetaint1();
+		auto zetaint2=H2O.zetaint2();
+		const auto& Dc=sand.detNd_fft(sand.getShape(0),2); // dune characteristics
+		auto Nd=int(Dc[0]);
 		double cr=Dc[1];
 		double tr=Dc[2];
 		double Hav=cr-tr;
@@ -371,6 +366,11 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		
 		//cerr << "Hav: " << Hav << endl; //OLAV 2014 03 31
 
+		vec next;
+		vec bss1(Npx);
+		vec bss2(Npx);
+		vec fluxtot(Npx);
+		vec dhdx(Npx);
 		if (transport_eq==1 || transport_eq==3 ){
 			if (sepflag==0){
 				next=sand.update(u0_b,bss1,fluxtot,dhdx);
@@ -396,14 +396,14 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		//outint<<tijd<<" "<<H<<" "<<bint1<<" "<<bint2<<" "<<zetaint1<<" "<<zetaint2<<endl;
 
 	  	if(write_teller==dt_write/dt-cor){
-			stateFsz=sand.getFsz();
-			stateSr=sand.getSr();
+			const auto& stateFsz=sand.getFsz();
+			const auto& stateSr=sand.getSr();
 			//wegschrijven fsz:
 			outfsz<<tijd<<" ";		for(int i=0;i<stateFsz.size();i++)outfsz<<stateFsz[i]<<" "; outfsz<<endl;
 			outSround<<tijd<<" "; for(int i=0;i<stateSr.size();i++)outSround<<stateSr[i]<<" "; outSround<<endl;
 		}
 
-  	if(write_teller==dt_write/dt){
+	  	if(write_teller==dt_write/dt){
 			outint<<tijd<<" "<<H<<" "<<bint1<<" "<<bint2<<" "<<zetaint1<<" "<<zetaint2<<" "<<cr<<" "<<tr<<" "<<Nd<<" "<<mig<<" "<<flux_av<<endl;
 			outflux<<tijd<<" ";    for(int i=0;i<fluxtot.size();i++)outflux<<fluxtot[i]<<" "; outflux <<endl;
 			outdhdx<<tijd<<" ";    for(int i=0;i<dhdx.size();   i++)outdhdx<<dhdx[i]   <<" "; outdhdx <<endl;
@@ -412,29 +412,31 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			write_teller = 0;
 		}
 
-	vec verschil(nt);
-	for(int k=0;k<nt;k++)verschil[k]=next[k]-current[k];
-	norm=L2(verschil);
-    sand.setShape(next);
+	  	const auto nt = next.size();
+	  	vec verschil(nt);
+	  	for(int k=0;k<nt;k++)verschil[k]=next[k]-current[k];
+	  	auto norm=L2(verschil);
+	  	sand.setShape(next);
 
-    current=next;
-   	tijd+=dt;
+	  	current=next;
+	  	tijd+=dt;
 
-	cerr<<"flowsolver "<<tijd<<" seconden ("<<tijd/60.<<" min)"<<"	onderweg"<<endl;
-	cerr<<"number of flow iteration required: "<<n_it_fl<<endl;
-	cerr<<"sepflag: "<<sepflag<<"; nfsz: "<<nfsz<<endl;
-	cerr<<"Nd: "<<Nd;
-	cerr<<"; wd: "<<H;
-	cerr<<"; Lav: "<<Lav;
-	cerr<<"; Hav: "<<Hav<<endl;
-	cerr<<"integral of bed: "<<bint1<<endl;
-	cerr<<"bodem ge update met (L2) : "<<norm<<" tot (L2) : "<<L2(next)<<endl<<endl;
+	  	cerr<<"flowsolver "<<tijd<<" seconden ("<<tijd/60.<<" min)"<<"	onderweg"<<endl;
+	  	cerr<<"number of flow iteration required: "<<n_it_fl<<endl;
+	  	cerr<<"sepflag: "<<sepflag<<"; nfsz: "<<nfsz<<endl;
+	  	cerr<<"Nd: "<<Nd;
+	  	cerr<<"; wd: "<<H;
+	  	cerr<<"; Lav: "<<Lav;
+	  	cerr<<"; Hav: "<<Hav<<endl;
+	  	cerr<<"integral of bed: "<<bint1<<endl;
+	  	cerr<<"bodem ge update met (L2) : "<<norm<<" tot (L2) : "<<L2(next)<<endl<<endl;
 
-	write_teller+=1;
-		
-	if(Hav<2.*ampbeds){sand.setSin(ampbeds,1);
-				   cerr<<"Hav very low, bed set to initial disturbance."<<endl<<endl;
-				  }
+	  	write_teller+=1;
+
+	  	if(Hav<2.*ampbeds) {
+	  		sand.setSin(ampbeds,1);
+	  		cerr<<"Hav very low, bed set to initial disturbance."<<endl<<endl;
+	  	}
 	}
 	
     sand.writeBottom();
@@ -508,22 +510,34 @@ void copyConfigToAdmin(const Config& cfg) {
 
 	sepcritangle = cfg.sepcritangle;
 	g = cfg.g;
+	F = g * ii;
 	kappa = cfg.kappa;
 	tt = cfg.tt;
 	tresh = cfg.thresh;
 	max_it = cfg.max_it;
 
 	denswater = cfg.denswater;
+	sgsand = denssand / denswater;
+	delta = sgsand - 1;
+	ampbeds = ampbeds_factor * D50;
 	epsilonp = cfg.epsilonp;
 	repose = cfg.repose;
 	m = cfg.m;
+	alpha = m / (delta * g);
 	be = cfg.be;
+	l1 = 1.9 * D50;
+	l2 = 1 / tan(-repose);
 	F0 = cfg.F0;
+	F0_dim = correction_NT * F0 * sqrt(g * delta / D50);
+	meanstle = alpha_lag * D50;
 	A2_geom = cfg.A2_geom;
 	A3_geom = cfg.A3_geom;
 	k2 = cfg.k2;
 
 	alpha_2 = cfg.alpha_2;
+	D_star  = D50 * cbrt(g * delta / (nu * nu));
+	w_s = nu / D50 * (pow(pow(10.36, 2) + 1.049 * pow(D_star, 3),(1./2.)) - 10.36);
+	u_star_cr = sqrt(thetacr * g * delta * D50);
 	alpha_min_SK = cfg.alpha_min_SK;
 	alpha_max_SK = cfg.alpha_max_SK;
 

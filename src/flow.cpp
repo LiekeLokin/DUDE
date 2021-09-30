@@ -1,11 +1,13 @@
 // flow.cpp
 
 #include "flow.h"
+#include "admin.h"
 
 using namespace std;
 using namespace admin;
 
-flow::flow(){
+
+flow::flow(int Npx, int Npz) : Npx(Npx), Npz(Npz), nt(Npx*(Npz+1)) {
 	A=new spMat(nt,Npz+1);
 	prec=0;
 	b=new vec(nt,0.0);
@@ -58,6 +60,27 @@ void flow::reprec(){
 	prec=0;
 }
 
+int flow::o(int j_ex,int i_ex,int v) const {
+	/*geeft het adres van component a, van var. v bij x is i en z is j*/
+	int j,i = 0;
+	if(v==1)cerr<<"w staat niet op de kaart !!!"<<endl;
+	if(v==2){
+		if(j_ex!=0)cout<<"zeta te hoog gegrepen"<<endl;
+		j=0;
+		v=1;
+	}
+	else j=j_ex;
+	if(j<0||j>=Npz)cout<<"j mag natuurlijk geen "<<j<<"zijn"<<endl;
+	if(i_ex>=0&&i_ex<Npx)i=i_ex;
+	else{
+		if(i_ex==-1)i=Npx-1;
+		else{
+			if(i_ex==Npx)i=0;
+			else cout<<"Te groot "<<i_ex<<" , "<<j<<endl;
+		}
+	}
+	return int(i*(Npz+1)+j+v*Npz);
+}
 void flow::det_AvS(vec bottom_state){
 	//bsp = bottom_state with parameterization
 	for(int i=0;i<Npx;i++){

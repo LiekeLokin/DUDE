@@ -178,11 +178,11 @@ namespace admin{
 	/*
 	 * Array defintion
 	 */
-	extern int nt;
-	extern int nf;
-	extern int nf2;
-	int o(int j_ex,int i_ex,int v);
+//	extern int nt;
+//	extern int nf;
+//	extern int nf2;
+//	int o(int j_ex,int i_ex,int v);
 	int o2(int i_ex);
-	int o3(int i_in);
+//	int o3(int i_in);
 }
 #endif

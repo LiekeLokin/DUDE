@@ -3,12 +3,14 @@
 #ifndef _FLOW_H
 #define _FLOW_H
 #include "linalg.h"
-#include "admin.h"
 #include <fstream>
 #include <cstdlib>
 
 class flow{
 	private:
+		const int Npx;
+		const int Npz;
+		const int nt;
 		spMat *A;
 		crLU *prLU;
 		int prec;
@@ -20,6 +22,7 @@ class flow{
 		vec *Avx;
 		vec *Sx;
 		/*spMat *Am;*/
+		int o(int j_ex,int i_ex,int v) const;
 		void zl(int r,int i);
 		void zr(int r,int i);
 		void wl(int r,int j_ex,int i);
@@ -51,7 +54,8 @@ class flow{
 		void dzs_init(vec bottom_state);
 		void det_AvS(vec bottom_state);
 	public:
-		flow();
+		flow() = delete;
+		flow(int Npx, int Npz);
 		~flow();
 		int solve(vec bottom_state);
 		int solve_gm(vec bottom_state,int gmn);

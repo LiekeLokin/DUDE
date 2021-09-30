@@ -6,18 +6,21 @@
 #include <fstream>
 #include <cstdlib>
 #include <vector>
+#include <complex>
 #include "linalg.h"
-#include "admin.h"
-#include "fft.h"
 
 class bottom{
 private:
+	const int Npx;
+	const int nf;
+	const int nf2;
 	vec *b;
 	vec *bp;
 	vec *flux;
 	vec *x;
 	vec *Sr;
 	std::vector<int> *fsz;
+	int o3(int i_in) const;
 	void detQ(vec ub, vec &dhdx);
 	void detQcr(vec ub, vec &dhdx);
 	void sep_migr_lee(vec flux, vec oldb);
@@ -40,7 +43,8 @@ private:
 	vec detDistributeFunc(double alpha_lag1,double deltax);
 
 public:
-	bottom();
+	bottom() = delete;
+	bottom(int Npx);
 	~bottom();
 	vec update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx);
 	vec update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &dhdx);

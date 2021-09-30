@@ -1,13 +1,15 @@
 // bottom.cpp
 
 #include "bottom.h"
+#include "admin.h"
+#include "fft.h"
 #include <iomanip>
 #include <iostream> //OLAV
 
 using namespace std;
 using namespace admin;
 
-bottom::bottom(){
+bottom::bottom(int Npx) : Npx(Npx), nf((int(ceil(Npx/10+1)))*7+2), nf2(int(ceil(Npx/10+1))) {
 	b=new vec(Npx,0.0);
 	bp=new vec(Npx,0.0);
 	flux=new vec(Npx,0.0);
@@ -22,6 +24,23 @@ bottom::~bottom(){
 	delete x;
 	delete fsz;
 	delete Sr;
+}
+
+int bottom::o3(int i_in) const {
+	/*adres vertaling voor periodieke rvw ten behoeve van parameterisatie*/
+	int i_uit = i_in;
+
+	if (i_in>=Npx) i_uit = i_in-Npx;
+	if (i_in<0) i_uit = i_in+Npx;
+
+	if (i_uit>=0 && i_uit<Npx)
+	 	{return i_uit;} // alleen dan return (want dan 0<=i<Npx)
+	 					// zoniet print error
+	else {
+		cerr<<"  ERROR: o3() buffer overflow (i_in="<<i_in<<"; i_uit="<<i_uit<<")"<<endl;
+		cout<<"T="<<tijd<<" - ERROR: o3() buffer overflow (i_in="<<i_in<<"; i_uit="<<i_uit<<")"<<endl;
+        return i_uit;
+	}
 }
 
 /*
