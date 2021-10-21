@@ -508,7 +508,7 @@ void copyConfigToAdmin(const Config& cfg) {
 	readbed = cfg.readbed;
 	readfw = cfg.readfw;
 
-	sepcritangle = cfg.sepcritangle;
+	sepcritangle = cfg.sepcritangle * grad_2_deg;
 	g = cfg.g;
 	F = g * ii;
 	kappa = cfg.kappa;
@@ -521,12 +521,13 @@ void copyConfigToAdmin(const Config& cfg) {
 	delta = sgsand - 1;
 	ampbeds = ampbeds_factor * D50;
 	epsilonp = cfg.epsilonp;
-	repose = cfg.repose;
+	repose = cfg.repose * grad_2_deg;
 	m = cfg.m;
 	alpha = m / (delta * g);
 	be = cfg.be;
 	l1 = 1.9 * D50;
-	l2 = 1 / tan(-repose);
+	//l2 = 1 / tan(-repose);
+	l2 = 1.73;
 	F0 = cfg.F0;
 	F0_dim = correction_NT * F0 * sqrt(g * delta / D50);
 	meanstle = alpha_lag * D50;
