@@ -3,8 +3,7 @@
 #ifndef _ADMIN_H
 #define _ADMIN_H
 
-#include <cmath>
-#include <iostream>
+#include <iosfwd>
 
 extern double tijd; // JW wordt eigenlijk alleen gebruikt voor logging (en q_in interpolatie)
 extern double dz; // JW per definitie H/Npz
@@ -14,7 +13,6 @@ extern double H;
 extern double L;
 extern double dx;
 extern double dt;
-//JW extern double q_in;
 extern std::ofstream outlog;
 
 namespace admin{
@@ -96,8 +94,6 @@ namespace admin{
 	 */
 	extern double sepcritangle;
 		// bed angle at which flow separation sets in (degrees) -10
-	const double grad_2_deg = 360./(2.*M_PI);
-		// help variable for grad to degress
 	extern double g;
 		// acceleration of gravity
 	extern double F;
@@ -176,13 +172,8 @@ namespace admin{
 	extern int keepsgrowing;
 	
 	/*
-	 * Array defintion
+	 * Used in both flow.cpp and bottom.cpp
 	 */
-//	extern int nt;
-//	extern int nf;
-//	extern int nf2;
-//	int o(int j_ex,int i_ex,int v);
 	int o2(int i_ex);
-//	int o3(int i_in);
 }
 #endif

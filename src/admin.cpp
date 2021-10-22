@@ -1,6 +1,8 @@
 // admin.cpp
 
 #include "admin.h"
+#include <cmath>
+#include <iostream>
 
 using namespace std;
 

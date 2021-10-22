@@ -9,6 +9,10 @@
 using namespace std;
 using namespace admin;
 
+namespace {
+const double grad_2_deg = 360./(2.*M_PI);
+	// help variable for grad to degress
+}
 bottom::bottom(int Npx) : Npx(Npx), nf((int(ceil(Npx/10+1)))*7+2), nf2(int(ceil(Npx/10+1))) {
 	b=new vec(Npx,0.0);
 	bp=new vec(Npx,0.0);
@@ -345,7 +349,7 @@ void bottom::checkFlowsep(){
 	int skipped=0; // keeps track # of skipped fsz that are too small
 	int newwave=0;  // new fsz's due to wavelet generation
 	int wavelet=0;
-	double sepcritangle1 = tan(sepcritangle/grad_2_deg);
+	double sepcritangle1 = tan(sepcritangle);
 	int iinit = 0;
 
 //	ofstream outdebug;
@@ -1413,7 +1417,7 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 		//Smoothing OLAV 2014 04 14
 		int sepsmooth=0;
 		for(int i=0;i<Npx;i++){
-			if(dhdx[i]<tan(sepcritangle/grad_2_deg)){sepsmooth=1;}
+			if(dhdx[i]<tan(sepcritangle)){sepsmooth=1;}
 		}
 		
 		int poscr=-1;
@@ -2082,7 +2086,7 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 		double tol=itol;
 		// double repose=-30.;
 		// recalculate to r.c.'s
-		double repose1=tan(repose/grad_2_deg);
+		double repose1=tan(repose);
 		double b1 = repose1;
 		double b2 = ysep;
 		int dir = 1;  // 1 = left2right; 2 = right2left
@@ -2964,7 +2968,7 @@ vec bottom::detDistributeFunc(double alpha_lag1,double deltax){
 // }
 
 void bottom::avalanche(){
-	double reposeangle1 = tan(repose/grad_2_deg); //double sepcritangle1 = tan(sepcritangle/grad_2_deg); //sepcritangle=-10.;
+	double reposeangle1 = tan(repose); //double sepcritangle1 = tan(sepcritangle); //sepcritangle=-10.;
 	double reposeangleplus = 0.99*reposeangle1;
 	double deltab; 
 	int reposefound;

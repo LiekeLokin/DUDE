@@ -30,12 +30,14 @@ double Av;
 double S;
 
 void copyConfigToAdmin(const Config& cfg);
-void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, double& q_in);
-void doCheckQsp(vec bedflow, flow& H2O, double& q_in);
+void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in);
+void doCheckQsp(vec bedflow, flow& H2O, const double& q_in);
 void setS_Av();
 double maxval(vec vinp);
 
 int main (int argc, char * const argv[]) {
+
+cerr.precision(16);
 
 std::string filename = (argc == 1) ? "config.cfg" : argv[1];
 Config cfg(filename);
@@ -61,24 +63,6 @@ if (dt_write==1.) {cerr<<endl<<endl<<endl<<endl<<endl<<"         ------ NOTE!! D
 
 for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 
-	cerr.precision(16);
-	//vec current(Npx,0.0);
-	//vec bedflow(Npx,0.0);
-	//vec next(Npx,0.0);
-	//vec u(nt,0.0); // hier zit "echte" snelheid in
-	//vec u0_b(Npx,0.0);
-	//vec bss1(Npx,0.0);
-	//vec bss2(Npx,0.0);
-	//vec fluxtot(Npx,0.0);
-	//vec dhdx(Npx,0.0);
-	int n_it_fl=0;
-	//int Nd=0; // number of dunes in domain
-	//double norm=0.0;
-	//double bint1; double bint2; double zetaint1; double zetaint2;
-	//int solve_method=0; // determine in CheckFlowsep (=1 if bottom changes strongly)
-	int sepflag=0;
-	//int nfsz=0;
-	//cerr<<nt<<" is de dimensie van de matrix"<<endl;
 	cerr<<F<<endl;
 	sand.setSin(ampbeds,1);
 //	sand.setRand(0.1*D50,(unsigned)time(0));
@@ -210,7 +194,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	data<<H<<endl<<L<<endl<<Npx<<endl<<dx<<endl<<Npz<<endl<<dz<<endl<<dt<<endl<<dt_write<<endl<<Av<<endl<<S<<endl<<q_in<<endl<<F<<endl<<1<<endl<<alpha<<endl<<be<<endl<<l1<<endl<<l2<<endl<<nd<<endl<<readfw;
 	data.close();
 
-	auto current=sand.getShape(sepflag);
+	auto current=sand.getShape(0);
 
 	int write_teller = int(dt_write/dt);
 	int cor=1; if (dt_write==dt) cor=0;
@@ -296,12 +280,13 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		const auto& stateFsz=sand.getFsz();
 		const auto nf = stateFsz.size();
 		int solve_method=stateFsz[nf-3];
-		sepflag=stateFsz[nf-2];
+		int sepflag=stateFsz[nf-2];
 		int nfsz=stateFsz[nf-1];//}
 
 		current=sand.getShape(0); // for determination of migration rate
 		bedflow=sand.getShape(sepflag);
 
+		int n_it_fl=0;
 		if (i==iinit1) {
 			cerr<<"Eerste keer stroming oplossing met SOLVE"<<endl;
 			outlog<<"Eerste keer stroming oplossing met SOLVE"<<endl;
@@ -320,7 +305,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			n_it_fl=H2O.solve(bedflow);
 	  		cerr<<"number of flow iteration required: "<<n_it_fl<<endl;}
 		else {
-		n_it_fl=H2O.solve_gm(bedflow,20); }
+			n_it_fl=H2O.solve_gm(bedflow,20); }
 		if (n_it_fl==-1) {
 			ofstream outtemp("out_temp.txt");
 			vec bedtemp(Npx,0.);
@@ -508,7 +493,7 @@ void copyConfigToAdmin(const Config& cfg) {
 	readbed = cfg.readbed;
 	readfw = cfg.readfw;
 
-	sepcritangle = cfg.sepcritangle * grad_2_deg;
+	sepcritangle = cfg.sepcritangle;
 	g = cfg.g;
 	F = g * ii;
 	kappa = cfg.kappa;
@@ -521,7 +506,7 @@ void copyConfigToAdmin(const Config& cfg) {
 	delta = sgsand - 1;
 	ampbeds = ampbeds_factor * D50;
 	epsilonp = cfg.epsilonp;
-	repose = cfg.repose * grad_2_deg;
+	repose = cfg.repose;
 	m = cfg.m;
 	alpha = m / (delta * g);
 	be = cfg.be;
@@ -560,7 +545,7 @@ double maxval(vec vinp) {
 	return nm;
 }
 
-void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, double& q_in){
+void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in){
 	int num=numStab; int cols=4;
 	// JW vector<vector<double> > dta(num+1,cols);
 	vector<vector<double> > dta(num+1,vector<double>(cols));
@@ -656,7 +641,7 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, double& q_in){
 	cerr<<"H = "<<H<<endl;
 }
 
-void doCheckQsp(vec bedflow, flow& H2O, double& q_in){
+void doCheckQsp(vec bedflow, flow& H2O, const double& q_in){
 	//checken van de specifieke afvoer
 	double q_sp=H2O.check_qsp();
 	cerr<<"check of specific discharge: "<<q_sp<<endl;
@@ -682,7 +667,7 @@ void doCheckQsp(vec bedflow, flow& H2O, double& q_in){
 		q_sp=H2O.check_qsp();
 		q_dif=q_sp-q_in;
 		cerr<<"q_dif = " <<q_dif<<" (q_in = "<<q_in<<")"<<endl;
-		cerr<<"check of specific discharge: "<<endl<<q_sp<<endl;
+		cerr<<"recheck of specific discharge: "<<q_sp<<endl;
 	}
 }
 

@@ -312,7 +312,7 @@ int flow::solve_gm(vec bottom_state,int gmn){
 		residu=gmres(x0,rhs,crA,*prLU,gmn);
 		gmrestel++;
 	}
-	cerr<<"gmres restarted "<<gmrestel<<" times"<<endl;
+	if(gmrestel>0) cerr<<"part 1, gmres restarted "<<gmrestel<<" times"<<endl;
 	if(gmrestel>2){
 		cerr<<"  WARNING: solve_gm, part 1, gmrestel="<<gmrestel<<endl;
 		cerr<<"  now routine SOLVE called"<<endl;
@@ -343,7 +343,7 @@ int flow::solve_gm(vec bottom_state,int gmn){
 			residu=gmres(x0,rhs,crA,*prLU,gmn);
 			gmrestel++;
 		}
-		cerr<<"gmres restarted "<<gmrestel<<" times"<<endl;
+		if(gmrestel>0) cerr<<"part 2, gmres restarted "<<gmrestel<<" times"<<endl;
 		if(gmrestel>2){
 			cerr<<"  WARNING.. solve_gm, part 2, gmrestel="<<gmrestel<<endl;
 			cerr<<"  now routine SOLVE called"<<endl;
@@ -358,7 +358,7 @@ int flow::solve_gm(vec bottom_state,int gmn){
 		}
 		else *b=rhs;
 		resid=L2(*b);
-		cerr<<"Newton residu "<<resid<<endl;
+		//cerr<<"Newton residu "<<resid<<endl;
 		vulu();
 		teller++;
 	}
