@@ -108,6 +108,7 @@ Config::Config(const std::string& path) {
 			ASSIGN(correction_NT);
 			ASSIGN(Npsl_min);
 			ASSIGN(stle_factor);
+			ASSIGNBOOL(write_velocities);
 
 			ASSIGN(q_in1);
 			ASSIGN(H0);

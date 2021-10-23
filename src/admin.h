@@ -62,6 +62,7 @@ namespace admin{
     extern double correction_NT; // correction factor sediment flux N&T (TEST OLAV 2011 03 17)
 	extern int Npsl_min; //for N&T
 	extern int stle_factor; //for N&T
+	extern bool write_velocities;
 	
     /* 
 	 * Simulation dependent parameters

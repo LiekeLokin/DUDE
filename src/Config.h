@@ -39,6 +39,7 @@ public:
 	double correction_NT;
 	int Npsl_min;
 	int stle_factor;
+	bool write_velocities;
 
 	double q_in1;
 	double H0;

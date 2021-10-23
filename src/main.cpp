@@ -320,21 +320,31 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 
 		doCheckQsp(bedflow, H2O, q_in);
 		vec u0_b(Npx);
-	  	H2O.u_b(u0_b);
+		H2O.u_b(u0_b);
 		
 		//cerr << "current: " << current[0] << " bedflow: " << bedflow[0] << endl; //OLAV 2014 03 31
 
-	  	if(write_teller==dt_write/dt){
-			//H2O.write_velocities(tijd,sand.getShape(sepflag),u0_b); //TEST: uncommented at 2011 03 21 (OLAV)
-			//H2O.write_zeta(tijd); 
-			const auto& stateZeta=H2O.getZeta();
-			outzeta<<tijd<<" ";	for(int i=0;i<stateZeta.size();i++)outzeta<<stateZeta[i]<<" "; outzeta<<endl;
-			//2014 01 27: changed q_sp to q_in
-			outbot<<tijd<<" "<<sepflag<<" "<<nfsz<<" "<<q_in<<" "<<H<<" "<<L<<" "; for(int i=0;i<current.size();i++)outbot<<current[i]<<" "; outbot<<endl;
-			vec bot=sand.getShape(sepflag);
-			//2014 01 27: changed q_sp to q_in
-			outbot<<tijd+0.1<<" "<<sepflag<<" "<<nfsz<<" "<<q_in<<" "<<H<<" "<<L<<" "; for(int i=0;i<bot.size();i++)outbot<<bot[i]<<" "; outbot<<endl;
-		} 
+			if (write_teller == dt_write / dt) {
+				if (write_velocities)
+					H2O.write_velocities(tijd, sand.getShape(sepflag), u0_b);
+				//H2O.write_zeta(tijd);
+				const auto &stateZeta = H2O.getZeta();
+				outzeta << tijd << " ";
+				for (auto zeta : stateZeta)
+					outzeta << zeta << " ";
+				outzeta << endl;
+				//2014 01 27: changed q_sp to q_in
+				outbot << tijd << " " << sepflag << " " << nfsz << " " << q_in << " " << H << " " << L << " ";
+				for (auto b : current)
+					outbot << b << " ";
+				outbot << endl;
+				vec bot = sand.getShape(sepflag);
+				//2014 01 27: changed q_sp to q_in
+				outbot << tijd + 0.1 << " " << sepflag << " " << nfsz << " " << q_in << " " << H << " " << L << " ";
+				for (auto b : bot)
+					outbot << b << " ";
+				outbot << endl;
+			}
 		
 		//cerr << "bint1: " << bint1 << " bint2: " << bint2 << endl; //OLAV 2014 03 31
 

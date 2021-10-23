@@ -30,6 +30,7 @@ int moeilijkdoen = 0;
 double correction_NT = 1.0;
 int Npsl_min = 40;
 int stle_factor =5;
+bool write_velocities = false;
 
 double q_in1 = 6.25;
 double H0 = 9.1;
