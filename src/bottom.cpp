@@ -2571,7 +2571,7 @@ vec bottom::detNd_fft(vec bot, int fftnum){
 	*/
 
 	int Nd = 0; int stop=0; int pos=Npx-1;
-	int pos_t1; // position of first trough from right.
+	int pos_t1=-1; // position of first trough from right.
 	
 	//BEGIN OLAV 2014 03 31
 	double testval=1.e99;
