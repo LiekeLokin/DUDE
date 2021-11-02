@@ -38,25 +38,50 @@ T Config::scale(T val, const std::string& what) const {
 			what == "m/m" || what == "m2/s" || what == "m/s2" ||
 			what == "kg/m3")
 		return val;
+	if (what == "day")
+		return val * 24 * 3600.0;
 	if (what == "hr")
 		return val * 3600.0;
 	if (what == "min")
 		return val * 60.0;
 	if (what == "deg")
 		return val * M_PI / 180.0;
+	if (what == "mm")
+		return val * 1e-3;
 	warn("Unknown unit");
 	return val;
 }
 
+template <typename T>
+T getValue(const std::string& name, const std::string& val) {
+	const char* env = getenv(name.c_str());
+	std::stringstream ss(env ? env : val.c_str());
+	std::cout << (env ? "ENV " : "    ");
+	T value;
+	ss >> value;
+	return value;
+}
+
 #define ASSIGN(param) \
 	if (equal(what[1], #param)) { \
+		auto value = getValue<double>(what[1], what[2]); \
 		param = scale(value, what[5]); \
+		std::cout << what[1] << " = " << value << " [" << what[5] << "]" << std::endl; \
+		continue; \
+	}
+
+#define ASSIGNINT(param) \
+	if (equal(what[1], #param)) { \
+		param = getValue<int>(what[1], what[2]); \
+		std::cout << what[1] << " = " << param << std::endl; \
 		continue; \
 	}
 
 #define ASSIGNBOOL(param) \
 	if (equal(what[1], #param)) { \
-		param = value != 0; \
+		auto value = getValue<char>(what[1], what[2]); \
+		param = std::string("1TtYy").find(value) != std::string::npos; \
+		std::cout << what[1] << " = " << std::boolalpha << param << std::endl; \
 		continue; \
 	}
 
@@ -83,31 +108,27 @@ Config::Config(const std::string& path) {
 		if (std::regex_search(line, what, param_expr)) {
 			//std::cout << " ++ Param " << what[1] << " = " << what[2] << " [" << what[5] << "]" << std::endl;
 			//for (auto w : what) std::cout << w << std::endl;
-			std::stringstream ss(what[2]);
-			double value;
-			ss >> value;
-			//std::cout << "value=" << value << std::endl;
 			ASSIGNBOOL(DebugOutput);
-			ASSIGN(Npx);
-			ASSIGN(Npz);
+			ASSIGNINT(Npx);
+			ASSIGNINT(Npz);
 			ASSIGN(dtr);
 			ASSIGN(dt_write);
 			ASSIGN(tend);
 			ASSIGN(ampbeds_factor);
 			ASSIGNBOOL(AllowFlowSep);
 			ASSIGNBOOL(AllowAvalanching);
-			ASSIGN(SimpleLength);
+			ASSIGNINT(SimpleLength);
 			ASSIGN(SimpleLengthFactor);
-			ASSIGN(numStab);
-			ASSIGN(Hifactor);
+			ASSIGNINT(numStab);
+			ASSIGNINT(Hifactor);
 			ASSIGN(Hcrit_global);
-			ASSIGN(transport_eq);
-			ASSIGN(alpha_varies);
+			ASSIGNINT(transport_eq);
+			ASSIGNINT(alpha_varies);
 			ASSIGN(alpha_lag);
 			ASSIGNBOOL(moeilijkdoen);
 			ASSIGN(correction_NT);
-			ASSIGN(Npsl_min);
-			ASSIGN(stle_factor);
+			ASSIGNINT(Npsl_min);
+			ASSIGNINT(stle_factor);
 			ASSIGNBOOL(write_velocities);
 
 			ASSIGN(q_in1);
@@ -116,7 +137,7 @@ Config::Config(const std::string& path) {
 			ASSIGN(D50);
 			ASSIGN(thetacr);
 			ASSIGN(dts);
-			ASSIGN(nd);
+			ASSIGNINT(nd);
 			ASSIGNBOOL(readbed);
 			ASSIGNBOOL(readfw);
 
@@ -125,7 +146,7 @@ Config::Config(const std::string& path) {
 			ASSIGN(kappa);
 			ASSIGN(tt);
 			ASSIGN(thresh);
-			ASSIGN(max_it);
+			ASSIGNINT(max_it);
 
 			ASSIGN(denswater);
 			ASSIGN(nu);
