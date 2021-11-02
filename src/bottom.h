@@ -48,7 +48,7 @@ public:
 	~bottom();
 	vec update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx);
 	vec update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &dhdx);
-	vec readBottomInp();
+	vec readBottomInp(const std::string& readbed);
 	void writeBottom();
 	void checkFlowsep();
 	void write_flowsep();

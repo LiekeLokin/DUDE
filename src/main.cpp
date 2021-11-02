@@ -71,16 +71,19 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	//sand.setShape(current);
 	setS_Av(cfg);
 	H2O.resetIu();
-	if (cfg.readbed==1) {cerr<<endl<<endl<<endl<<endl<<endl<<"         ------>> NOTE !! Bed elevation read from file !! <<-------"<<endl<<endl<<endl<<endl<<endl;}
 	int iinit1=0;
 	//vec inp(3,0.0); //is input if a bottom profile is read
 	
 	// NEW STUFF, WRITTEN BY OLAV 2014 for FLOODWAVE
 	vec fw_t(2,0.0);
 	vec fw_q(2,0.0);
-	if (cfg.readfw==1){
+	if (!cfg.readfw.empty()){
 		double temp;
-		ifstream in1("floodwave.inp");
+		ifstream in1(cfg.readfw);
+		if (!in1) {
+			std::cerr << "ERROR: Can't open floodwave file: " << cfg.readfw << std::endl;
+			std::exit(1);
+		}
 		in1>>temp;
 		int np = int(temp);
 		fw_t.resize(np);
@@ -93,15 +96,19 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 								cerr << fw_t[j] << " " << fw_q[j] << endl; }
 	}// NEW STUFF, WRITTEN BY OLAV 2014 for FLOODWAVE
 	
-	if (cfg.readbed==1) {
-		auto inp=sand.readBottomInp();
+	if (!cfg.readbed.empty()) {
+		cerr<<endl<<endl<<endl
+				<<"------>> NOTE: Bed elevation read from file " << cfg.readbed << " <<-------"
+				<<endl<<endl<<endl;
+		auto inp=sand.readBottomInp(cfg.readbed);
 		H=inp[1];
 				
 		dz=H/Npz;
 		tijd=inp[0];
 		
-		if (cfg.readfw==1){q_in=interpolate(fw_t,fw_q,tijd);} // NEW STUFF, WRITTEN BY OLAV 2014 for FLOODWAVE
-		
+		if (!cfg.readfw.empty()) {
+			q_in=interpolate(fw_t,fw_q,tijd); // NEW STUFF, WRITTEN BY OLAV 2014 for FLOODWAVE
+		}
 		iinit1=int(tijd/dt);
 		L=inp[2];
 						
@@ -123,7 +130,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		// }
 	}
 	else {
-		if (cfg.readfw==1){
+		if (!cfg.readfw.empty()){
 			q_in=interpolate(fw_t,fw_q,tijd);
 		}
 	}// NEW STUFF, WRITTEN BY OLAV 2014 for FLOODWAVE
@@ -192,7 +199,24 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	//	outdebug.close();
 	// end ADDED 2011 2 25 (OLAV)
 
-	data<<H<<endl<<L<<endl<<Npx<<endl<<dx<<endl<<Npz<<endl<<dz<<endl<<dt<<endl<<cfg.dt_write<<endl<<Av<<endl<<S<<endl<<q_in<<endl<<F<<endl<<1<<endl<<alpha<<endl<<be<<endl<<l2<<endl<<nd<<endl<<cfg.readfw;
+	data<<H<<endl
+			<<L<<endl
+			<<Npx<<endl
+			<<dx<<endl
+			<<Npz<<endl
+			<<dz<<endl
+			<<dt<<endl
+			<<cfg.dt_write<<endl
+			<<Av<<endl
+			<<S<<endl
+			<<q_in<<endl
+			<<F<<endl
+			<<1<<endl
+			<<alpha<<endl
+			<<be<<endl
+			<<l2<<endl
+			<<nd<<endl
+			<<cfg.readfw<<endl;
 	data.close();
 
 	auto current=sand.getShape(0);
@@ -233,8 +257,9 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 
 	for(int i=iinit1;i<=cfg.tend/dt;i++){ // 40 minutes
 		
-		if (cfg.readfw==1){q_in=interpolate(fw_t,fw_q,tijd);} // NEW STUFF, WRITTEN BY OLAV 2014
-
+		if (!cfg.readfw.empty()) {
+			q_in=interpolate(fw_t,fw_q,tijd); // NEW STUFF, WRITTEN BY OLAV 2014
+		}
 		//OLAV: 2011 02 21 changed from 
         //Hdiff=(H-H0)/H0;
 		const auto Hdiff=abs((H-cfg.H0)/cfg.H0); //equals 0 when exactly the same, 1 when the difference is 100%
@@ -248,7 +273,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		/* start with initial stability analysis, or if H is sufficiently changed */
 		//if ( (i==iinit1&&readbed1==0) | doStab==1 | i==1000) { // OLAV TEST 2011 2 23
 		if (cfg.SimpleLength==0) { // OLAV 2012 09 06: added simple length implementation
-		   if ( (i==iinit1&&cfg.readbed==0) || doStab==1) {
+		   if ( (i==iinit1&&cfg.readbed.empty()) || doStab==1) {
 			  outlog<<"T="<<tijd<<" - WARNING: Stability Analysis. (Hdiff="<<Hdiff<<")"<<endl;
 			  doStabAnalysis(stabWrite, H2O, sand, q_in, cfg);
 			  dt=cfg.dtr; // reset, stab analysis uses dt=dts

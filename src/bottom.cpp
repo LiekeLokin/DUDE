@@ -238,11 +238,15 @@ void bottom::setCustom(double amp, int n){
 	}
 }
 
-vec bottom::readBottomInp(){
+vec bottom::readBottomInp(const std::string& readbed){
 	/*fill bottom vector from input file, after Sobek computation*/
 	vec inp(3,0.0);
 	double dump; int sep;	double tijd; double wd; double Lin;
-	ifstream in1("inp_bottom.inp");
+	ifstream in1(readbed);
+	if (!in1) {
+		std::cerr << "ERROR: Can't open bed file: " << readbed << std::endl;
+		std::exit(1);
+	}
 	
 	// ofstream outdebug;
     // outdebug.open ("out_debug1.txt", ofstream::out | ofstream::app);

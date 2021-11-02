@@ -16,7 +16,8 @@
 
 namespace {
 std::regex group_expr{"^\\[(.+)]"};
-std::regex param_expr{"^(\\S+)\\s*=\\s*([-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)\\s*(\\[([^\\]]*)\\])?"};
+std::regex number_param_expr{"^(\\S+)\\s*=\\s*([-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)\\s*(\\[([^\\]]*)\\])?"};
+std::regex string_param_expr{"^(\\S+)\\s*=\\s*([^#]+)#?"};
 
 bool equal(std::string a, std::string b) {
 	std::transform(a.begin(), a.end(), a.begin(), ::tolower);
@@ -62,7 +63,7 @@ T getValue(const std::string& name, const std::string& val) {
 	return value;
 }
 
-#define ASSIGN(param) \
+#define ASSIGNDOUBLE(param) \
 	if (equal(what[1], #param)) { \
 		auto value = getValue<double>(what[1], what[2]); \
 		param = scale(value, what[5]); \
@@ -74,6 +75,13 @@ T getValue(const std::string& name, const std::string& val) {
 	if (equal(what[1], #param)) { \
 		param = getValue<int>(what[1], what[2]); \
 		std::cout << what[1] << " = " << param << std::endl; \
+		continue; \
+	}
+
+#define ASSIGNSTRING(param) \
+	if (equal(what[1], #param)) { \
+		param = getValue<std::string>(what[1], what[2]); \
+		std::cout << what[1] << " = '" << param << "'" << std::endl; \
 		continue; \
 	}
 
@@ -105,77 +113,82 @@ Config::Config(const std::string& path) {
 			std::cout << " ** Group " << what[1] << " found" << std::endl;
 			continue;
 		}
-		if (std::regex_search(line, what, param_expr)) {
+		if (std::regex_search(line, what, number_param_expr)) {
 			//std::cout << " ++ Param " << what[1] << " = " << what[2] << " [" << what[5] << "]" << std::endl;
 			//for (auto w : what) std::cout << w << std::endl;
 			ASSIGNBOOL(DebugOutput);
 			ASSIGNINT(Npx);
 			ASSIGNINT(Npz);
-			ASSIGN(dtr);
-			ASSIGN(dt_write);
-			ASSIGN(tend);
-			ASSIGN(ampbeds_factor);
+			ASSIGNDOUBLE(dtr);
+			ASSIGNDOUBLE(dt_write);
+			ASSIGNDOUBLE(tend);
+			ASSIGNDOUBLE(ampbeds_factor);
 			ASSIGNBOOL(AllowFlowSep);
 			ASSIGNBOOL(AllowAvalanching);
 			ASSIGNINT(SimpleLength);
-			ASSIGN(SimpleLengthFactor);
+			ASSIGNDOUBLE(SimpleLengthFactor);
 			ASSIGNINT(numStab);
 			ASSIGNINT(Hifactor);
-			ASSIGN(Hcrit_global);
+			ASSIGNDOUBLE(Hcrit_global);
 			ASSIGNINT(transport_eq);
 			ASSIGNINT(alpha_varies);
-			ASSIGN(alpha_lag);
+			ASSIGNDOUBLE(alpha_lag);
 			ASSIGNBOOL(moeilijkdoen);
-			ASSIGN(correction_NT);
+			ASSIGNDOUBLE(correction_NT);
 			ASSIGNINT(Npsl_min);
 			ASSIGNINT(stle_factor);
 			ASSIGNBOOL(write_velocities);
 
-			ASSIGN(q_in1);
-			ASSIGN(H0);
-			ASSIGN(ii);
-			ASSIGN(D50);
-			ASSIGN(thetacr);
-			ASSIGN(dts);
+			ASSIGNDOUBLE(q_in1);
+			ASSIGNDOUBLE(H0);
+			ASSIGNDOUBLE(ii);
+			ASSIGNDOUBLE(D50);
+			ASSIGNDOUBLE(thetacr);
+			ASSIGNDOUBLE(dts);
 			ASSIGNINT(nd);
-			ASSIGNBOOL(readbed);
-			ASSIGNBOOL(readfw);
 
-			ASSIGN(sepcritangle);
-			ASSIGN(g);
-			ASSIGN(kappa);
-			ASSIGN(tt);
-			ASSIGN(thresh);
+			ASSIGNDOUBLE(sepcritangle);
+			ASSIGNDOUBLE(g);
+			ASSIGNDOUBLE(kappa);
+			ASSIGNDOUBLE(tt);
+			ASSIGNDOUBLE(thresh);
 			ASSIGNINT(max_it);
 
-			ASSIGN(denswater);
-			ASSIGN(nu);
-			ASSIGN(BETA1);
-			ASSIGN(BETA2);
+			ASSIGNDOUBLE(denswater);
+			ASSIGNDOUBLE(nu);
+			ASSIGNDOUBLE(BETA1);
+			ASSIGNDOUBLE(BETA2);
 
-			ASSIGN(denssand);
-			ASSIGN(epsilonp);
-			ASSIGN(repose);
-			ASSIGN(m);
-			ASSIGN(be);
-			ASSIGN(F0);
-			ASSIGN(A2_geom);
-			ASSIGN(A3_geom);
-			ASSIGN(k2);
+			ASSIGNDOUBLE(denssand);
+			ASSIGNDOUBLE(epsilonp);
+			ASSIGNDOUBLE(repose);
+			ASSIGNDOUBLE(m);
+			ASSIGNDOUBLE(be);
+			ASSIGNDOUBLE(F0);
+			ASSIGNDOUBLE(A2_geom);
+			ASSIGNDOUBLE(A3_geom);
+			ASSIGNDOUBLE(k2);
 
-			ASSIGN(alpha_2);
-			ASSIGN(alpha_min_SK);
-			ASSIGN(alpha_max_SK);
+			ASSIGNDOUBLE(alpha_2);
+			ASSIGNDOUBLE(alpha_min_SK);
+			ASSIGNDOUBLE(alpha_max_SK);
 
-			ASSIGN(alpha_min_S);
-			ASSIGN(alpha_max_S);
-			ASSIGN(theta_min_S);
-			ASSIGN(theta_max_S);
-			ASSIGN(H_ref);
+			ASSIGNDOUBLE(alpha_min_S);
+			ASSIGNDOUBLE(alpha_max_S);
+			ASSIGNDOUBLE(theta_min_S);
+			ASSIGNDOUBLE(theta_max_S);
+			ASSIGNDOUBLE(H_ref);
 			ASSIGNBOOL(keepsgrowing);
 
 			// Fall through
-			warn("Unknown parameter");
+			warn("Unknown number parameter");
+			continue;
+		} else if (std::regex_search(line, what, string_param_expr)) {
+			ASSIGNSTRING(readbed);
+			ASSIGNSTRING(readfw);
+
+			// Fall through
+			warn("Unknown string parameter");
 			continue;
 		}
 
