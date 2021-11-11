@@ -10,17 +10,32 @@ CXXFLAGS += -O3
 
 LDLIBS = -lfftw3
 
-dude : main.o admin.o flow.o bottom.o linalg.o fft.o Config.o
+OBJS := main.o admin.o flow.o bottom.o linalg.o fft.o Config.o
+DEPDIR := .deps
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
+
+COMPILE.cc = $(CXX) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+
+dude : $(OBJS)
 	$(LINK.cc) $^ $(LDLIBS) -o $@
-main.o : main.cpp admin.h bottom.h flow.h linalg.h Config.h
-admin.o : admin.cpp admin.h
-flow.o : flow.cpp flow.h linalg.h admin.h
-bottom.o : bottom.cpp bottom.h linalg.h admin.h fft.h
-fft.o : fft.cpp fft.h linalg.h
-linalg.o : linalg.cpp linalg.h
+
+%.o : %.cpp $(DEPDIR)/%.d | $(DEPDIR)
+	$(COMPILE.cc) $(OUTPUT_OPTION) $<
 
 clean :
-	rm -f dude.* *.o *.txt
-	rm -f dude
+	rm -f dude* *.o *.txt
+	rm -rf .deps
 
 test_Config: Config.o
+
+$(DEPDIR):
+	mkdir -p $@
+
+SRCS := $(OBJS:%.o=%.cpp)
+DEPFILES := $(SRCS:%.cpp=$(DEPDIR)/%.d)
+$(DEPFILES):
+
+include $(wildcard $(DEPFILES))
+
+# See http://make.mad-scientist.net/papers/advanced-auto-dependency-generation/
+# for an explanation of the automatic dependency generation used here.
