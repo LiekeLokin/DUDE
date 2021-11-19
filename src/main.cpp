@@ -619,6 +619,7 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 		}
 		H2O.u_b(ubed);
 		newbed=sand.update(ubed,dump1,dump2,dump3);
+		//TODO LL: Kijken welke modus groeit (fourier analyse)
 		double gri=(1/dt)*log(maxval(newbed)/ampbeds);;
 		cerr<<"gri: "<<gri<<endl;
 		double mig=sand.detMigr(bedstab,newbed);
@@ -667,7 +668,8 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 					row=i;
 			}
 	}	
-	
+	// LL TODO: hier moet een warning komen die als row hierboven de laatste rij uit de dta is
+	// (of is gelijk aan NumStab), dan is er geen lokaal maximum gevonden (dus Hifactor is te klein)
 	L=dta[row][0];
 	H=dta[row][1];
 	dz=H/Npz;
