@@ -38,18 +38,18 @@ int stle_factor =5;
 double D50 = 0.18e-3;
 double thetacr = 0.053;
 //double dts = 0.01;
-int Npz = 25;
+//int Npz = 25;
 int nd=1;
 //int readbed=0;
-int readfw=1;
+//int readfw=1;
 
 double sepcritangle = -10.0;
 double g = 9.81;
-double F; // = g*ii;
+//double F; // = g*ii;
 //double kappa = 0.407;
 double tt = 100.0;
-double tresh = 1e-8;
-int max_it=8;
+//double tresh = 1e-8;
+//int max_it=8;
 
 //double denswater = 1000.0;
 //double nu = 1e-6;

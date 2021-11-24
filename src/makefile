@@ -10,11 +10,11 @@ CXXFLAGS += -O3
 
 LDLIBS = -lfftw3
 
-OBJS := main.o admin.o flow.o bottom.o linalg.o fft.o Config.o
+OBJS := main.o admin.o flow.o bottom.o linalg.o fft.o Config.o FlowConfig.o BedConfig.o
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
-COMPILE.cc = $(CXX) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+COMPILE.cc = $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 
 dude : $(OBJS)
 	$(LINK.cc) $^ $(LDLIBS) -o $@

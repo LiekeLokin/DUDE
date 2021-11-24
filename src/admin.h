@@ -23,6 +23,7 @@ namespace admin{
      */
 	extern int Npx;
 		// number of grid points in horizontal x direction (120 was original)
+		// TODO only stiil used in admin::o2()
 	//extern double dtr; // OLAV: 1.0 was original
 		// time step during a simulation (s)
 	//extern double dt_write; // OLAV: 15.0 was original
@@ -79,7 +80,7 @@ namespace admin{
 		// critical Shields parameter [-]
 	//extern double dts;
 		// time step for stability analysis (s)
-	extern int Npz;
+	//extern int Npz;
 		// number of grid points in vertical z direction
 	extern int nd;
 		// number of dunes in domain (-)			
@@ -97,15 +98,15 @@ namespace admin{
 		// bed angle at which flow separation sets in (degrees) -10
 	extern double g;
 		// acceleration of gravity
-	extern double F;
+	//extern double F;
 		// Forcing term in the momentum equation	
 	//extern double kappa;
 		// Von Karman constant
 	extern double tt; // default is 100
 		// splits up the timestep in tt parts, to make the transport calculations more stable
-	extern double tresh;
+	//extern double tresh;
 		// threshold accuracy for flow solver
-	extern int max_it;
+	//extern int max_it;
 		// maximum number of iterations for flow solver
 
 	/*
@@ -177,4 +178,5 @@ namespace admin{
 	 */
 	int o2(int i_ex);
 }
+
 #endif

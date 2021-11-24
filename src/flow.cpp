@@ -2,12 +2,14 @@
 
 #include "flow.h"
 #include "admin.h"
+#include <fstream>
+#include <cstdlib>
 
 using namespace std;
 using namespace admin;
 
 
-flow::flow(int Npx, int Npz) : Npx(Npx), Npz(Npz), nt(Npx*(Npz+1)) {
+flow::flow(const FlowConfig& cfg) : cfg(cfg), Npx(cfg.Npx), Npz(cfg.Npz), nt(Npx*(Npz+1)) {
 	A=new spMat(nt,Npz+1);
 	prec=0;
 	b=new vec(nt,0.0);
@@ -285,7 +287,7 @@ void flow::testNewton(vec bottom_state,double eps){
 int flow::solve_gm(vec bottom_state,int gmn){
 	//flowsolver die gebruikt maakt van gmres, gmn is het aantal iteratiestappen
 	double eta=0.1;
-	double gmtresh=tresh;
+	double gmtresh=cfg.tresh;
 	int teller=0;
 	double resid=0.;
 	dzs_init(bottom_state);
@@ -328,7 +330,7 @@ int flow::solve_gm(vec bottom_state,int gmn){
 	else *b=rhs;
 	vulu();
 	teller++;
-	while(L2(*b)>tresh&&teller<max_it){
+	while(L2(*b)>cfg.tresh&&teller<cfg.max_it){
 		det_AvS(bottom_state);
 		vulb();
 		vulA();
@@ -386,7 +388,7 @@ int flow::solve(vec bottom_state){
 	vulu();
 	teller++;
 	cerr<<"Newton "<<teller<<", L2: "<<L2(*b)<<endl;
-	while(L2(*b)>tresh&&teller<max_it){
+	while(L2(*b)>cfg.tresh&&teller<cfg.max_it){
 		det_AvS(bottom_state);
 		vulb();
 		vulA();
@@ -535,16 +537,16 @@ void flow::a1r_bodem(int r,int i){
 
 void flow::gzl(int r,int i){
 	/*g dzeta/dx linkerkant u vgl*/
-	//A->e(r,o(0,i,2))+=g/((*beta)[2*i]*dx)/(*beta)[2*i+1];
-	//A->e(r,o(0,i-1,2))-=g/((*beta)[2*i]*dx)/(*beta)[2*o2(i-1)+1];
-	A->e(r,o(0,i,2))+=g/((*beta)[2*i]*dx);
-	A->e(r,o(0,i-1,2))-=g/((*beta)[2*i]*dx);
+	//A->e(r,o(0,i,2))+=cfg.g/((*beta)[2*i]*dx)/(*beta)[2*i+1];
+	//A->e(r,o(0,i-1,2))-=cfg.g/((*beta)[2*i]*dx)/(*beta)[2*o2(i-1)+1];
+	A->e(r,o(0,i,2))+=cfg.g/((*beta)[2*i]*dx);
+	A->e(r,o(0,i-1,2))-=cfg.g/((*beta)[2*i]*dx);
 }
 
 void flow::gzr(int r,int i){
 	/*g dzeta/dx rechterkant u vgl*/
-	//(*b)[r]-=g/((*beta)[2*i]*dx)*((*iu)[o(0,i,2)]/(*beta)[2*i+1]-(*iu)[o(0,i-1,2)]/(*beta)[2*o2(i-1)+1]);
-	(*b)[r]-=g/((*beta)[2*i]*dx)*((*iu)[o(0,i,2)]-(*iu)[o(0,i-1,2)]);
+	//(*b)[r]-=cfg.g/((*beta)[2*i]*dx)*((*iu)[o(0,i,2)]/(*beta)[2*i+1]-(*iu)[o(0,i-1,2)]/(*beta)[2*o2(i-1)+1]);
+	(*b)[r]-=cfg.g/((*beta)[2*i]*dx)*((*iu)[o(0,i,2)]-(*iu)[o(0,i-1,2)]);
 }
 
 void flow::vl(int r,int j,int i){
@@ -614,14 +616,14 @@ void flow::vulb(){
 		a1r_bodem(r,i);
 		gzr(r,i);
 		vr_bodem(r,i);
-		(*b)[r]+=F/(*beta)[2*i];
+		(*b)[r]+=cfg.F/(*beta)[2*i];
 		for(int j=1;j<(Npz-1);j++){
 			r=o(j,i,0);
 			a0r(r,j,i);
 			a1r(r,j,i);
 			gzr(r,i);
 			vr(r,j,i);
-			(*b)[r]+=F/(*beta)[2*i];
+			(*b)[r]+=cfg.F/(*beta)[2*i];
 		}
 		r=o(Npz-1,i,0);
 		a0r(r,Npz-1,i);
@@ -629,7 +631,7 @@ void flow::vulb(){
 		gzr(r,i);
 		vr_opperv(r,i);
 		zr(o(0,i,2),i);
-		(*b)[r]+=F/(*beta)[2*i];
+		(*b)[r]+=cfg.F/(*beta)[2*i];
 	}
 	last_zetar();
 }

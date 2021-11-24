@@ -8,6 +8,8 @@
 #include "linalg.h"
 #include "admin.h"
 #include "Config.h"
+#include "BedConfig.h"
+#include "FlowConfig.h"
 #include <ctime>
 #include <cstring>
 
@@ -40,7 +42,9 @@ int main (int argc, char * const argv[]) {
 cerr.precision(16);
 
 std::string filename = (argc == 1) ? "config.cfg" : argv[1];
-Config cfg(filename);
+const Config cfg(filename);
+const BedConfig bedConfig(cfg);
+const FlowConfig flowConfig(cfg);
 
 copyConfigToAdmin(cfg);
 
@@ -48,22 +52,22 @@ copyConfigToAdmin(cfg);
 H = cfg.H0;
 dt = cfg.dtr;
 L = 1.0;
-dx = L / Npx;
-dz = H / Npz;
+dx = L / cfg.Npx;
+dz = H / cfg.Npz;
 tijd = 0.0;
 Av = 0.0;
 S = 0.0;
 
 double q_in = cfg.q_in1;
 
-flow H2O(Npx, Npz);
-bottom sand(Npx);
+flow H2O(flowConfig);
+bottom sand(cfg.Npx);
 
 if (cfg.dt_write==1.) {cerr<<endl<<endl<<endl<<endl<<endl<<"         ------ NOTE!! DT_WRITE==1!! -------"<<endl<<endl<<endl<<endl<<endl;}
 
 for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 
-	cerr<<F<<endl;
+	cerr<<flowConfig.F<<endl;
 	const auto ampbeds = cfg.ampbeds_factor * cfg.D50;
 	sand.setSin(ampbeds,1);
 //	sand.setRand(0.1*D50,(unsigned)time(0));
@@ -103,7 +107,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		auto inp=sand.readBottomInp(cfg.readbed);
 		H=inp[1];
 				
-		dz=H/Npz;
+		dz=H/cfg.Npz;
 		tijd=inp[0];
 		
 		if (!cfg.readfw.empty()) {
@@ -112,14 +116,14 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		iinit1=int(tijd/dt);
 		L=inp[2];
 						
-		dx=L/Npx;
+		dx=L/cfg.Npx;
 		setS_Av(cfg);
 		cerr<<"read check:"<<endl;
 		cerr<<"Timeprevious: " <<tijd<<endl;
 		cerr<<"H: "<<H<<endl;
 		cerr<<"L: "<<L<<endl;
 		cerr<<"first bed point: "<<sand.getShape(0)[0]<<endl;
-		cerr<<"last bed point: "<<sand.getShape(0)[Npx-1]<<endl;
+		cerr<<"last bed point: "<<sand.getShape(0)[cfg.Npx-1]<<endl;
 		cerr<<"dx: "<<dx<<endl;
 		//cerr<<"Av: "<<Av<<endl;
 		//cerr<<"S : "<<S<<endl;
@@ -201,16 +205,16 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 
 	data<<H<<endl
 			<<L<<endl
-			<<Npx<<endl
+			<<cfg.Npx<<endl
 			<<dx<<endl
-			<<Npz<<endl
+			<<cfg.Npz<<endl
 			<<dz<<endl
 			<<dt<<endl
 			<<cfg.dt_write<<endl
 			<<Av<<endl
 			<<S<<endl
 			<<q_in<<endl
-			<<F<<endl
+			<<flowConfig.F<<endl
 			<<1<<endl
 			<<alpha<<endl
 			<<be<<endl
@@ -288,8 +292,8 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			//L=319.;
 			//L=4.;
 			
-            dz=H/Npz;
-	        dx=L/Npx;
+            dz=H/cfg.Npz;
+	        dx=L/cfg.Npx;
 			//cerr << "dx: " << dx << endl;
 	        setS_Av(cfg);
 	        dt=cfg.dtr;
@@ -335,7 +339,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			n_it_fl=H2O.solve_gm(bedflow,20); }
 		if (n_it_fl==-1) {
 			ofstream outtemp("out_temp.txt");
-			vec bedtemp(Npx,0.);
+			vec bedtemp(cfg.Npx,0.);
 			bedtemp=sand.getShape(0);
 			for(int i=0;i<bedtemp.size();i++) { outtemp<<bedtemp[i]<<" "; } outtemp<<endl;
 			bedtemp=sand.getShape(1);
@@ -346,7 +350,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		}
 
 		doCheckQsp(bedflow, H2O, q_in, cfg);
-		vec u0_b(Npx);
+		vec u0_b(cfg.Npx);
 		H2O.u_b(u0_b);
 		
 		//cerr << "current: " << current[0] << " bedflow: " << bedflow[0] << endl; //OLAV 2014 03 31
@@ -389,10 +393,10 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		//cerr << "Hav: " << Hav << endl; //OLAV 2014 03 31
 
 		vec next;
-		vec bss1(Npx);
-		vec bss2(Npx);
-		vec fluxtot(Npx);
-		vec dhdx(Npx);
+		vec bss1(cfg.Npx);
+		vec bss2(cfg.Npx);
+		vec fluxtot(cfg.Npx);
+		vec dhdx(cfg.Npx);
 		if (transport_eq==1 || transport_eq==3 ){
 			if (sepflag==0){
 				next=sand.update(u0_b,bss1,fluxtot,dhdx);
@@ -412,7 +416,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		
 		double flux_av=0.;
 		for(int i=0;i<fluxtot.size();i++) flux_av+=fluxtot[i];
-		flux_av/=Npx;
+		flux_av/=cfg.Npx;
 
 		double mig=sand.detMigr(current,next);
 		//outint<<tijd<<" "<<H<<" "<<bint1<<" "<<bint2<<" "<<zetaint1<<" "<<zetaint2<<endl;
@@ -500,7 +504,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 void copyConfigToAdmin(const Config& cfg) {
 	DebugOutput = cfg.DebugOutput;
 	Npx = cfg.Npx;
-	Npz = cfg.Npz;
+	//Npz = cfg.Npz;
 	//dtr = cfg.dtr;
 	//dt_write = cfg.dt_write;
 	//tend = cfg.tend;
@@ -532,11 +536,11 @@ void copyConfigToAdmin(const Config& cfg) {
 
 	sepcritangle = cfg.sepcritangle;
 	g = cfg.g;
-	F = g * cfg.ii;
+	//F = g * cfg.ii;
 	//kappa = cfg.kappa;
 	tt = cfg.tt;
-	tresh = cfg.thresh;
-	max_it = cfg.max_it;
+	//tresh = cfg.thresh;
+	//max_it = cfg.max_it;
 
 	//denswater = cfg.denswater;
 	const auto sgsand = cfg.denssand / cfg.denswater;
@@ -594,20 +598,20 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 	//OLAV: 2012 09 17: shouldnt this be H? 
 	
 	dt=cfg.dts;
-	vec bedstab(Npx,0.0);
-	vec newbed(Npx,0.0);
-	vec ubed(Npx,0.0);
-	vec dump1(Npx,0.); vec dump2(Npx,0.); vec dump3(Npx,0.);
+	vec bedstab(cfg.Npx,0.0);
+	vec newbed(cfg.Npx,0.0);
+	vec ubed(cfg.Npx,0.0);
+	vec dump1(cfg.Npx,0.); vec dump2(cfg.Npx,0.); vec dump3(cfg.Npx,0.);
 	const auto ampbeds = cfg.ampbeds_factor * cfg.D50;
-	for(int i=0;i<Npx;i++){
-		bedstab[i]=ampbeds*sin(1*2.0*M_PI/Npx*(i));
+	for(int i=0;i<cfg.Npx;i++){
+		bedstab[i]=ampbeds*sin(1*2.0*M_PI/cfg.Npx*(i));
 	} 
 	for (int p=0;p<=num;p++){
 		//L=Hi/10+Lstep*(p+1);  //2013 1 31: OLAV (was L=Hi/10+Lstep*(p);)
 		//L=Hi/numStab+Lstep*(p); //2012 09 17: OLAV (was with /10., now with numStab)
 		//L=Hi*5+Lstep*(p); //2012 09 17: OLAV test
 		L=H*minfactor+Lstep*(p);  //OLAV: changed 2014 01 31 was L=Hi*5+Lstep*(p);
-		dx=L/Npx;
+		dx=L/cfg.Npx;
 
 		cerr<<p<<" "<<L<<" "<<H<<" "<<dx<<endl;
 		setS_Av(cfg);
@@ -672,8 +676,8 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 	// (of is gelijk aan NumStab), dan is er geen lokaal maximum gevonden (dus Hifactor is te klein)
 	L=dta[row][0];
 	H=dta[row][1];
-	dz=H/Npz;
-	dx=L/Npx;
+	dz=H/cfg.Npz;
+	dx=L/cfg.Npx;
 	setS_Av(cfg);
 	cerr<<"Finished the stability analysis"<<endl<<endl;
 	cerr<<"L = "<<L<<endl;
@@ -697,7 +701,7 @@ void doCheckQsp(vec bedflow, flow& H2O, const double& q_in, const Config& cfg){
 		double q_cor=fabs(q_dif/(H*10.));
 		if (q_dif<0.) H+=q_cor;
 		else if (q_dif>0.) H-=q_cor;
-		dz=H/double(Npz);
+		dz=H/double(cfg.Npz);
 		setS_Av(cfg);
 		//n_it_fl=H2O.solve_gm(sand.getShape(sepflag),20);
 		int n_it_fl=0;
