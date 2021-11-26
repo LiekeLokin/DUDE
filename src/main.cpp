@@ -13,11 +13,6 @@
 #include <ctime>
 #include <cstring>
 
-
-#include <sstream>
-#include <string>
-
-using namespace admin;
 using namespace std;
 
 ofstream outlog("out_log.txt");
@@ -31,11 +26,9 @@ double tijd;
 double Av;
 double S;
 
-void copyConfigToAdmin(const Config& cfg);
 void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, const Config& cfg);
 void doCheckQsp(vec bedflow, flow& H2O, const double& q_in, const Config& cfg);
 void setS_Av(const Config& cfg);
-double maxval(vec vinp);
 
 int main (int argc, char * const argv[]) {
 
@@ -46,7 +39,7 @@ const Config cfg(filename);
 const BedConfig bedConfig(cfg);
 const FlowConfig flowConfig(cfg);
 
-copyConfigToAdmin(cfg);
+admin::Npx = cfg.Npx; // still necessary for admin::o2()
 
 // Initialize global variables
 H = cfg.H0;
@@ -61,7 +54,7 @@ S = 0.0;
 double q_in = cfg.q_in1;
 
 flow H2O(flowConfig);
-bottom sand(cfg.Npx);
+bottom sand(bedConfig);
 
 if (cfg.dt_write==1.) {cerr<<endl<<endl<<endl<<endl<<endl<<"         ------ NOTE!! DT_WRITE==1!! -------"<<endl<<endl<<endl<<endl<<endl;}
 
@@ -203,24 +196,24 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	//	outdebug.close();
 	// end ADDED 2011 2 25 (OLAV)
 
-	data<<H<<endl
-			<<L<<endl
-			<<cfg.Npx<<endl
-			<<dx<<endl
-			<<cfg.Npz<<endl
-			<<dz<<endl
-			<<dt<<endl
-			<<cfg.dt_write<<endl
-			<<Av<<endl
-			<<S<<endl
-			<<q_in<<endl
-			<<flowConfig.F<<endl
-			<<1<<endl
-			<<alpha<<endl
-			<<be<<endl
-			<<l2<<endl
-			<<nd<<endl
-			<<cfg.readfw<<endl;
+	data << H << endl
+			<< L << endl
+			<< cfg.Npx << endl
+			<< dx << endl
+			<< cfg.Npz << endl
+			<< dz << endl
+			<< dt << endl
+			<< cfg.dt_write << endl
+			<< Av << endl
+			<< S << endl
+			<< q_in << endl
+			<< flowConfig.F << endl
+			<< 1 << endl // ?? Huh ??
+			<< bedConfig.alpha << endl
+			<< bedConfig.be << endl
+			<< bedConfig.l2 << endl
+			<< bedConfig.nd << endl
+			<< cfg.readfw << endl;
 	data.close();
 
 	auto current=sand.getShape(0);
@@ -322,28 +315,32 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			cerr<<"Eerste keer stroming oplossing met SOLVE"<<endl;
 			outlog<<"Eerste keer stroming oplossing met SOLVE"<<endl;
 			n_it_fl=H2O.solve(bedflow);
-	  		cerr<<"number of flow iteration required: "<<n_it_fl<<endl;}
-		else if (doStab==1) {
+			cerr<<"number of flow iteration required: "<<n_it_fl<<endl;
+		} else if (doStab==1) {
 			cerr<<"Stroming oplossing met SOLVE vanwege Stability Analysis"<<endl;
 			outlog<<"T="<<tijd<<" - WARNING: SOLVE vanwege Stability Analysis. (Hdiff="<<Hdiff<<")"<<endl;
 			H2O.resetIu();
 			n_it_fl=H2O.solve(bedflow);
-	  		cerr<<"number of flow iteration required: "<<n_it_fl<<endl;}
-		else if (solve_method>=1) {
+			cerr<<"number of flow iteration required: "<<n_it_fl<<endl;
+		} else if (solve_method>=1) {
 			cerr<<"Stroming oplossing met SOLVE vanwege sterke 'bodem' veranderingen"<<endl;
 			cerr<<"solve_method= "<<solve_method<<endl;
 			H2O.resetIu();
 			n_it_fl=H2O.solve(bedflow);
-	  		cerr<<"number of flow iteration required: "<<n_it_fl<<endl;}
-		else {
-			n_it_fl=H2O.solve_gm(bedflow,20); }
-		if (n_it_fl==-1) {
+			cerr<<"number of flow iteration required: "<<n_it_fl<<endl;
+		} else {
+			n_it_fl=H2O.solve_gm(bedflow,20);
+		}
+		if (n_it_fl == -1) {
 			ofstream outtemp("out_temp.txt");
-			vec bedtemp(cfg.Npx,0.);
-			bedtemp=sand.getShape(0);
-			for(int i=0;i<bedtemp.size();i++) { outtemp<<bedtemp[i]<<" "; } outtemp<<endl;
-			bedtemp=sand.getShape(1);
-			for(int i=0;i<bedtemp.size();i++) { outtemp<<bedtemp[i]<<" "; } outtemp<<endl;
+			auto bedtemp = sand.getShape(0);
+			for (auto temp : bedtemp)
+				outtemp << temp << " ";
+			outtemp << endl;
+			bedtemp = sand.getShape(1);
+			for (auto temp : bedtemp)
+				outtemp << temp << " ";
+			outtemp << endl;
 			outtemp.close();
 			H2O.resetIu();
 			H2O.solve(bedflow);
@@ -355,40 +352,40 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		
 		//cerr << "current: " << current[0] << " bedflow: " << bedflow[0] << endl; //OLAV 2014 03 31
 
-			if (write_teller == cfg.dt_write / dt) {
-				if (cfg.write_velocities)
-					H2O.write_velocities(tijd, sand.getShape(sepflag), u0_b);
-				//H2O.write_zeta(tijd);
-				const auto &stateZeta = H2O.getZeta();
-				outzeta << tijd << " ";
-				for (auto zeta : stateZeta)
-					outzeta << zeta << " ";
-				outzeta << endl;
-				//2014 01 27: changed q_sp to q_in
-				outbot << tijd << " " << sepflag << " " << nfsz << " " << q_in << " " << H << " " << L << " ";
-				for (auto b : current)
-					outbot << b << " ";
-				outbot << endl;
-				vec bot = sand.getShape(sepflag);
-				//2014 01 27: changed q_sp to q_in
-				outbot << tijd + 0.1 << " " << sepflag << " " << nfsz << " " << q_in << " " << H << " " << L << " ";
-				for (auto b : bot)
-					outbot << b << " ";
-				outbot << endl;
-			}
-		
+		if (write_teller == cfg.dt_write / dt) {
+			if (cfg.write_velocities)
+				H2O.write_velocities(tijd, sand.getShape(sepflag), u0_b);
+			//H2O.write_zeta(tijd);
+			const auto &stateZeta = H2O.getZeta();
+			outzeta << tijd << " ";
+			for (auto zeta : stateZeta)
+				outzeta << zeta << " ";
+			outzeta << endl;
+			//2014 01 27: changed q_sp to q_in
+			outbot << tijd << " " << sepflag << " " << nfsz << " " << q_in << " " << H << " " << L << " ";
+			for (auto b : current)
+				outbot << b << " ";
+			outbot << endl;
+			vec bot = sand.getShape(sepflag);
+			//2014 01 27: changed q_sp to q_in
+			outbot << tijd + 0.1 << " " << sepflag << " " << nfsz << " " << q_in << " " << H << " " << L << " ";
+			for (auto b : bot)
+				outbot << b << " ";
+			outbot << endl;
+		}
+
 		//cerr << "bint1: " << bint1 << " bint2: " << bint2 << endl; //OLAV 2014 03 31
 
-		auto bint1=sand.detint1(current);
-		auto bint2=sand.detint2(current);
-		auto zetaint1=H2O.zetaint1();
-		auto zetaint2=H2O.zetaint2();
-		const auto& Dc=sand.detNd_fft(sand.getShape(0),2); // dune characteristics
-		auto Nd=int(Dc[0]);
-		double cr=Dc[1];
-		double tr=Dc[2];
-		double Hav=cr-tr;
-		double Lav=L; 
+		auto bint1 = sand.detint1(current);
+		auto bint2 = sand.detint2(current);
+		auto zetaint1 = H2O.zetaint1();
+		auto zetaint2 = H2O.zetaint2();
+		const auto& Dc = sand.detNd_fft(sand.getShape(0),2); // dune characteristics
+		auto Nd = int(Dc[0]);
+		double cr = Dc[1];
+		double tr = Dc[2];
+		double Hav = cr-tr;
+		double Lav = L;
 		
 		//cerr << "Hav: " << Hav << endl; //OLAV 2014 03 31
 
@@ -397,14 +394,14 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		vec bss2(cfg.Npx);
 		vec fluxtot(cfg.Npx);
 		vec dhdx(cfg.Npx);
-		if (transport_eq==1 || transport_eq==3 ){
+		if (cfg.transport_eq==1 || cfg.transport_eq==3 ){
 			if (sepflag==0){
 				next=sand.update(u0_b,bss1,fluxtot,dhdx);
 				bss2=bss1;}
 			else if (sepflag==1){
 				next=sand.update_flowsep(u0_b,bss1,bss2,fluxtot,dhdx);}
 			}
-		else if (transport_eq==2) {
+		else if (cfg.transport_eq==2) {
 			if (sepflag==0){
 				next=sand.update(u0_b,bss1,fluxtot,dhdx);
 				bss2=bss1;}
@@ -501,88 +498,10 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	return 0;
 }
 
-void copyConfigToAdmin(const Config& cfg) {
-	DebugOutput = cfg.DebugOutput;
-	Npx = cfg.Npx;
-	//Npz = cfg.Npz;
-	//dtr = cfg.dtr;
-	//dt_write = cfg.dt_write;
-	//tend = cfg.tend;
-	//ampbeds_factor = cfg.ampbeds_factor;
-	//AllowFlowSep = cfg.AllowFlowSep;
-	AllowAvalanching = cfg.AllowAvalanching;
-	//SimpleLength = cfg.SimpleLength;
-	//SimpleLengthFactor = cfg.SimpleLengthFactor;
-	//numStab = cfg.numStab;
-	//Hifactor = cfg.Hifactor;
-	//Hcrit_global = cfg.Hcrit_global;
-	transport_eq = cfg.transport_eq;
-	alpha_varies = cfg.alpha_varies;
-	alpha_lag = cfg.alpha_lag;
-	moeilijkdoen = cfg.moeilijkdoen;
-	//correction_NT = cfg.correction_NT;
-	Npsl_min = cfg.Npsl_min;
-	stle_factor = cfg.stle_factor;
-
-	//q_in1 = cfg.q_in1;
-	//H0 = cfg.H0;
-	//ii = cfg.ii;
-	D50 = cfg.D50;
-	thetacr = cfg.thetacr;
-	//dts = cfg.dts;
-	nd = cfg.nd;
-	//readbed = cfg.readbed;
-	//readfw = cfg.readfw;
-
-	sepcritangle = cfg.sepcritangle;
-	g = cfg.g;
-	//F = g * cfg.ii;
-	//kappa = cfg.kappa;
-	tt = cfg.tt;
-	//tresh = cfg.thresh;
-	//max_it = cfg.max_it;
-
-	//denswater = cfg.denswater;
-	const auto sgsand = cfg.denssand / cfg.denswater;
-	delta = sgsand - 1;
-	//ampbeds = ampbeds_factor * D50;
-	epsilonp = cfg.epsilonp;
-	repose = cfg.repose;
-	//m = cfg.m;
-	alpha = cfg.m / (delta * cfg.g);
-	be = cfg.be;
-	//l1 = 1.9 * cfg.D50;
-	//l2 = 1 / tan(-repose);
-	l2 = 1.73;
-	//F0 = cfg.F0;
-	F0_dim = cfg.correction_NT * cfg.F0 * sqrt(cfg.g * delta / cfg.D50);
-	meanstle = alpha_lag * cfg.D50;
-	//A2_geom = cfg.A2_geom;
-	//A3_geom = cfg.A3_geom;
-	//k2 = cfg.k2;
-
-	alpha_2 = cfg.alpha_2;
-	D_star  = cfg.D50 * cbrt(cfg.g * delta / (cfg.nu * cfg.nu));
-	w_s = cfg.nu / cfg.D50 * (pow(pow(10.36, 2) + 1.049 * pow(D_star, 3),(1./2.)) - 10.36);
-	u_star_cr = sqrt(cfg.thetacr * cfg.g * delta * cfg.D50);
-	alpha_min_SK = cfg.alpha_min_SK;
-	alpha_max_SK = cfg.alpha_max_SK;
-
-	alpha_min_S = cfg.alpha_min_S;
-	alpha_max_S = cfg.alpha_max_S;
-	theta_min_S = cfg.theta_min_S;
-	theta_max_S = cfg.theta_max_S;
-	H_ref = cfg.H_ref;
-	keepsgrowing = cfg.keepsgrowing;
-}
-
-double maxval(vec vinp) {
-	int len = vinp.size();
-	double nm = vinp[0];
-	for (int i = 1; i < len; i++) {
-		double vi = vinp[i];
-		if (nm < vi) nm = vi;
-	}
+double maxval(const vec& vinp) {
+	auto nm = vinp[0];
+	for (auto v : vinp)
+		nm = max(v, nm);
 	return nm;
 }
 
@@ -624,7 +543,7 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 		H2O.u_b(ubed);
 		newbed=sand.update(ubed,dump1,dump2,dump3);
 		//TODO LL: Kijken welke modus groeit (fourier analyse)
-		double gri=(1/dt)*log(maxval(newbed)/ampbeds);;
+		double gri=(1/dt)*log(maxval(newbed)/ampbeds);
 		cerr<<"gri: "<<gri<<endl;
 		double mig=sand.detMigr(bedstab,newbed);
 		cerr<<"mig: "<<mig<<endl<<endl;
@@ -635,16 +554,19 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 	
 	//cerr<<"ik kom hier 1" << endl;  //OLAV 2011 2 22 TEST
 	
-	if (stabWrite==1) {
+	if (stabWrite == 1) {
 		ofstream outstab("out_stab.out");
 		outstab.precision(16);
-		for (int j=0;j<=num;j++) outstab<<dta[j][0]<<" "<<dta[j][1]<<" "<<dta[j][2]<<" "<<dta[j][3]<<endl;
+		for (int j = 0; j <= num; j++)
+			outstab << dta[j][0] << " " << dta[j][1] << " " << dta[j][2] << " "
+					<< dta[j][3] << endl;
 		outstab.close();
-		}
-		else {
-	    ofstream outstab("out_stab_during.out");
+	} else {
+		ofstream outstab("out_stab_during.out");
 		outstab.precision(16);
-		for (int j=0;j<=num;j++) outstab<<dta[j][0]<<" "<<dta[j][1]<<" "<<dta[j][2]<<" "<<dta[j][3]<<endl;
+		for (int j = 0; j <= num; j++)
+			outstab << dta[j][0] << " " << dta[j][1] << " " << dta[j][2] << " "
+					<< dta[j][3] << endl;
 		outstab.close();
 	}
 	
@@ -715,7 +637,7 @@ void doCheckQsp(vec bedflow, flow& H2O, const double& q_in, const Config& cfg){
 }
 
 void setS_Av(const Config& cfg){
-	const auto ustar=pow(cfg.g*H*cfg.ii,0.5);
-	S=cfg.BETA1*ustar;
-	Av=cfg.BETA2*(1./6.)*cfg.kappa*H*ustar;
+	const auto ustar = sqrt(cfg.g * H * cfg.ii);
+	S = cfg.BETA1 * ustar;
+	Av = cfg.BETA2 * (1./6.) * cfg.kappa * H * ustar;
 }

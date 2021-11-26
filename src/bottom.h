@@ -2,15 +2,15 @@
 
 #ifndef _BOTTOM_H
 #define _BOTTOM_H
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
+
+#include "BedConfig.h"
+#include "linalg.h"
 #include <vector>
 #include <complex>
-#include "linalg.h"
 
 class bottom{
 private:
+	const BedConfig cfg;
 	const int Npx;
 	const int nf;
 	const int nf2;
@@ -44,7 +44,7 @@ private:
 
 public:
 	bottom() = delete;
-	bottom(int Npx);
+	bottom(const BedConfig& cfg);
 	~bottom();
 	vec update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx);
 	vec update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &dhdx);

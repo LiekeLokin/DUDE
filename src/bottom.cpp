@@ -4,7 +4,7 @@
 #include "admin.h"
 #include "fft.h"
 #include <iomanip>
-#include <iostream> //OLAV
+#include <fstream>
 
 using namespace std;
 using namespace admin;
@@ -13,7 +13,7 @@ namespace {
 const double grad_2_deg = 360./(2.*M_PI);
 	// help variable for grad to degress
 }
-bottom::bottom(int Npx) : Npx(Npx), nf((int(ceil(Npx/10+1)))*7+2), nf2(int(ceil(Npx/10+1))) {
+bottom::bottom(const BedConfig& cfg) : cfg(cfg), Npx(cfg.Npx), nf((int(ceil(Npx/10+1)))*7+2), nf2(int(ceil(Npx/10+1))) {
 	b=new vec(Npx,0.0);
 	bp=new vec(Npx,0.0);
 	flux=new vec(Npx,0.0);
@@ -353,7 +353,7 @@ void bottom::checkFlowsep(){
 	int skipped=0; // keeps track # of skipped fsz that are too small
 	int newwave=0;  // new fsz's due to wavelet generation
 	int wavelet=0;
-	double sepcritangle1 = tan(sepcritangle);
+	double sepcritangle1 = tan(cfg.sepcritangle);
 	int iinit = 0;
 
 //	ofstream outdebug;
@@ -1016,7 +1016,7 @@ the volumetric stress at xsi (flux@xsi)
 //	for(int i=0;i<Npx;i++){
 //		(*flux)[i]=0.0;
 //		double taui=(1./2.)*(tau[o2(i-1)]+tau[i]);
-//		if (tau[i]>0.) (*flux)[i]+=alpha*pow(taui,be)*(1-l1/taui*(dhdx[i])-l2*(dhdx[i]));
+//		if (tau[i]>0.) (*flux)[i]+=alpha*pow(taui,be)*(1-l1/taui*(dhdx[i])-cfg.l2*(dhdx[i]));
 //	}
 //
 //	/* in case of flow separation, the flux@xsi, based on local tau in that
@@ -1026,7 +1026,7 @@ the volumetric stress at xsi (flux@xsi)
 //		for (int j=0;j<nfsz;j++) {
 //			int xsi=(*fsz)[j*7+0];
 //			//cerr<<"j: "<<j<<"tau[xsi="<<xsi<<"]: "<<tau[xsi]<<endl;
-//			if (tau[xsi]>0.) (*flux)[o2(xsi+1)]+=alpha*pow(tau[xsi],be)*(1-l1/tau[xsi]*(dhdx[xsi])-l2*(dhdx[xsi]));
+//			if (tau[xsi]>0.) (*flux)[o2(xsi+1)]+=alpha*pow(tau[xsi],be)*(1-l1/tau[xsi]*(dhdx[xsi])-cfg.l2*(dhdx[xsi]));
 //		}
 //	}
 //}
@@ -1063,13 +1063,13 @@ void bottom::detQcr(vec ub, vec &dhdx){
 		double taui=(1./2.)*(tau[o2(i-1)]+tau[i]);
 		
 		// Meyer-Peter M�ller (original)
-        if(transport_eq == 1 || transport_eq == 3){
-           double tauc=thetacr*g*delta*D50*((1.+l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.)))); //OLAV 2011 02 24
-		   //ORIGINAL: double tauc=thetacr*g*(2.65-1.)*D50*((1.+l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))));            
+        if(cfg.transport_eq == 1 || cfg.transport_eq == 3){
+           double tauc=cfg.thetacr*cfg.g*cfg.delta*cfg.D50*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.)))); //OLAV 2011 02 24
+		   //ORIGINAL: double tauc=cfg.thetacr*g*(2.65-1.)*cfg.D50*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))));
 		   
            if (tau[i]>tauc && taui>0.) {
 			   taui=max(taui,tauc); //OLAV: 2011 2 23 --> why this operation?
-			   (*flux)[i]+=alpha*pow(taui-tauc,be)*(1./(1.+l2*(dhdx[i])));
+			   (*flux)[i]+=cfg.alpha*pow(taui-tauc,cfg.be)*(1./(1.+cfg.l2*(dhdx[i])));
            }
             
            /* in case of flow separation, the flux@xsi, based on local tau in that
@@ -1080,12 +1080,12 @@ void bottom::detQcr(vec ub, vec &dhdx){
 		      for (int j=0;j<nfsz;j++) {
 			           int xsi=(*fsz)[j*7+0];
                        (*flux)[o2(xsi+1)]=0.0;
-                       //ORIGINAL: tauc=thetacr*g*(2.65-1.)*D50*((1.+l2*dhdx[xsi])/(pow(1.+dhdx[xsi]*dhdx[xsi],(1./2.))));
-                       double tauc=thetacr*g*delta*D50 *((1.+l2*dhdx[xsi])/(pow(1.+dhdx[xsi]*dhdx[xsi],(1./2.))));
+                       //ORIGINAL: tauc=cfg.thetacr*cfg.g*(2.65-1.)*cfg.D50*((1.+cfg.l2*dhdx[xsi])/(pow(1.+dhdx[xsi]*dhdx[xsi],(1./2.))));
+                       double tauc=cfg.thetacr*cfg.g*cfg.delta*cfg.D50 *((1.+cfg.l2*dhdx[xsi])/(pow(1.+dhdx[xsi]*dhdx[xsi],(1./2.))));
 			
 			           if (tau[xsi]>tauc && tau[xsi]>0.) {
-                          (*flux)[o2(xsi+1)]+=alpha*pow(tau[xsi]-tauc,be)*(1./(1.+l2*(dhdx[xsi])));              
-				          // ORIGINAL: (*flux)[o2(xsi+1)]+=alpha*pow(tau[xsi]-tauc,be)*(1./(1.+l2*(dhdx[xsi])));
+                          (*flux)[o2(xsi+1)]+=cfg.alpha*pow(tau[xsi]-tauc,cfg.be)*(1./(1.+cfg.l2*(dhdx[xsi])));
+				          // ORIGINAL: (*flux)[o2(xsi+1)]+=alpha*pow(tau[xsi]-tauc,be)*(1./(1.+cfg.l2*(dhdx[xsi])));
                        }
               }
            } // CLOSES if (sepflag==1)
@@ -1093,34 +1093,34 @@ void bottom::detQcr(vec ub, vec &dhdx){
         
         // Nakagawa / Tsujimoto
 		       
-        else if(transport_eq == 2 ){
+        else if(cfg.transport_eq == 2 ){
 		   //non-corrected tauc
-		   double tauc=thetacr*g*delta*D50; //OLAV 2013 07 08 
-		   //double tauc=thetacr*g*delta*D50*((1.+l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.)))); //OLAV 2014 02 07
+		   double tauc=cfg.thetacr*cfg.g*cfg.delta*cfg.D50; //OLAV 2013 07 08
+		   //double tauc=cfg.thetacr*cfg.g*cfg.delta*cfg.D50*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.)))); //OLAV 2014 02 07
 		   
-		   double thetai = taui / (g*delta*D50);
+		   double thetai = taui / (cfg.g*cfg.delta*cfg.D50);
 
            if (tau[i]>tauc && taui>0.) {
-			   thetai=max(thetai,thetacr); 
-			   //thetai=max(thetai,thetacr*((1.+l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))))); //OLAV 2014 02 07
+			   thetai=max(thetai,cfg.thetacr);
+			   //thetai=max(thetai,cfg.thetacr*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))))); //OLAV 2014 02 07
 
-			   (*flux)[i]=F0_dim*thetai*pow(1.-thetacr/thetai,3.); //pickup 
+			   (*flux)[i]=cfg.F0_dim*thetai*pow(1.-cfg.thetacr/thetai,3.); //pickup
 
-			   //(*flux)[i]=F0_dim*thetai*pow(1.-((1.+l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))))*thetacr/thetai,3.);
+			   //(*flux)[i]=F0_dim*thetai*pow(1.-((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))))*cfg.thetacr/thetai,3.);
            }
 		   
         } // CLOSES if(transport_eq == 2)
 		/*
         else if(transport_eq == 2 ){
 		   //non-corrected tauc
-		   double tauc=thetacr*g*delta*D50; //OLAV 2013 07 08 
+		   double tauc=cfg.thetacr*g*cfg.delta*cfg.D50; //OLAV 2013 07 08
 		   //corrected tauc
-		   //double tauc=thetacr*g*delta*D50*((1.+l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.)))); //OLAV 2011 02 24
+		   //double tauc=cfg.thetacr*g*cfg.delta*cfg.D50*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.)))); //OLAV 2011 02 24
 		   
-		   double alpha_2 = correction*F0*pow(g*delta/D50,(1./2.)); 
+		   double alpha_2 = correction*F0*pow(g*cfg.delta/cfg.D50,(1./2.));
            if (tau[i]>tauc && taui>0.) {
 			   taui=max(taui,tauc); 
-			   double thetai = taui / (g*delta*D50);
+			   double thetai = taui / (g*cfg.delta*cfg.D50);
 			   (*flux)[i]=alpha_2*thetai*pow(1.-tauc/taui,3.);
            }         
         } // CLOSES if(transport_eq == 2) */
@@ -1128,14 +1128,14 @@ void bottom::detQcr(vec ub, vec &dhdx){
     } // CLOSES for(int i=0;i<Npx;i++)
 	  
     //Fluxes are determined, now optionally a lag is applied. 
-    if(transport_eq == 3 ){
+    if(cfg.transport_eq == 3 ){
 	
-		if(alpha_varies>0){
-			alpha_lag1=detAlphaLag(ub,alpha_varies,0);
-			meanstle1 = alpha_lag1*D50;
+		if(cfg.alpha_varies>0){
+			alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,0);
+			meanstle1 = alpha_lag1*cfg.D50;
 		} 
 		else {
-			meanstle1 = meanstle;
+			meanstle1 = cfg.meanstle;
 		}
 
                    
@@ -1149,7 +1149,7 @@ void bottom::detQcr(vec ub, vec &dhdx){
 				
 		double flux_temp; //changed 2012 09 07 OLAV, was: 
 				
-		if(moeilijkdoen==0){
+		if(cfg.moeilijkdoen==0){
 			//Guess flux(0)
 			(*flux)[0]=flux_eq[0]/2;
 				
@@ -1236,7 +1236,7 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 	vec oldb(*b);
 	vec distribute;
 	double bint = 0.0;
-	double ep=(1/(1-epsilonp));
+	double ep=(1/(1-cfg.epsilonp));
 	
 	// Needed for N&T
 	double alpha_lag1=0.;
@@ -1249,8 +1249,8 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 	vec depositemp(Npx,0.0);
 	vec fluxtemp(Npx,0.0);
 	
-	if(alpha_varies==0 && transport_eq == 2){
-		alpha_lag1=detAlphaLag(ub,alpha_varies,1);
+	if(cfg.alpha_varies==0 && cfg.transport_eq == 2){
+		alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,1);
 		
 		distribute=detDistributeFunc(alpha_lag1,dx);
 	}
@@ -1261,24 +1261,24 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 	int depopoint =0;
 	vec deposi(Npx,0.0);
 					
-	for(int t=0;t<int(tt);t++){
+	for(int t=0;t<int(cfg.tt);t++){
 		//Joris: deze loop zit er in omdat expliciet niet al te grote tijdstappen aankan, moet nog aan getweekt worden.
 		detQcr(ub, dhdx);
 	
-	if(transport_eq == 1 || transport_eq == 3){ //OLAV: 2013 05 22
+	if(cfg.transport_eq == 1 || cfg.transport_eq == 3){ //OLAV: 2013 05 22
 		for(int i=0;i<Npx;i++){
-				(*b)[i]-=ep*dt/tt/dx*((*flux)[o2(i+1)]-(*flux)[i]); 
-				fluxtot[i]+=(*flux)[i]/tt*ep;
+				(*b)[i]-=ep*dt/cfg.tt/dx*((*flux)[o2(i+1)]-(*flux)[i]);
+				fluxtot[i]+=(*flux)[i]/cfg.tt*ep;
         }
 	} //closes if(transport_eq == 1 || transport_eq == 3)
  
 	//OLAV: 2013 05 22 START
-	else if(transport_eq == 2){
+	else if(cfg.transport_eq == 2){
 	
 		//Determine alpha and prepare distribution function if needed 
-		if(alpha_varies==1 || alpha_varies == 2){ 
+		if(cfg.alpha_varies==1 || cfg.alpha_varies == 2){
 			//Determine alpha
-			alpha_lag1=detAlphaLag(ub,alpha_varies,t);
+			alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,t);
 			
 			//Determine distribution
 			distribute = detDistributeFunc(alpha_lag1,dx);
@@ -1292,11 +1292,11 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 		} 
 		
 		GhostProtocol=0;
-		if (Npsl < Npsl_min){
+		if (Npsl < cfg.Npsl_min){
 		
 			GhostProtocol=1;
 
-			dxsubdiv=int(ceil(dx/((stle_factor*alpha_lag1*D50)/Npsl_min)));
+			dxsubdiv=int(ceil(dx/((cfg.stle_factor*alpha_lag1*cfg.D50)/cfg.Npsl_min)));
 			dxGhost = dx/dxsubdiv;
 			distribute = detDistributeFunc(alpha_lag1,dxGhost);
 			ghostNpsl = distribute.size();
@@ -1306,7 +1306,7 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 			fluxtemp.resize(ghostNpx);
 			
 			if(t==0){
-				cerr << "Npsl_min: " << Npsl_min << " ghostNpsl:" << ghostNpsl << " dxGhost:" << dxGhost << endl;
+				cerr << "Npsl_min: " << cfg.Npsl_min << " ghostNpsl:" << ghostNpsl << " dxGhost:" << dxGhost << endl;
 				cerr << "Npx: " << Npx << " ghostNpx: "<< ghostNpx << endl;
 			}
 			
@@ -1421,7 +1421,7 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 		//Smoothing OLAV 2014 04 14
 		int sepsmooth=0;
 		for(int i=0;i<Npx;i++){
-			if(dhdx[i]<tan(sepcritangle)){sepsmooth=1;}
+			if(dhdx[i]<tan(cfg.sepcritangle)){sepsmooth=1;}
 		}
 		
 		int poscr=-1;
@@ -1495,9 +1495,9 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 		depositemp.resize(Npx);
 		distribute.resize(1);
 		for(int i=0;i<Npx;i++){
-			(*b)[i]-=ep*dt/tt*D50*((*flux)[i]-deposi[i]); 
+			(*b)[i]-=ep*dt/cfg.tt*cfg.D50*((*flux)[i]-deposi[i]);
 			
-			fluxtot[i]+=(*flux)[i]/tt*ep; //not the real flux! Is pick-up only!
+			fluxtot[i]+=(*flux)[i]/cfg.tt*ep; //not the real flux! Is pick-up only!
 			
 			deposi[i]=0; 
 			depositemp[i]=0;
@@ -1552,10 +1552,10 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 	} //closes else if(transport_eq == 2){
 	//OLAV: 2013 05 22 END
 	
-	} // closes for(int t=0;t<int(tt);t++){ 
+	} // closes for(int t=0;t<int(cfg.tt);t++){
 	
 	//avalanching protocol
-	if(transport_eq == 2 && AllowAvalanching == 1){
+	if(cfg.transport_eq == 2 && cfg.AllowAvalanching == 1){
 		avalanche(); 
 	}
 			
@@ -1614,20 +1614,20 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 
 	write_flowsep();
 	
-	if(alpha_varies==0 && transport_eq == 2){
-		alpha_lag1=detAlphaLag(ub,alpha_varies,1);
+	if(cfg.alpha_varies==0 && cfg.transport_eq == 2){
+		alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,1);
 		
 		distribute=detDistributeFunc(alpha_lag1,dx);
 	}
 		
-	//if(alpha_varies==0 && transport_eq == 2) { //needed for x-dependent distribution
+	//if(cfg.alpha_varies==0 && transport_eq == 2) { //needed for x-dependent distribution
 	//    for(int j=0;j<Npsl;j++){ //needed for x-dependent distribution
 	//		distribute[j] = exp(-dx*j/meanstle)/meanstle; //needed for x-dependent distribution
 	//	} //needed for x-dependent distribution
 	//} //needed for x-dependent distribution
 
-	double ep=(1/(1-epsilonp));
-	for(int t=0;t<int(tt);t++){  //deze loop zit er in omdat expliciet niet al te grote tijdstappen aankan, moet nog aan getweekt worden.
+	double ep=(1/(1-cfg.epsilonp));
+	for(int t=0;t<int(cfg.tt);t++){  //deze loop zit er in omdat expliciet niet al te grote tijdstappen aankan, moet nog aan getweekt worden.
 
 		detQcr(bss2, q_spec);
 
@@ -1635,31 +1635,31 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 		int j=0;
 		int xsi=(*fsz)[j*7+0];
 		
-		if(transport_eq == 1 || transport_eq == 3){ //OLAV: 2013 05 22
+		if(cfg.transport_eq == 1 || cfg.transport_eq == 3){ //OLAV: 2013 05 22
 		for(int i=0;i<Npx;i++){
 			/* see notes on details on this */
 			if (i==xsi){ // OLAV 2013 04 16 (was just i==xsi check)
 				double fluxxsi = (*flux)[o2(xsi+1)];
-				(*b)[xsi]-=ep*dt/tt/dx*(fluxxsi-(*flux)[xsi])*2.;
+				(*b)[xsi]-=ep*dt/cfg.tt/dx*(fluxxsi-(*flux)[xsi])*2.;
 				(*b)[o2(xsi+1)]=oldb[o2(xsi+1)];
 				
 				if (j<nfsz) {j++; i++; xsi=(*fsz)[j*7+0];} }
 			else {
-			(*b)[i]-=ep*dt/tt/dx*((*flux)[o2(i+1)]-(*flux)[i]);}
+			(*b)[i]-=ep*dt/cfg.tt/dx*((*flux)[o2(i+1)]-(*flux)[i]);}
 		}
 		for(int i=0;i<Npx;i++){
-			fluxtot[i]+=(*flux)[i]/tt*ep;
+			fluxtot[i]+=(*flux)[i]/cfg.tt*ep;
 		}
 		
 		} //} //OLAV: 2011 02 28 end if (transport_eq == 1)
 
-	else if(transport_eq == 2){
+	else if(cfg.transport_eq == 2){
 	
 		//START OLAV 2014 01 30
 		//Determine alpha and prepare distribution function if needed 
-		if(alpha_varies==1 || alpha_varies == 2){ 
+		if(cfg.alpha_varies==1 || cfg.alpha_varies == 2){
 			//Determine alpha
-			alpha_lag1=detAlphaLag(bss2,alpha_varies,t);
+			alpha_lag1=detAlphaLag(bss2,cfg.alpha_varies,t);
 			
 			//Determine distribute function
 			distribute=detDistributeFunc(alpha_lag1,dx);
@@ -1741,12 +1741,12 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 		*/
 		
 		for(int i=0;i<Npx;i++){
-			(*b)[i]-=ep*dt/tt*D50*((*flux)[i]-deposi[i]); 
-			//fluxtot[i]+=(*flux)[i]/tt*ep; //not the real flux! Is pick-up only!
+			(*b)[i]-=ep*dt/cfg.tt*cfg.D50*((*flux)[i]-deposi[i]);
+			//fluxtot[i]+=(*flux)[i]/cfg.tt*ep; //not the real flux! Is pick-up only!
 			deposi[i]=0; 
 		} //closes loop over x	
 		
-		if (DebugOutput==1 && tijd > 2079){
+		if (cfg.DebugOutput==1 && tijd > 2079){
 			ofstream outdebugbed;
 			outdebugbed.open ("out_debugbed.txt", ofstream::out | ofstream::app);
 			outdebugbed.precision(6);
@@ -1822,7 +1822,7 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 		(*b)[o2(smoothlast+2)] += (1./4.)*smoothdiff; //*/
 		
 		
-		if (DebugOutput==1 && tijd > 2108){
+		if (cfg.DebugOutput==1 && tijd > 2108){
 			ofstream outdebugbed;
 			outdebugbed.open ("out_debugbed.txt", ofstream::out | ofstream::app);
 			outdebugbed.precision(6);
@@ -1833,17 +1833,17 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 		}
 		
 	} //closes else if(transport_eq == 2){
-	} // ends for(int t=0;t<int(tt);t++)
+	} // ends for(int t=0;t<int(cfg.tt);t++)
 
 	for(int i=0;i<Npx;i++){bss2[i]*=S;}
 	
 	/* uitvoeren migratie van de lij-zijde */
-	if (transport_eq == 1 || transport_eq == 3){
+	if (cfg.transport_eq == 1 || cfg.transport_eq == 3){
 		sep_migr_lee(fluxtot,oldb);
 	}
 	
 	//avalanching protocol
-	if(transport_eq == 2 && AllowAvalanching == 1){
+	if(cfg.transport_eq == 2 && cfg.AllowAvalanching == 1){
 		avalanche(); 
 	}
 	
@@ -1977,7 +1977,7 @@ vec bottom::sep_tau_distr(vec tb){
 		double Lt = (npts-1)*dx;
 
 		double dhdx_x1=((*b)[o2(xri-1)]-(*b)[o2(o2(xri-1)-1)])/dx;
-		double tauc_x1=thetacr*g*(2.65-1.)*D50*((1.+l2*dhdx_x1)/(pow(1.+dhdx_x1*dhdx_x1,(1./2.))));
+		double tauc_x1=cfg.thetacr*cfg.g*(2.65-1.)*cfg.D50*((1.+cfg.l2*dhdx_x1)/(pow(1.+dhdx_x1*dhdx_x1,(1./2.))));
 		double tau_x1 = tauc_x1;
 		double tau_x2 = tb[o2(xendi)];
 		double dtaudx_x1 = 2*(tau_x2-tau_x1)/(Lt);
@@ -2090,7 +2090,7 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 		double tol=itol;
 		// double repose=-30.;
 		// recalculate to r.c.'s
-		double repose1=tan(repose);
+		double repose1=tan(cfg.repose);
 		double b1 = repose1;
 		double b2 = ysep;
 		int dir = 1;  // 1 = left2right; 2 = right2left
@@ -2583,7 +2583,7 @@ vec bottom::detNd_fft(vec bot, int fftnum){
 	//END OLAV 2014 03 31
 	
 	//BEGIN OLAV 2014 03 31
-	if (nd==1){
+	if (cfg.nd==1){
 		for (int m=0; m<Npx; m++){
 			if (botf[m]<testval){ //niet met botf[m]<=testval? Nu wordt het meest linkse laagste punt geselecteerd
 				testval=botf[m];
@@ -2601,7 +2601,7 @@ vec bottom::detNd_fft(vec bot, int fftnum){
 	
 	//cerr<<"pos first trough: "<<pos_t1<<" - "<<endl;
 	while(stop==0) { 
-		if (nd==1){ //OLAV 2014 03 31
+		if (cfg.nd==1){ //OLAV 2014 03 31
 			stop =1;
 			tpos_temp[Nd]=pos_t1;
 			cerr<<endl;
@@ -2857,14 +2857,14 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 	
 	//determine alpha
 	if(method == 0){ // constant alpha
-		alpha_lag1=alpha_lag;
+		alpha_lag1=cfg.alpha_lag;
 	}
 	else if(method == 1){ // Sekine & Kikkawa 
 		for(int i=0;i<Npx;i++) {
 			//S*ub=volumetric bed shear stress; 
 			//u_star=(tau_vol)^(1/2)
 			u_star_temp= pow(S*(1./2.)*(ub[o2(i-1)]+ub[i]),(1./2.)); 
-			if (u_star_temp>u_star_cr){
+			if (u_star_temp>cfg.u_star_cr){
 				u_star = u_star+u_star_temp; //u_star = u_star+(1/double(Npx))*u_star_temp;
 			}
 			else {
@@ -2874,21 +2874,21 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 		
 		u_star/=double(Npx-skipped);
 		
-		alpha_lag1 = (alpha_2*pow(u_star/w_s,(3./2.))*(1-(u_star_cr/w_s)/(u_star/w_s)));
-		alpha_lag1 = max(alpha_lag1,alpha_min_SK);
-		alpha_lag1 = min(alpha_lag1,alpha_max_SK);		
+		alpha_lag1 = (cfg.alpha_2*pow(u_star/cfg.w_s,(3./2.))*(1-(cfg.u_star_cr/cfg.w_s)/(u_star/cfg.w_s)));
+		alpha_lag1 = max(alpha_lag1,cfg.alpha_min_SK);
+		alpha_lag1 = min(alpha_lag1,cfg.alpha_max_SK);
 		
 		if(suppressoutput==0){
-			cerr << "alpha_lag1=" << alpha_lag1<< " D_star=" << D_star<< " u_star=" << u_star << " u_star_cr=" << u_star_cr << " w_s=" << w_s << endl;
+			cerr << "alpha_lag1=" << alpha_lag1<< " D_star=" << cfg.D_star<< " u_star=" << u_star << " u_star_cr=" << cfg.u_star_cr << " w_s=" << cfg.w_s << endl;
 		}
 	}			
 	else if(method == 2){ // Shimizu et al. adjusted
 		for(int i=0;i<Npx;i++) {
 			// S*ub=volumetric bed shear stress;
 			// S*ub*ro = bed shear stress
-			theta_temp = S*(1./2.)*(ub[o2(i-1)]+ub[i])/(delta*g*D50); 
+			theta_temp = S*(1./2.)*(ub[o2(i-1)]+ub[i])/(cfg.delta*cfg.g*cfg.D50);
 			
-			if(theta_temp>thetacr){ //2014 02 04 theta_temp>0
+			if(theta_temp>cfg.thetacr){ //2014 02 04 theta_temp>0
 				theta = theta+theta_temp; //theta = theta+(1/double(Npx))*theta_temp;
 			}
 			else{
@@ -2898,28 +2898,28 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 		
 		theta/=double(Npx-skipped);
 		
-		//theta = H*ii / (D50*delta);	//Change Olav 2015 02 28 
+		//theta = H*ii / (cfg.D50*cfg.delta);	//Change Olav 2015 02 28
 		//theta_temp = theta; //Change Olav 2015 02 28 
 		//theta=0.06+0.3*pow(theta_temp,(3/2)); //Change Olav 2015 02 28 
 		
-		if(theta>theta_max_S){	
-			if (keepsgrowing == 1){
-				alpha_lag1=alpha_max_S+(theta-theta_max_S)*(alpha_max_S-alpha_min_S)/(theta_max_S-theta_min_S);
+		if(theta>cfg.theta_max_S){
+			if (cfg.keepsgrowing == 1){
+				alpha_lag1=cfg.alpha_max_S+(theta-cfg.theta_max_S)*(cfg.alpha_max_S-cfg.alpha_min_S)/(cfg.theta_max_S-cfg.theta_min_S);
 			}
 			else{
-				alpha_lag1=alpha_max_S;
+				alpha_lag1=cfg.alpha_max_S;
 			}
 		}
-		else if(theta<theta_min_S)	{
-			alpha_lag1=alpha_min_S;
+		else if(theta<cfg.theta_min_S)	{
+			alpha_lag1=cfg.alpha_min_S;
 		}
 		else{
-			alpha_lag1=alpha_min_S+(theta-theta_min_S)*(alpha_max_S-alpha_min_S)/(theta_max_S-theta_min_S);
+			alpha_lag1=cfg.alpha_min_S+(theta-cfg.theta_min_S)*(cfg.alpha_max_S-cfg.alpha_min_S)/(cfg.theta_max_S-cfg.theta_min_S);
 		} 	 
 		
 		if(suppressoutput==0){cerr << "alpha IS ADJUSTED from " << alpha_lag1 << endl;} //Change Olav 2015 02 28 
 		
-		alpha_lag1 = alpha_lag1 / H_ref * H; //Change Olav 2015 02 28 
+		alpha_lag1 = alpha_lag1 / cfg.H_ref * H; //Change Olav 2015 02 28
 		
 		if(suppressoutput==0){cerr << "alpha IS ADJUSTED to " << alpha_lag1 << endl;} //Change Olav 2015 02 28 
 		
@@ -2932,10 +2932,10 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 	}
 	
 	// double reductionfactor = 0.99;
-	// if (5.*alpha_lag1*D50 > L) {
-		// if(suppressoutput==0) {cerr << "WARNING: alpha too large with: " << alpha_lag1 << ". Set to: " << reductionfactor*L/5./D50 << endl;}
+	// if (5.*alpha_lag1*cfg.D50 > L) {
+		// if(suppressoutput==0) {cerr << "WARNING: alpha too large with: " << alpha_lag1 << ". Set to: " << reductionfactor*L/5./cfg.D50 << endl;}
 		
-		// alpha_lag1 = reductionfactor*L/5./D50;
+		// alpha_lag1 = reductionfactor*L/5./cfg.D50;
 	// }
 	
 	if(suppressoutput==0){
@@ -2950,8 +2950,8 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 }
 
 vec bottom::detDistributeFunc(double alpha_lag1,double deltax){	
-	double meanstle1  = alpha_lag1*D50; 
-	int Npsl = (int)ceil(meanstle1*stle_factor/deltax); 
+	double meanstle1  = alpha_lag1*cfg.D50;
+	int Npsl = (int)ceil(meanstle1*cfg.stle_factor/deltax);
 	vec distribute(Npsl,0.0);
 	for(int j=0;j<Npsl;j++){ 
 		distribute[j]= -exp(-deltax*(j+1)/meanstle1) + exp(-deltax*j/meanstle1);
@@ -2961,7 +2961,7 @@ vec bottom::detDistributeFunc(double alpha_lag1,double deltax){
 }
 
 // vec bottom::detDistributeFunc(double alpha_lag1,double deltax){	
-	// double meanstle1  = alpha_lag1*D50; 
+	// double meanstle1  = alpha_lag1*cfg.D50;
 	// int Npsl = (int)ceil(meanstle1*stle_factor/deltax); 
 	// vec distribute(Npsl,0.0);
 	// for(int j=0;j<Npsl;j++){ 
@@ -2972,7 +2972,7 @@ vec bottom::detDistributeFunc(double alpha_lag1,double deltax){
 // }
 
 void bottom::avalanche(){
-	double reposeangle1 = tan(repose); //double sepcritangle1 = tan(sepcritangle); //sepcritangle=-10.;
+	double reposeangle1 = tan(cfg.repose); //double sepcritangle1 = tan(sepcritangle); //sepcritangle=-10.;
 	double reposeangleplus = 0.99*reposeangle1;
 	double deltab; 
 	int reposefound;
