@@ -12,16 +12,16 @@ private:
 	const int Npx;
 	const int Npz;
 	const int nt;
-	spMat *A;
+	spMat A;
 	crLU *prLU;
 	int prec;
-	vec *b;
-	vec *iu;
-	vec *beta;
-	vec *alpha;
-	vec *u0;
-	vec *Avx;
-	vec *Sx;
+	vec b;
+	vec iu;
+	vec beta;
+	vec alpha;
+	vec u0;
+	vec Avx;
+	vec Sx;
 	/*spMat *Am;*/
 	int o(int j_ex,int i_ex,int v) const;
 	void zl(int r,int i);
