@@ -21,7 +21,7 @@ private:
 	vec Sr;
 	std::vector<int> fsz;
 	int o3(int i_in) const;
-	void detQ(vec ub, vec &dhdx);
+	//void detQ(vec ub, vec &dhdx);
 	void detQcr(vec ub, vec &dhdx);
 	void sep_migr_lee(const vec& fluxtot, const vec& oldb);
 	void sep_sort_fsz(int num);

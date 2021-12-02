@@ -22,22 +22,9 @@ bottom::bottom(const BedConfig& cfg) : cfg(cfg),
 		flux(vec(Npx,0.0)),
 		x(vec(Npx,0.0)),
 		Sr(vec(nf2,0.0)),
-		fsz(vector<int>(nf,0)) {
-	//b=new vec(Npx,0.0);
-	//bp=new vec(Npx,0.0);
-	//flux=new vec(Npx,0.0);
-	//x=new vec(Npx,0.0);
-	//fsz=new vector<int>(nf,0);
-	//Sr=new vec(nf2,0.0);
-}
-bottom::~bottom(){
-	//delete b;
-	//delete bp;
-	//delete flux;
-	//delete x;
-	//delete fsz;
-	//delete Sr;
-}
+		fsz(vector<int>(nf,0)) {}
+
+bottom::~bottom() {}
 
 int bottom::o3(int i_in) const {
 	/*adres vertaling voor periodieke rvw ten behoeve van parameterisatie*/
