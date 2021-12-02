@@ -77,7 +77,7 @@ int flow::o(int j_ex,int i_ex,int v) const {
 	}
 	return int(i*(Npz+1)+j+v*Npz);
 }
-void flow::det_AvS(vec bottom_state){
+void flow::det_AvS(const vec& bottom_state){
 	//bsp = bottom_state with parameterization
 	for(int i=0;i<Npx;i++){
 		double loc_wd=-bottom_state[i]+H+iu[o(0,i,2)]/beta[2*i+1];
@@ -87,7 +87,7 @@ void flow::det_AvS(vec bottom_state){
 	}
 }
 
-vec flow::getiu(){
+vec flow::getiu() const {
 	/*
 	vec u(nt,0.0);
 	for(int i=0;i<Npx;i++){
@@ -101,7 +101,7 @@ vec flow::getiu(){
 	return iu;
 }
 
-double flow::check_qsp(){
+double flow::check_qsp() const {
 	vec u_gem(Npx,0.0);
 	for(int i=0;i<Npx;i++){
 	  for(int j=0;j<Npz;j++){
@@ -122,7 +122,7 @@ void flow::resetIu(){
 	for(int i=0;i<nt;i++)iu[i]=0.0;
 }
 
-void flow::resetIu(vec u){
+void flow::resetIu(const vec& u){
 	for(int i=0;i<nt;i++)iu[i]=u[i];
 }
 
@@ -135,7 +135,7 @@ void flow::initIu(){
 	}
 }
 
-void flow::u_b(vec &u0){
+void flow::u_b(vec &u0) const {
 	for(int i=0;i<Npx;i++){
 		double a=2.*beta[2*i]*Avx[i];
 		double fac=a/(a+Sx[i]*dz);
@@ -143,7 +143,7 @@ void flow::u_b(vec &u0){
 	}
 }
 
-void flow::write_velocities(double tijd, vec bottom_state, vec u0_b){
+void flow::write_velocities(double tijd, const vec& bottom_state, const vec& u0_b) const {
 	ofstream outvelub;
 	ofstream outvelu;
 	ofstream outvelw;
@@ -208,7 +208,7 @@ void flow::write_zeta(double tijd){
 }
 */
 
-vec flow::getZeta(){
+vec flow::getZeta() const{
 	vec zta(Npx,0.0);
 	for(int i=0;i<Npx;i++){
 		if (beta[2*i+1]==0.) {zta[i]=0.;}
@@ -217,7 +217,7 @@ vec flow::getZeta(){
 	return zta;
 }
 
-double flow::zetaint1(){
+double flow::zetaint1() const {
 	double zetaint = 0.0;
 	for(int i=0;i<Npx;i++){
 		zetaint+=dx*beta[2*i+1]*iu[o(0,i,2)];
@@ -225,7 +225,7 @@ double flow::zetaint1(){
 	return zetaint;
 }
 
-double flow::zetaint2(){
+double flow::zetaint2() const {
 	double zetaint = 0.0;
 	double minzeta = beta[2*0+1]*iu[o(0,0,2)];
 	for(int i=1;i<Npx;i++){
@@ -278,7 +278,7 @@ void flow::testNewton(vec bottom_state,double eps){
 }
 */
 
-int flow::solve_gm(vec bottom_state,int gmn){
+int flow::solve_gm(const vec& bottom_state,int gmn) {
 	//flowsolver die gebruikt maakt van gmres, gmn is het aantal iteratiestappen
 	double eta=0.1;
 	double gmtresh=cfg.tresh;
@@ -367,7 +367,7 @@ int flow::solve_gm(vec bottom_state,int gmn){
 	return teller;
 }
 
-int flow::solve(vec bottom_state){
+int flow::solve(const vec& bottom_state){
 	//Flow solver met behulp van Gaus eliminatie
 	int teller=0;
 	//resetIu(); //*iu initialiseren op nul
@@ -401,7 +401,7 @@ void flow::vulu(){
 	for(int i=0;i<nt;i++)iu[i]+=b[i];
 }
 
-void flow::dzs_init(vec bottom_state){
+void flow::dzs_init(const vec& bottom_state){
 	//vullen van de diverse bodemafhankelijke schaalparameters
 	for(int i=0;i<Npx;i++){
 		beta[2*i]=1./(1.-(bottom_state[i])/H);
@@ -439,7 +439,7 @@ void flow::w_from_uA(int r, int j_ex,int i_ex,double co){
 		A.e(r,o(j,i_ex+1,0))-=co*dz/dx;
 	}
 }
-double flow::w_from_u(int j_ex,int i_ex){
+double flow::w_from_u(int j_ex,int i_ex) const{
 	double w=0.;
 	for(int j=0;j<=j_ex;j++){
 		w+=dz/dx*(iu[o(j,i_ex,0)]-iu[o(j,i_ex+1,0)]);

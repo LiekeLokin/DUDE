@@ -26,10 +26,10 @@ private:
 	int o(int j_ex,int i_ex,int v) const;
 	void zl(int r,int i);
 	void zr(int r,int i);
-	void wl(int r,int j_ex,int i);
-	void wr(int r,int j_ex,int i);
+	//void wl(int r,int j_ex,int i);
+	//void wr(int r,int j_ex,int i);
 	void w_from_uA(int r,int j_ex,int i_ex,double co);
-	double w_from_u(int j_ex,int i_ex);
+	double w_from_u(int j_ex,int i_ex) const;
 	void a0l(int r,int j,int i);
 	void a0r(int r,int j,int i);
 	void a1l(int r,int j,int i);
@@ -52,27 +52,27 @@ private:
 	void vulA();
 	void vulu();
 	void initIu();
-	void dzs_init(vec bottom_state);
-	void det_AvS(vec bottom_state);
+	void dzs_init(const vec& bottom_state);
+	void det_AvS(const vec& bottom_state);
 public:
 	flow() = delete;
 	flow(const FlowConfig& cfg);
 	~flow();
-	int solve(vec bottom_state);
-	int solve_gm(vec bottom_state,int gmn);
+	int solve(const vec& bottom_state);
+	int solve_gm(const vec& bottom_state,int gmn);
 	void reprec();
-	vec getiu();
-	double check_qsp();
-	void u_b(vec &u0);
+	vec getiu() const;
+	double check_qsp() const;
+	void u_b(vec &u0) const;
 	void resetIu();
-	void resetIu(vec u);
-	void u_anal(double eps);
+	void resetIu(const vec& u);
+	//void u_anal(double eps);
 	/*void testNewton(vec bottom_state,double eps);*/
-	void write_velocities(double tijd, vec bottom_state, vec u0_b);
+	void write_velocities(double tijd, const vec& bottom_state, const vec& u0_b) const;
 	//void write_zeta(double tijd);
-	vec getZeta();
-	double zetaint1();
-	double zetaint2();
+	vec getZeta() const;
+	double zetaint1() const;
+	double zetaint2() const;
 };
 
 #endif
