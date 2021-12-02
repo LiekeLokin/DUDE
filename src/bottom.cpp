@@ -13,21 +13,30 @@ namespace {
 const double grad_2_deg = 360./(2.*M_PI);
 	// help variable for grad to degress
 }
-bottom::bottom(const BedConfig& cfg) : cfg(cfg), Npx(cfg.Npx), nf((int(ceil(Npx/10+1)))*7+2), nf2(int(ceil(Npx/10+1))) {
-	b=new vec(Npx,0.0);
-	bp=new vec(Npx,0.0);
-	flux=new vec(Npx,0.0);
-	x=new vec(Npx,0.0);
-	fsz=new vector<int>(nf,0);
-	Sr=new vec(nf2,0.0);
+bottom::bottom(const BedConfig& cfg) : cfg(cfg),
+		Npx(cfg.Npx),
+		nf((int(ceil(Npx / 10 + 1))) * 7 + 2),
+		nf2(int(ceil(Npx / 10 + 1))),
+		b(vec(Npx, 0.0)),
+		bp(vec(Npx, 0.0)),
+		flux(vec(Npx,0.0)),
+		x(vec(Npx,0.0)),
+		Sr(vec(nf2,0.0)),
+		fsz(vector<int>(nf,0)) {
+	//b=new vec(Npx,0.0);
+	//bp=new vec(Npx,0.0);
+	//flux=new vec(Npx,0.0);
+	//x=new vec(Npx,0.0);
+	//fsz=new vector<int>(nf,0);
+	//Sr=new vec(nf2,0.0);
 }
 bottom::~bottom(){
-	delete b;
-	delete bp;
-	delete flux;
-	delete x;
-	delete fsz;
-	delete Sr;
+	//delete b;
+	//delete bp;
+	//delete flux;
+	//delete x;
+	//delete fsz;
+	//delete Sr;
 }
 
 int bottom::o3(int i_in) const {
@@ -59,20 +68,20 @@ temporal bottom profiles
 ======================================================
 */
 
-void bottom::setShape(vec b_in){
-	(*b)=b_in;
+void bottom::setShape(const vec& b_in){
+	b=b_in;
 }
 
 void bottom::setSin(double amp){
 	/*vullen van vector met voor de bodemverstoring geschaalde dz*/
 	for(int i=0;i<Npx;i++){
-		(*b)[i]=amp*sin(2.0*M_PI/Npx*(i));
+		b[i]=amp*sin(2.0*M_PI/Npx*(i));
 	}
 }
 void bottom::setSin(double amp,int n){
 	/*vullen van vector met voor de bodemverstoring geschaalde dz*/
 	for(int i=0;i<Npx;i++){
-		(*b)[i]=amp*sin(n*2.0*M_PI/Npx*(i));
+		b[i]=amp*sin(n*2.0*M_PI/Npx*(i));
 	}
 }
 
@@ -80,7 +89,7 @@ void bottom::setSin(double amp,int n){
 void bottom::setDistSin(double amp,int n){
 	/*vullen van vector met voor de bodemverstoring geschaalde dz*/
 	for(int i=0;i<Npx;i++){
-		(*b)[i]+=amp*sin(n*2.0*M_PI/Npx*(i));
+		b[i]+=amp*sin(n*2.0*M_PI/Npx*(i));
 	}
 }
 
@@ -88,7 +97,7 @@ void bottom::setDistSin(double amp,int n){
 void bottom::setRand(double amp){
 	/*fill bottom vector with a random disturbance, without seed*/
 		for(int i=0;i<Npx;i++){
-		(*b)[i]=amp*2.0*(0.5-(double)rand()/(double)(RAND_MAX));
+		b[i]=amp*2.0*(0.5-(double)rand()/(double)(RAND_MAX));
 	}
 }
 #endif
@@ -158,7 +167,7 @@ void bottom::setWave(int xwi, int xcin){
 
 	for(int i=xwi;i<xwi+Npx_wave;i++){							//xwi = beginpositie van de wave
 
-			(*b)[o3(i)]+=wavelet1[i-xwi];
+			b[o3(i)]+=wavelet1[i-xwi];
 
 }}
 
@@ -189,7 +198,7 @@ void bottom::setDist(double amp_dist){
 
 
 		for(int k=0;k<Npx;k++){
-			(*b)[k]+=rand_dist[k];
+			b[k]+=rand_dist[k];
 		}
 }
 
@@ -197,7 +206,7 @@ void bottom::setRand(double amp,int seed){
 	/*fill bottom vector with a random disturbance, with seed*/
 	srand(seed);
 	for(int i=0;i<Npx;i++){
-		(*b)[i]=amp*2.0*(0.5-(double)rand()/(double)(RAND_MAX));
+		b[i]=amp*2.0*(0.5-(double)rand()/(double)(RAND_MAX));
 	}
 }
 #endif
@@ -207,18 +216,18 @@ void bottom::setMidSin(double amp, double length){
 	length of the sine is length, domain length is L*/
 	int N2=(int)(length/dx);
 	int start=(int)((Npx/2.0)-(N2/2.0));
-	for(int i=0;i<start;i++)(*b)[i]=0.0;
+	for(int i=0;i<start;i++)b[i]=0.0;
 	for(int i=start;i<start+N2;i++){
-		(*b)[i]=amp*sin(2.0*M_PI/N2*(i-start));
+		b[i]=amp*sin(2.0*M_PI/N2*(i-start));
 	}
-	for(int i=start+N2;i<Npx;i++)(*b)[i]=0.0;
+	for(int i=start+N2;i<Npx;i++)b[i]=0.0;
 }
 
 void bottom::setCustom(double amp, int n){
 	/*vullen van vector met voor de bodemverstoring geschaalde dz*/
 	/*custom gemaakt op 10/02/2006*/
 	for(int i=0;i<Npx;i++){
-		(*b)[i]=amp*sin(n*2.0*M_PI/Npx*(i));
+		b[i]=amp*sin(n*2.0*M_PI/Npx*(i));
 	}
 	vec func(Npx,1.0);
 	double dist=6.0; double x0=1.0; double xx;
@@ -234,7 +243,7 @@ void bottom::setCustom(double amp, int n){
 		func[i]=func[Npx-i];
 	}
 	for(int i=0;i<Npx;i++){
-		(*b)[i]*=func[i];
+		b[i]*=func[i];
 	}
 }
 
@@ -274,7 +283,7 @@ vec bottom::readBottomInp(const std::string& readbed){
 	//Lin=4.;
     	
 	cerr<<tijd<<" "<<sep<<" "<<wd<<endl;
-	for(int i=0;i<Npx;i++)in1>>(*b)[i];
+	for(int i=0;i<Npx;i++)in1>>b[i];
 	if (wd==0.) {
 		tijd=0.;
 		wd=H; }
@@ -284,22 +293,22 @@ vec bottom::readBottomInp(const std::string& readbed){
 
 	if (sep==1) {
 		in1>>dump;
-		for(int i=0;i<nf;i++)in1>>(*fsz)[i];
+		for(int i=0;i<nf;i++)in1>>fsz[i];
 		in1>>dump;
-		for(int i=0;i<nf2;i++)in1>>(*Sr)[i];
+		for(int i=0;i<nf2;i++)in1>>Sr[i];
 	}
 	in1.close();
 	
 	
 	    // for(int i=0;i<nf;i++){
             
-            // outdebug << " " << (*fsz)[i];
+            // outdebug << " " << fsz[i];
             
             // }
        // outdebug << endl;     
          // for(int i=0;i<nf2;i++){
             
-            // outdebug << " " << (*Sr)[i];
+            // outdebug << " " << Sr[i];
             
             // }
          // outdebug << endl;
@@ -307,16 +316,16 @@ vec bottom::readBottomInp(const std::string& readbed){
 	return inp;
 }
 
-void bottom::writeBottom(){
+void bottom::writeBottom() const {
 	/*write bottom for restart after Sobek computation*/
-	int sepflag=(*fsz)[nf-2];
-	int nfsz=(*fsz)[nf-1];
+	int sepflag=fsz[nf-2];
+	int nfsz=fsz[nf-1];
 	ofstream bb("out_bottom.inp");
 	bb.precision(16);
-	bb<<tijd<<" "<<sepflag<<" "<<nfsz<<" "<<0<<" "<<H<<" "<<L<<" "; for(int i=0;i<(*b).size();i++)bb<<(*b)[i]<<" "; bb<<endl;
+	bb<<tijd<<" "<<sepflag<<" "<<nfsz<<" "<<0<<" "<<H<<" "<<L<<" "; for(int i=0;i<b.size();i++)bb<<b[i]<<" "; bb<<endl;
 	if (sepflag==1){
-		bb<<tijd<<" "; for(int i=0;i<(*fsz).size();i++)bb<<(*fsz)[i]<<" "; bb<<endl;
-		bb<<tijd<<" "; for(int i=0;i<(*Sr).size();i++)bb<<(*Sr)[i]<<" "; bb<<endl;
+		bb<<tijd<<" "; for(int i=0;i<fsz.size();i++)bb<<fsz[i]<<" "; bb<<endl;
+		bb<<tijd<<" "; for(int i=0;i<Sr.size();i++)bb<<Sr[i]<<" "; bb<<endl;
 	}
 	bb.close();
 }
@@ -330,18 +339,18 @@ loop over Npx bottom points, to check for flow separation
 case 1: a FSZ existed at the previous time step
 case 2: a new flow separation zone is formed
         if (dhdx < sepcritangle) -> flow sep
-(*fsz) is filled for later use
+fsz is filled for later use
 
 ======================================================
 ======================================================
 */
 
 void bottom::checkFlowsep(){
-	vector<int> fsz_prev = (*fsz);        // previous fsz characteristics
-	for(int i=0;i<Npx;i++)(*x)[i]=i*dx;
-	(*bp)=(*b);                           // vector for parameterized bottom
+	vector<int> fsz_prev = fsz;        // previous fsz characteristics
+	for(int i=0;i<Npx;i++)x[i]=i*dx;
+	bp=b;                           // vector for parameterized bottom
     vector<int> dta(2,0);
-	int sepflag; //=(*fsz)[nf-2];
+	int sepflag; //=fsz[nf-2];
 	int sepflag1=fsz_prev[nf-2];
 	int xsi=-1;	int xri=0; int xci=0; int xti=0; int xdi;
 	int nfsz=0;
@@ -361,13 +370,13 @@ void bottom::checkFlowsep(){
 //    outdebug.precision(16);
 //    for(int i=0;i<nf;i++){
 //            
-//            outdebug << " " << (*fsz)[i];
+//            outdebug << " " << fsz[i];
 //            
 //            }
 //       outdebug << endl;     
 //         for(int i=0;i<nf2;i++){
 //            
-//            outdebug << " " << (*Sr)[i];
+//            outdebug << " " << Sr[i];
 //            
 //            }
 //         outdebug << endl;
@@ -378,7 +387,7 @@ void bottom::checkFlowsep(){
 	
 	/* determination of bed gradients dhdx */
 	vec dhdx(Npx,0.0);
-    for(int i=0;i<Npx;i++) dhdx[i]=((*b)[i]-(*b)[o2(i-1)])/(dx);
+    for(int i=0;i<Npx;i++) dhdx[i]=(b[i]-b[o2(i-1)])/(dx);
         
 	/* als het begin van het domein in de vorige tijdstap een fsz was
 	 * dan moet dit gedeelte overgeslagen worden; anders wordt er een
@@ -441,8 +450,8 @@ void bottom::checkFlowsep(){
 
 			if (i!=-1) { // else fsz too small
 
-				(*fsz)[(nfsz-1)*7+6]=1;  // identifier case 1
-				xri=(*fsz)[(nfsz-1)*7+1];
+				fsz[(nfsz-1)*7+6]=1;  // identifier case 1
+				xri=fsz[(nfsz-1)*7+1];
 				//cerr<<"   xri: "<<xri<<" (i: "<<i<<")"<<" col: "<<(col-4)/7<<endl;
 
 				// following is used to force to use SOLVE as flow routine
@@ -530,15 +539,15 @@ void bottom::checkFlowsep(){
 							if (fsz_prev[mm*7+6]==5) cnum=5;
 							int mmfsz=mfsz-skipped;
 							if (nfsz>mfsz) mmfsz-=newwave;
-							(*fsz)[mmfsz*7+6]=cnum;
+							fsz[mmfsz*7+6]=cnum;
 							for (int j=0;j<6;j++){
-								(*fsz)[mmfsz*7+j]=fsz_prev[mm*7+j];
-								(*Sr)[mmfsz]=(*Sr)[mm];
+								fsz[mmfsz*7+j]=fsz_prev[mm*7+j];
+								Sr[mmfsz]=Sr[mm];
 							}
 							//cerr<<"ik kom hier.."<<endl;
 							mfsz++; col+=7;
 							if (i!=Npx) {nfsz++;} // anders hebben we domein al gehad
-							//cerr<<mfsz<<": xri: "<<(*fsz)[(mfsz-1)*7+1]<<" (i: "<<i<<")"<<" col: "<<(col-4)/7<<endl;
+							//cerr<<mfsz<<": xri: "<<fsz[(mfsz-1)*7+1]<<" (i: "<<i<<")"<<" col: "<<(col-4)/7<<endl;
 						}
 					} // if (merge==1)
 
@@ -547,8 +556,8 @@ void bottom::checkFlowsep(){
 					else if (merge==0 && fsz_prev[(col2/7+0)*7+6]>=4) {
 						//cerr<<"ik kom hier - 1"<<endl;
 						//cerr<<"col: "<<(col-4)/7<<endl;
-						//int xsii=(*fsz)[(col2/7-1)*7+0];
-						//int xrii=(*fsz)[(col2/7-1)*7+1];
+						//int xsii=fsz[(col2/7-1)*7+0];
+						//int xrii=fsz[(col2/7-1)*7+1];
 						int xsii=xsi;
 						int xrii=xri;
 						if (xrii<xsii) xrii+=Npx;
@@ -587,7 +596,7 @@ void bottom::checkFlowsep(){
 			} // (i!=-1)
 			// if fsz too small to account for
 			else {
-				i=findTrough(xsi,filter(3,(*bp)));
+				i=findTrough(xsi,filter(3,bp));
 				if (i<xsi) i=Npx;
 				nfsz--;
 				skipped++;
@@ -633,8 +642,8 @@ void bottom::checkFlowsep(){
 			}
 			else {
 			// dit stuk: development
-			xci=findCrest(o2(xsi),filter(1,(*b)));
-			xti=findTrough(xsi,filter(3,(*b)));
+			xci=findCrest(o2(xsi),filter(1,b));
+			xti=findTrough(xsi,filter(3,b));
 			// check if fsz needs to be skipped
 			// reattachment point of small dune on lee, so double flow sep point found
 			cerr<<"ik kom hierrr"<<endl;
@@ -656,7 +665,7 @@ void bottom::checkFlowsep(){
 				}
 			}
 			xsi=xci;
-			if ((nfsz>1 && xsi==(*fsz)[(nfsz-2)*7+2]) || skip==1){
+			if ((nfsz>1 && xsi==fsz[(nfsz-2)*7+2]) || skip==1){
 				//than sep point is equal to previous, and has to be skipped
 				cerr<<"   WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
 				outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
@@ -666,11 +675,11 @@ void bottom::checkFlowsep(){
 				xri=xti;
 				cerr<<"   WARNING: [j="<<nfsz<<"] xri set to xti since first time flowsep case 2"<<endl;
 				outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] xri set to xti since first time flowsep case 2"<<endl;
-				(*fsz)[(nfsz-1)*7+2]=xci;
-				(*fsz)[(nfsz-1)*7+3]=xti;
-				(*fsz)[(nfsz-1)*7+0]=xsi;
-				(*fsz)[(nfsz-1)*7+1]=xri;
-				(*fsz)[(nfsz-1)*7+6]=2;
+				fsz[(nfsz-1)*7+2]=xci;
+				fsz[(nfsz-1)*7+3]=xti;
+				fsz[(nfsz-1)*7+0]=xsi;
+				fsz[(nfsz-1)*7+1]=xri;
+				fsz[(nfsz-1)*7+6]=2;
 
 				if (xti>i) i=xti;
 				else if (xti<i) i=Npx;
@@ -694,24 +703,24 @@ void bottom::checkFlowsep(){
 			col+=7;
 			dta=setFSZ(xsi,nfsz,wavelet);
 			nfsz=dta[1];
-			(*fsz)[(nfsz-1)*7+6]=3;
+			fsz[(nfsz-1)*7+6]=3;
 	} //Olav: closes if (fsz_prev[col]==0 && fsz_prev[col-4]>0)
 
 	/* check for merged fsz's at the beginning of *fsz that have to be removed from array */
-	int c1=(*fsz)[6];
+	int c1=fsz[6];
 	int c2=fsz_prev[6];
 	if (c1==4 || c2==5) {
-		int xsi1=(*fsz)[0];
-		int xri1=(*fsz)[1]; if(xsi1>xri1){xsi1-=Npx;}
-		int xsi2=(*fsz)[(nfsz-1)*7+0];
-		int xri2=(*fsz)[(nfsz-1)*7+1]; if(xsi2>xri2){xsi2-=Npx;}
+		int xsi1=fsz[0];
+		int xri1=fsz[1]; if(xsi1>xri1){xsi1-=Npx;}
+		int xsi2=fsz[(nfsz-1)*7+0];
+		int xri2=fsz[(nfsz-1)*7+1]; if(xsi2>xri2){xsi2-=Npx;}
 		//cerr<<"xsi1 "<<xsi1<<"; xri1: "<<xri1<<"xsi2: "<<xsi2<<"; xri2: "<<xri2<<endl;
 		if (xri2>=xri1 && xsi2<=xsi1) {
 			cerr<<"   WARNING: static flow separation zone is merged and removed from array"<<endl;
 			outlog<<"T="<<tijd<<" - WARNING: static flow separation zone is merged and removed from array"<<endl;
 			for (int i=0;i<7;i++){
-				(*fsz)[i]=(*fsz)[(nfsz-1)*7+i];
-				(*Sr)[0]=(*Sr)[(nfsz-1)];
+				fsz[i]=fsz[(nfsz-1)*7+i];
+				Sr[0]=Sr[(nfsz-1)];
 			}
 		nfsz--;
 		}
@@ -720,18 +729,18 @@ void bottom::checkFlowsep(){
 	if(nfsz==0)sepflag=0;
 
 	/* store some parameters in *fsz array */
-	(*fsz)[nf-3]=solve_method;
-	(*fsz)[nf-2]=sepflag;
-	(*fsz)[nf-1]=nfsz;
+	fsz[nf-3]=solve_method;
+	fsz[nf-2]=sepflag;
+	fsz[nf-1]=nfsz;
 
-	/* set old fsz�s to zero in array (*fsz) */
+	/* set old fsz�s to zero in array fsz */
 	for(int i=nfsz*7;i<nf-3;i++){
-		(*fsz)[i]=0;
+		fsz[i]=0;
 	}
 
 	/* initialize rounding errors to zero */
 	for(int i=nfsz;i<nf2;i++){
-		(*Sr)[i]=0;
+		Sr[i]=0;
 	}
 
 	/* write separation zone characteristics to screen */
@@ -739,7 +748,7 @@ void bottom::checkFlowsep(){
 
 	/* max of bed and param bed: is bedflow in main */
 	for(int i=0;i<Npx;i++) {
-		(*bp)[i]=max((*bp)[i],(*b)[i]);}
+		bp[i]=max(bp[i],b[i]);}
 
 	/* smooth bed to avoid strong bed gradients at separation and reattachment */
 	smooth_param(5,1); // smooth at xsi
@@ -765,15 +774,15 @@ vector<int> bottom::setFSZ(int xsi, int nfsz, int wavelet){
 
   vector<int> dta(2,0);
 	int xri=0; int xci=0;	int xti=0;
-	xti=findTrough(xsi,filter(3,(*bp)));
-	xci=findCrest(xsi,filter(1,(*bp)));
+	xti=findTrough(xsi,filter(3,bp));
+	xci=findCrest(xsi,filter(1,bp));
 
 	/*
 	int tel=0;
 	int xsii=xsi; //store original xsi
 	// locatie xsi corrigeren als vlak stukje door sep_migr_lee.
 	// NB uitgezet, werkt niet goed!!
-	while ((*b)[xsi]==(*b)[o2(xsi-1)]){// && (*b)[o2(xsi-1)]!=(*b)[o2(o2(xsi-1)-1)]){
+	while (b[xsi]==b[o2(xsi-1)]){// && b[o2(xsi-1)]!=b[o2(o2(xsi-1)-1)]){
 		xsi=o2(xsi-1);
 		cerr<<"xsi-- voor param. sepline"<<endl;
 		tel++;
@@ -811,10 +820,10 @@ vector<int> bottom::setFSZ(int xsi, int nfsz, int wavelet){
 		dta[0]=-1; dta[1]=nfsz;
 	}
 	else {
-		(*fsz)[(nfsz-1)*7+0]=xsi;
-		(*fsz)[(nfsz-1)*7+1]=xri;
-		(*fsz)[(nfsz-1)*7+2]=xci;
-		(*fsz)[(nfsz-1)*7+3]=xti;
+		fsz[(nfsz-1)*7+0]=xsi;
+		fsz[(nfsz-1)*7+1]=xri;
+		fsz[(nfsz-1)*7+2]=xci;
+		fsz[(nfsz-1)*7+3]=xti;
 		/*
 		cerr<<"xsi: "<<xsi<<"; xri: "<<xri<<endl;
 		cerr<<"alpha at xsi-1: "<<atan(dhdx[o2(xsi-1)])*grad_2_deg<<endl;
@@ -854,11 +863,11 @@ int bottom::paramSepline(int xsi, int xti, int xci, int nfsz){
 	// determination of tan alpha_s & xsi
 	vec dhdx(Npx,0.0);
   for(int i=0;i<Npx;i++){
-   	dhdx[i]  = ( (*b)[i] - (*b)[o2(i-1)] )/(dx);
+   	dhdx[i]  = ( b[i] - b[o2(i-1)] )/(dx);
   }
 
 	int pt=xsi;
-	while ((*b)[pt]==(*b)[o2(pt-1)]){// && (*b)[o2(xsi-1)]!=(*b)[o2(o2(xsi-1)-1)]){
+	while (b[pt]==b[o2(pt-1)]){// && b[o2(xsi-1)]!=b[o2(o2(xsi-1)-1)]){
 		pt=o2(pt-1);
 		cerr<<"pt-- voor param. sepline dhdx bepaling"<<endl;
 	}
@@ -872,10 +881,10 @@ int bottom::paramSepline(int xsi, int xti, int xci, int nfsz){
 	//alpha_s=0;
 
 	// x and z coordinate of the flow separation and reattachment point
-	double xs=(*x)[xsi];
-	double Hs=(*b)[xsi];
-	double xt=(*x)[xti];
-	double Ht=(*b)[xti];
+	double xs=x[xsi];
+	double Hs=b[xsi];
+	double xt=x[xti];
+	double Ht=b[xti];
 	
 	// height and total lengte of the flow separation zone
 	// total length: point where separation streamline crosses the trough elevation
@@ -980,7 +989,7 @@ int bottom::paramSepline(int xsi, int xti, int xci, int nfsz){
 
 		int m = i;
 		if (i>=Npx) m = i-Npx;
-		(*bp)[m]=s[i-xsi];
+		bp[m]=s[i-xsi];
 	}
 
 	if(xri>Npx) xri-=Npx;
@@ -1005,35 +1014,35 @@ the volumetric stress at xsi (flux@xsi)
 // OLAV: function detQ is not used 2011 02 25
 //void bottom::detQ(vec ub, vec &dhdx){
 //	/* determine sediment fluxes without critical bed shear stress */
-//	int sepflag=(*fsz)[nf-2];
+//	int sepflag=fsz[nf-2];
 //	vec tau(Npx,0.0);
 //
 //	for(int i=0;i<Npx;i++){
 //		tau[i]=S*(ub[i]);
-//		dhdx[i]=((*b)[i]-(*b)[o2(i-1)])/dx;
+//		dhdx[i]=(b[i]-b[o2(i-1)])/dx;
 //	}
 //
 //	for(int i=0;i<Npx;i++){
-//		(*flux)[i]=0.0;
+//		flux[i]=0.0;
 //		double taui=(1./2.)*(tau[o2(i-1)]+tau[i]);
-//		if (tau[i]>0.) (*flux)[i]+=alpha*pow(taui,be)*(1-l1/taui*(dhdx[i])-cfg.l2*(dhdx[i]));
+//		if (tau[i]>0.) flux[i]+=alpha*pow(taui,be)*(1-l1/taui*(dhdx[i])-cfg.l2*(dhdx[i]));
 //	}
 //
 //	/* in case of flow separation, the flux@xsi, based on local tau in that
-//	 * point, is stored in (*flux)[xsi+1] */
+//	 * point, is stored in flux[xsi+1] */
 //	if (sepflag==1){
-//		int nfsz=(*fsz)[nf-1];
+//		int nfsz=fsz[nf-1];
 //		for (int j=0;j<nfsz;j++) {
-//			int xsi=(*fsz)[j*7+0];
+//			int xsi=fsz[j*7+0];
 //			//cerr<<"j: "<<j<<"tau[xsi="<<xsi<<"]: "<<tau[xsi]<<endl;
-//			if (tau[xsi]>0.) (*flux)[o2(xsi+1)]+=alpha*pow(tau[xsi],be)*(1-l1/tau[xsi]*(dhdx[xsi])-cfg.l2*(dhdx[xsi]));
+//			if (tau[xsi]>0.) flux[o2(xsi+1)]+=alpha*pow(tau[xsi],be)*(1-l1/tau[xsi]*(dhdx[xsi])-cfg.l2*(dhdx[xsi]));
 //		}
 //	}
 //}
 
 void bottom::detQcr(vec ub, vec &dhdx){
 	/* determine fluxes in case of flowsep some extra code is used*/
-	int sepflag=(*fsz)[nf-2];
+	int sepflag=fsz[nf-2];
 	vec tau(Npx,0.0);
 	double sepflux; // OLAV 2013 04 16
 	double meanstle1;  // OLAV 2014 02 25
@@ -1048,18 +1057,18 @@ void bottom::detQcr(vec ub, vec &dhdx){
 //           string ofname10 = tmpbot10.str();
 //           ofstream outdebug(ofname10.c_str(),ios_base::out);
 //        // END ADDED 2011 2 25 (OLAV)
-// outdebug << "xsi= " << xsi << " o2(xsi+1)= " << o2(xsi+1) << " (*flux)[o2(xsi+1)]= " << (*flux)[o2(xsi+1)] << endl; // ADDED 2011 2 25 (OLAV)
+// outdebug << "xsi= " << xsi << " o2(xsi+1)= " << o2(xsi+1) << " flux[o2(xsi+1)]= " << flux[o2(xsi+1)] << endl; // ADDED 2011 2 25 (OLAV)
 // ADDED 2011 2 25 (OLAV)	
 //    outdebug.close();
 // END ADDED 2011 2 25 (OLAV)
                
 	for(int i=0;i<Npx;i++){
 		tau[i]=S*(ub[i]);
-		dhdx[i]=((*b)[i]-(*b)[o2(i-1)])/dx;
+		dhdx[i]=(b[i]-b[o2(i-1)])/dx;
 	}
     
 	for(int i=0;i<Npx;i++){
-		(*flux)[i]=0.0;      
+		flux[i]=0.0;
 		double taui=(1./2.)*(tau[o2(i-1)]+tau[i]);
 		
 		// Meyer-Peter M�ller (original)
@@ -1069,23 +1078,23 @@ void bottom::detQcr(vec ub, vec &dhdx){
 		   
            if (tau[i]>tauc && taui>0.) {
 			   taui=max(taui,tauc); //OLAV: 2011 2 23 --> why this operation?
-			   (*flux)[i]+=cfg.alpha*pow(taui-tauc,cfg.be)*(1./(1.+cfg.l2*(dhdx[i])));
+			   flux[i]+=cfg.alpha*pow(taui-tauc,cfg.be)*(1./(1.+cfg.l2*(dhdx[i])));
            }
             
            /* in case of flow separation, the flux@xsi, based on local tau in that
-	       * point, is stored in (*flux)[xsi+1] 
+	       * point, is stored in flux[xsi+1]
 		   * this is a correction afterwards    */
            if (sepflag==1 ){ //OLAV 2013 04 16 // && AllowAvalanching==1
-		      int nfsz=(*fsz)[nf-1];
+		      int nfsz=fsz[nf-1];
 		      for (int j=0;j<nfsz;j++) {
-			           int xsi=(*fsz)[j*7+0];
-                       (*flux)[o2(xsi+1)]=0.0;
+			           int xsi=fsz[j*7+0];
+                       flux[o2(xsi+1)]=0.0;
                        //ORIGINAL: tauc=cfg.thetacr*cfg.g*(2.65-1.)*cfg.D50*((1.+cfg.l2*dhdx[xsi])/(pow(1.+dhdx[xsi]*dhdx[xsi],(1./2.))));
                        double tauc=cfg.thetacr*cfg.g*cfg.delta*cfg.D50 *((1.+cfg.l2*dhdx[xsi])/(pow(1.+dhdx[xsi]*dhdx[xsi],(1./2.))));
 			
 			           if (tau[xsi]>tauc && tau[xsi]>0.) {
-                          (*flux)[o2(xsi+1)]+=cfg.alpha*pow(tau[xsi]-tauc,cfg.be)*(1./(1.+cfg.l2*(dhdx[xsi])));
-				          // ORIGINAL: (*flux)[o2(xsi+1)]+=alpha*pow(tau[xsi]-tauc,be)*(1./(1.+cfg.l2*(dhdx[xsi])));
+                          flux[o2(xsi+1)]+=cfg.alpha*pow(tau[xsi]-tauc,cfg.be)*(1./(1.+cfg.l2*(dhdx[xsi])));
+				          // ORIGINAL: flux[o2(xsi+1)]+=alpha*pow(tau[xsi]-tauc,be)*(1./(1.+cfg.l2*(dhdx[xsi])));
                        }
               }
            } // CLOSES if (sepflag==1)
@@ -1104,9 +1113,9 @@ void bottom::detQcr(vec ub, vec &dhdx){
 			   thetai=max(thetai,cfg.thetacr);
 			   //thetai=max(thetai,cfg.thetacr*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))))); //OLAV 2014 02 07
 
-			   (*flux)[i]=cfg.F0_dim*thetai*pow(1.-cfg.thetacr/thetai,3.); //pickup
+			   flux[i]=cfg.F0_dim*thetai*pow(1.-cfg.thetacr/thetai,3.); //pickup
 
-			   //(*flux)[i]=F0_dim*thetai*pow(1.-((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))))*cfg.thetacr/thetai,3.);
+			   //flux[i]=F0_dim*thetai*pow(1.-((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))))*cfg.thetacr/thetai,3.);
            }
 		   
         } // CLOSES if(transport_eq == 2)
@@ -1121,7 +1130,7 @@ void bottom::detQcr(vec ub, vec &dhdx){
            if (tau[i]>tauc && taui>0.) {
 			   taui=max(taui,tauc); 
 			   double thetai = taui / (g*cfg.delta*cfg.D50);
-			   (*flux)[i]=alpha_2*thetai*pow(1.-tauc/taui,3.);
+			   flux[i]=alpha_2*thetai*pow(1.-tauc/taui,3.);
            }         
         } // CLOSES if(transport_eq == 2) */
 		
@@ -1145,50 +1154,50 @@ void bottom::detQcr(vec ub, vec &dhdx){
 		double flux_k_prev;
 				
 		vec flux_eq(Npx,0.0);
-		flux_eq=(*flux);
+		flux_eq=flux;
 				
 		double flux_temp; //changed 2012 09 07 OLAV, was: 
 				
 		if(cfg.moeilijkdoen==0){
 			//Guess flux(0)
-			(*flux)[0]=flux_eq[0]/2;
+			flux[0]=flux_eq[0]/2;
 				
 			for(int i=1;i<Npx;i++){ //From 1, because 0 was already guessed
 				//Backwards Euler
-				(*flux)[i]=((*flux)[i-1]+dx/meanstle1*flux_eq[i])/(1+dx/meanstle1);
+				flux[i]=(flux[i-1]+dx/meanstle1*flux_eq[i])/(1+dx/meanstle1);
 			} //closes for(int i=1;i<Npx;i++)
 						
-			flux_temp = ((*flux)[Npx-1]+dx/meanstle1*flux_eq[0])/(1+dx/meanstle1);//changed 2012 09 07 OLAV, was: 
+			flux_temp = (flux[Npx-1]+dx/meanstle1*flux_eq[0])/(1+dx/meanstle1);//changed 2012 09 07 OLAV, was:
 				
 			for(int j=0;j<30;j++){
 				//Re-guess flux(0)
-				(*flux)[0]=((*flux)[0]+flux_temp)/2;
-				//changed 2012 09 07 OLAV, was: (*flux)[0]=((*flux)[0]+(*flux)[Npx-1])/2;
+				flux[0]=(flux[0]+flux_temp)/2;
+				//changed 2012 09 07 OLAV, was: flux[0]=(flux[0]+flux[Npx-1])/2;
 							
-				//(*flux)[0]=(*flux)[Npx-1];
+				//flux[0]=flux[Npx-1];
 				for(int i=1;i<Npx;i++){
 					//Backwards Euler
-					(*flux)[i]=((*flux)[i-1]+dx/meanstle1*flux_eq[i])/(1+dx/meanstle1);
+					flux[i]=(flux[i-1]+dx/meanstle1*flux_eq[i])/(1+dx/meanstle1);
 				} //closes for(int i=1;i<Npx;i++)
-				//outdebug << "j=" << j << " (*flux_eq)[0]=" << flux_eq[0] << " (*flux)[0]=" << (*flux)[0] << " (*flux)[L]="<< (*flux)[Npx-1];
+				//outdebug << "j=" << j << " (*flux_eq)[0]=" << flux_eq[0] << " flux[0]=" << flux[0] << " flux[L]="<< flux[Npx-1];
 				//outdebug << endl;
 							
-				flux_temp = ((*flux)[Npx-1]+dx/meanstle1*flux_eq[0])/(1+dx/meanstle1);;//changed 2012 09 07 OLAV, was: 
+				flux_temp = (flux[Npx-1]+dx/meanstle1*flux_eq[0])/(1+dx/meanstle1);;//changed 2012 09 07 OLAV, was:
 							
-				//changed 2012 09 07 OLAV, was: if( abs( ((*flux)[0]-(*flux)[Npx-1])/(*flux)[0]) < 0.001 ) {j=30;};
-				if( abs( ((*flux)[0]-flux_temp)/(*flux)[0]) < 0.001 ) {j=30;};
+				//changed 2012 09 07 OLAV, was: if( abs( (flux[0]-flux[Npx-1])/flux[0]) < 0.001 ) {j=30;};
+				if( abs( (flux[0]-flux_temp)/flux[0]) < 0.001 ) {j=30;};
 					} //closes for(int j=0;j<30;i++)
 						   
-					//changed 2012 09 07 OLAV, was: (*flux)[0]=(*flux)[Npx-1];
-					(*flux)[0]=flux_temp;
+					//changed 2012 09 07 OLAV, was: flux[0]=flux[Npx-1];
+					flux[0]=flux_temp;
 							
 		}
 		else { //i.e. moeilijkdoen = 1
 			//Guess flux(0)
-			(*flux)[0]=flux_eq[0]/2;
+			flux[0]=flux_eq[0]/2;
 			
 			for(int j=0;j<30;j++){                            
-				flux_k_prev = (*flux)[0];
+				flux_k_prev = flux[0];
 				for(int i=0;i<Npx-1;i++){
 							
 					for(int k_dx=1;k_dx<11;k_dx++) {
@@ -1197,17 +1206,17 @@ void bottom::detQcr(vec ub, vec &dhdx){
 						flux_k_prev = flux_k;
 					}  //closes for(int k=1;k<11;j++){
 							//outdebug.close();
-					(*flux)[o2(i+1)]=flux_k;         
+					flux[o2(i+1)]=flux_k;
 				} //closes for(int i=0;i<Npx;i++){
 							  
 				//Re-guess flux(0)
-				(*flux)[0]=((*flux)[0]+(*flux)[Npx-1])/2;
+				flux[0]=(flux[0]+flux[Npx-1])/2;
 					
-				if( abs( ((*flux)[0]-(*flux)[Npx-1])/(*flux)[0]) < 0.001 ) {
+				if( abs( (flux[0]-flux[Npx-1])/flux[0]) < 0.001 ) {
 					j=30;
 					};
 				} //closes for(int j=0;j<30;j++)
-			(*flux)[0]=(*flux)[Npx-1];
+			flux[0]=flux[Npx-1];
 					
 		} //close else (if moeilijkdoen = 0)
     } //closes if(transport_eq == 3 )
@@ -1233,7 +1242,7 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 							fluxtot[i]=0.; /* fluxtot is required for storage */
 	}
 	// JW vec newb(Npx,0.0);
-	vec oldb(*b);
+	vec oldb(b);
 	vec distribute;
 	double bint = 0.0;
 	double ep=(1/(1-cfg.epsilonp));
@@ -1267,8 +1276,8 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 	
 	if(cfg.transport_eq == 1 || cfg.transport_eq == 3){ //OLAV: 2013 05 22
 		for(int i=0;i<Npx;i++){
-				(*b)[i]-=ep*dt/cfg.tt/dx*((*flux)[o2(i+1)]-(*flux)[i]);
-				fluxtot[i]+=(*flux)[i]/cfg.tt*ep;
+				b[i]-=ep*dt/cfg.tt/dx*(flux[o2(i+1)]-flux[i]);
+				fluxtot[i]+=flux[i]/cfg.tt*ep;
         }
 	} //closes if(transport_eq == 1 || transport_eq == 3)
  
@@ -1311,25 +1320,25 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 			}
 			
 			for(int i=0;i<Npx-1;i++){ //for i = 1:length(testflux)
-				fluxtemp[dxsubdiv*(i)]=(*flux)[i]; //original x point 1
-				fluxtemp[dxsubdiv*(i)+dxsubdiv]=(*flux)[i+1]; //original x point 2
+				fluxtemp[dxsubdiv*(i)]=flux[i]; //original x point 1
+				fluxtemp[dxsubdiv*(i)+dxsubdiv]=flux[i+1]; //original x point 2
                 
 				for(int j=2;j<dxsubdiv+1;j++){
-					fluxtemp[dxsubdiv*(i)-(1-j)]=(*flux)[i]+(j-1)*((*flux)[i+1]-(*flux)[i])/dxsubdiv; 
+					fluxtemp[dxsubdiv*(i)-(1-j)]=flux[i]+(j-1)*(flux[i+1]-flux[i])/dxsubdiv;
 				}
 			}
 
-			fluxtemp[dxsubdiv*(Npx-1)]=(*flux)[Npx-1]; //original last x point 
+			fluxtemp[dxsubdiv*(Npx-1)]=flux[Npx-1]; //original last x point
             
 			for (int j=2;j<dxsubdiv+1;j++) {
-				fluxtemp[dxsubdiv*(Npx-1)-(1-j)]=(*flux)[Npx-1]+(j-1)*((*flux)[0]-(*flux)[Npx-1])/dxsubdiv; 
+				fluxtemp[dxsubdiv*(Npx-1)-(1-j)]=flux[Npx-1]+(j-1)*(flux[0]-flux[Npx-1])/dxsubdiv;
 			}
 		}
 		
 		//Deposition protocol
 		if (GhostProtocol==0){
 		for(int i=0;i<Npx;i++){
-			depositot = (*flux)[i];    //to keep track of the running total of deposited material
+			depositot = flux[i];    //to keep track of the running total of deposited material
 			tobedepositot = depositot; //the goal value of the total deposited material
 			
 			while(depositot>0){
@@ -1400,7 +1409,7 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 		outdebug3.precision(16); 
 		
 		for(int i=0;i<Npx;i++){ 
-			outdebug2 << (*flux)[i] << " ";
+			outdebug2 << flux[i] << " ";
 		}
 		outdebug2 << endl;
 		for(int i=0;i<Npx;i++){ 
@@ -1434,25 +1443,25 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 			double minval=1.e99;
 			
 			for(int i=0;i<Npx;i++){
-				if ((*b)[i]>maxval){
+				if (b[i]>maxval){
 					poscr=i;
-					maxval=(*b)[i];
+					maxval=b[i];
 				}
 			}
 			
 			// for(int i=0;i<Npx;i++){
-				// if((*b)[i]<minval){
+				// if(b[i]<minval){
 					// postr=i;
-					// minval=(*b)[i];
+					// minval=b[i];
 				// }
 			// }
 			for(int i=poscr;i<poscr+Npx;i++){
 			
 				if (i>Npx-1){pos=i-Npx;}
 
-				if((*b)[pos]<minval){
+				if(b[pos]<minval){
 					postr=pos;
-					minval=(*b)[pos];
+					minval=b[pos];
 				}
 			}
 			
@@ -1473,7 +1482,7 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 				cerr << pos << " " ;
 				
 				deposmooth+=deposi[pos];
-				fluxsmooth+=(*flux)[pos];
+				fluxsmooth+=flux[pos];
 			}
 			cerr << endl; 
 			
@@ -1486,7 +1495,7 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 				cerr << pos << " " ;
 				
 				deposi[pos]=deposmooth/nsmooth;
-				(*flux)[pos]=fluxsmooth/nsmooth;
+				flux[pos]=fluxsmooth/nsmooth;
 			}
 			cerr << endl; 
 		}
@@ -1495,9 +1504,9 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 		depositemp.resize(Npx);
 		distribute.resize(1);
 		for(int i=0;i<Npx;i++){
-			(*b)[i]-=ep*dt/cfg.tt*cfg.D50*((*flux)[i]-deposi[i]);
+			b[i]-=ep*dt/cfg.tt*cfg.D50*(flux[i]-deposi[i]);
 			
-			fluxtot[i]+=(*flux)[i]/cfg.tt*ep; //not the real flux! Is pick-up only!
+			fluxtot[i]+=flux[i]/cfg.tt*ep; //not the real flux! Is pick-up only!
 			
 			deposi[i]=0; 
 			depositemp[i]=0;
@@ -1505,19 +1514,19 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 		} //closes loop over x	
 		
 		if (sepsmooth == 100){
-			double maxdh = 1./2.*((*b)[o2(poscr-1)]-(*b)[o2(poscr-2)]);
+			double maxdh = 1./2.*(b[o2(poscr-1)]-b[o2(poscr-2)]);
 			int nsandvault =nsmooth-1;
 			pos = poscr;
-			//double maxdh = (*b)[o2(poscr-2)]-(*b)[o2(poscr-3)];
+			//double maxdh = b[o2(poscr-2)]-b[o2(poscr-3)];
 			//int nsandvault =nsmooth;
 			//pos = poscr-1;
 			
 			double sandvault = 0.;
 			if (maxdh > 0){
 
-				// while((*b)[o2(pos)]-(*b)[o2(pos-1)]>maxdh && pos<postr){
-					// sandvault = (*b)[o2(pos)]-(*b)[o2(pos-1)] - maxdh;
-					// (*b)[o2(pos)] = (*b)[o2(pos-1)]+maxdh;
+				// while(b[o2(pos)]-b[o2(pos-1)]>maxdh && pos<postr){
+					// sandvault = b[o2(pos)]-b[o2(pos-1)] - maxdh;
+					// b[o2(pos)] = b[o2(pos-1)]+maxdh;
 					// for(int i=pos+1;i<postr+1;i++){
 					
 						// if (i>Npx-1){pos=i-Npx;}
@@ -1525,16 +1534,16 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 					
 						// cerr << pos << " " ;
 					
-						// (*b)[pos]+=sandvault/nsandvault;
+						// b[pos]+=sandvault/nsandvault;
 					// }
 					
 					// nsandvault-=1;
 					// pos+=1;
 				// }
 								
-				if ((*b)[o2(poscr)]-(*b)[o2(poscr-1)]>maxdh){ //then the angle towards the crest is too high
-					sandvault = (*b)[o2(poscr)]-(*b)[o2(poscr-1)] - maxdh;
-					(*b)[o2(poscr)] = (*b)[o2(poscr-1)]+maxdh;
+				if (b[o2(poscr)]-b[o2(poscr-1)]>maxdh){ //then the angle towards the crest is too high
+					sandvault = b[o2(poscr)]-b[o2(poscr-1)] - maxdh;
+					b[o2(poscr)] = b[o2(poscr-1)]+maxdh;
 					
 					for(int i=poscr+1;i<postr+1;i++){
 					
@@ -1543,7 +1552,7 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 					
 						cerr << pos << " " ;
 					
-						(*b)[pos]+=sandvault/nsandvault;
+						b[pos]+=sandvault/nsandvault;
 					}	
 				}
 			}
@@ -1559,8 +1568,8 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 		avalanche(); 
 	}
 			
-	auto newb(*b);
-	(*b)=oldb;
+	auto newb(b);
+	b=oldb;
 
 	return newb;
 }
@@ -1570,7 +1579,7 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 
 	for(int i=0;i<Npx;i++) {bss1[i]=S*ub[i];}
 	vec newb(Npx,0.0);
-	vec oldb=(*b);
+	vec oldb=b;
 	
 	//int Npsl = (int)ceil(meanstle*5/dx); //needed for x-dependent distribution
 	double depositot =0.;
@@ -1631,24 +1640,24 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 
 		detQcr(bss2, q_spec);
 
-		int nfsz=(*fsz)[nf-1];
+		int nfsz=fsz[nf-1];
 		int j=0;
-		int xsi=(*fsz)[j*7+0];
+		int xsi=fsz[j*7+0];
 		
 		if(cfg.transport_eq == 1 || cfg.transport_eq == 3){ //OLAV: 2013 05 22
 		for(int i=0;i<Npx;i++){
 			/* see notes on details on this */
 			if (i==xsi){ // OLAV 2013 04 16 (was just i==xsi check)
-				double fluxxsi = (*flux)[o2(xsi+1)];
-				(*b)[xsi]-=ep*dt/cfg.tt/dx*(fluxxsi-(*flux)[xsi])*2.;
-				(*b)[o2(xsi+1)]=oldb[o2(xsi+1)];
+				double fluxxsi = flux[o2(xsi+1)];
+				b[xsi]-=ep*dt/cfg.tt/dx*(fluxxsi-flux[xsi])*2.;
+				b[o2(xsi+1)]=oldb[o2(xsi+1)];
 				
-				if (j<nfsz) {j++; i++; xsi=(*fsz)[j*7+0];} }
+				if (j<nfsz) {j++; i++; xsi=fsz[j*7+0];} }
 			else {
-			(*b)[i]-=ep*dt/cfg.tt/dx*((*flux)[o2(i+1)]-(*flux)[i]);}
+			b[i]-=ep*dt/cfg.tt/dx*(flux[o2(i+1)]-flux[i]);}
 		}
 		for(int i=0;i<Npx;i++){
-			fluxtot[i]+=(*flux)[i]/cfg.tt*ep;
+			fluxtot[i]+=flux[i]/cfg.tt*ep;
 		}
 		
 		} //} //OLAV: 2011 02 28 end if (transport_eq == 1)
@@ -1668,7 +1677,7 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 		//END OLAV 2014 01 30
 	
 		for(int i=0;i<Npx;i++){
-			depositot = (*flux)[i];    //to keep track of the running total of deposited material
+			depositot = flux[i];    //to keep track of the running total of deposited material
 			tobedepositot = depositot; //the goal value of the total deposited material
 			
 			while(depositot>0){
@@ -1707,7 +1716,7 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 		// for(int i=0;i<Npx;i++){outdebug << S*bss2[i] << " ";} 
 		// outdebug << endl;
 		// outdebug << tijd << " ";
-		// for(int i=0;i<Npx;i++){outdebug << (*flux)[i] << " ";} 
+		// for(int i=0;i<Npx;i++){outdebug << flux[i] << " ";}
 		// outdebug << endl;
 		// outdebug << tijd << " ";
 		// for(int i=0;i<Npx;i++){outdebug << deposi[i] << " ";} 
@@ -1720,11 +1729,11 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 		smooth1st =0;
 		smoothlast =0;
 		for(int i=0;i<Npx;i++){
-			//if((*flux)[i]==0 && deposi[i] > 0){
-			if((*flux)[i]==0 ){
+			//if(flux[i]==0 && deposi[i] > 0){
+			if(flux[i]==0 ){
 			
-				if( (*flux)[o2(i-1)] > 0) {smooth1st=i;}
-				else if( (*flux)[o2(i+1)] > 0){smoothlast=i;}
+				if( flux[o2(i-1)] > 0) {smooth1st=i;}
+				else if( flux[o2(i+1)] > 0){smoothlast=i;}
 								
 				depocorrection += deposi[i];
 				n_depocorrection +=1;
@@ -1733,16 +1742,16 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 		
 		/*
 		for(int i=0;i<Npx;i++){
-			//if((*flux)[i]==0 && deposi[i] > 0){
-			if((*flux)[i]==0 ){
+			//if(flux[i]==0 && deposi[i] > 0){
+			if(flux[i]==0 ){
 				deposi[i]=depocorrection/n_depocorrection;
 			}
 		} 
 		*/
 		
 		for(int i=0;i<Npx;i++){
-			(*b)[i]-=ep*dt/cfg.tt*cfg.D50*((*flux)[i]-deposi[i]);
-			//fluxtot[i]+=(*flux)[i]/cfg.tt*ep; //not the real flux! Is pick-up only!
+			b[i]-=ep*dt/cfg.tt*cfg.D50*(flux[i]-deposi[i]);
+			//fluxtot[i]+=flux[i]/cfg.tt*ep; //not the real flux! Is pick-up only!
 			deposi[i]=0; 
 		} //closes loop over x	
 		
@@ -1752,7 +1761,7 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 			outdebugbed.precision(6);
 		
 			outdebugbed << tijd << " " << smooth1st << " " << smoothlast << " ";
-			for(int i=0;i<Npx;i++){outdebugbed << (*b)[i] << " ";} 
+			for(int i=0;i<Npx;i++){outdebugbed << b[i] << " ";}
 			outdebugbed << endl;
 		}
 		
@@ -1765,8 +1774,8 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 		int np = 5;
 		int num = 1;
 		
-		vec oldbed=(*bp);
-		int nfsz=(*fsz)[nf-1];
+		vec oldbed=bp;
+		int nfsz=fsz[nf-1];
 		int xi;
 
 		for (int j=0;j<nfsz;j++) {
@@ -1774,7 +1783,7 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 			if (num==1) { //smooth1st
 				xi = smooth1st; }
 			else if (num==2) { //xri
-				xi = o3((*fsz)[j*7+1]); }
+				xi = o3(fsz[j*7+1]); }
 
 			for(int i=xi-3;i<=xi+3;i++) {
 
@@ -1790,36 +1799,36 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 					else if (m>=Npx) m-=Npx;
 					sum+=oldbed[m];}
 
-				(*bp)[ii]=sum/double(np);
+				bp[ii]=sum/double(np);
 			}
 		} */
 		
 		/*
-		smoothdiff = (1./2.)*((*b)[smooth1st]-(*b)[o2(smooth1st-1)]);
-		(*b)[o2(smooth1st-6)] += (1./4.)*smoothdiff;
-		(*b)[o2(smooth1st-5)] += (1./4.)*smoothdiff;
-		(*b)[o2(smooth1st-4)] += (1./4.)*smoothdiff;
-		(*b)[o2(smooth1st-3)] += (1./4.)*smoothdiff;
-		(*b)[o2(smooth1st-2)] += (1./4.)*smoothdiff;
-		(*b)[o2(smooth1st-1)] += (1./4.)*smoothdiff;
-		(*b)[smooth1st]       -= (3./4.)*smoothdiff;
-		(*b)[o2(smooth1st+1)] -= (1./4.)*smoothdiff;
-		(*b)[o2(smooth1st+2)] -= (1./4.)*smoothdiff;
-		(*b)[o2(smooth1st+3)] -= (1./4.)*smoothdiff; */
+		smoothdiff = (1./2.)*(b[smooth1st]-b[o2(smooth1st-1)]);
+		b[o2(smooth1st-6)] += (1./4.)*smoothdiff;
+		b[o2(smooth1st-5)] += (1./4.)*smoothdiff;
+		b[o2(smooth1st-4)] += (1./4.)*smoothdiff;
+		b[o2(smooth1st-3)] += (1./4.)*smoothdiff;
+		b[o2(smooth1st-2)] += (1./4.)*smoothdiff;
+		b[o2(smooth1st-1)] += (1./4.)*smoothdiff;
+		b[smooth1st]       -= (3./4.)*smoothdiff;
+		b[o2(smooth1st+1)] -= (1./4.)*smoothdiff;
+		b[o2(smooth1st+2)] -= (1./4.)*smoothdiff;
+		b[o2(smooth1st+3)] -= (1./4.)*smoothdiff; */
 		
 		/*
-		(*b)[o2(smooth1st-2)] += (1./4.)*smoothdiff;
-		(*b)[o2(smooth1st-1)] += (3./4.)*smoothdiff;
-		(*b)[smooth1st]       -= (3./4.)*smoothdiff;
-		(*b)[o2(smooth1st+1)] -= (1./4.)*smoothdiff; */
-		//(*b)[o2(smooth1st+2)] -= (1./2.)*smoothdiff;
+		b[o2(smooth1st-2)] += (1./4.)*smoothdiff;
+		b[o2(smooth1st-1)] += (3./4.)*smoothdiff;
+		b[smooth1st]       -= (3./4.)*smoothdiff;
+		b[o2(smooth1st+1)] -= (1./4.)*smoothdiff; */
+		//b[o2(smooth1st+2)] -= (1./2.)*smoothdiff;
 		
-		smoothdiff = (1./2.)*((*b)[smoothlast]-(*b)[o2(smoothlast+1)]);
-		//(*b)[o2(smoothlast-2)] -= (1./4.)*smoothdiff;
-		(*b)[o2(smoothlast-1)] -= (1./4.)*smoothdiff;
-		(*b)[smoothlast]       -= (3./4.)*smoothdiff;
-		(*b)[o2(smoothlast+1)] += (3./4.)*smoothdiff;
-		(*b)[o2(smoothlast+2)] += (1./4.)*smoothdiff; //*/
+		smoothdiff = (1./2.)*(b[smoothlast]-b[o2(smoothlast+1)]);
+		//b[o2(smoothlast-2)] -= (1./4.)*smoothdiff;
+		b[o2(smoothlast-1)] -= (1./4.)*smoothdiff;
+		b[smoothlast]       -= (3./4.)*smoothdiff;
+		b[o2(smoothlast+1)] += (3./4.)*smoothdiff;
+		b[o2(smoothlast+2)] += (1./4.)*smoothdiff; //*/
 		
 		
 		if (cfg.DebugOutput==1 && tijd > 2108){
@@ -1828,7 +1837,7 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 			outdebugbed.precision(6);
 		
 			outdebugbed << tijd << " " << smooth1st << " " << smoothlast << " ";
-			for(int i=0;i<Npx;i++){outdebugbed << (*b)[i] << " ";} 
+			for(int i=0;i<Npx;i++){outdebugbed << b[i] << " ";}
 			outdebugbed << endl;
 		}
 		
@@ -1864,20 +1873,20 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 					// downstream = 0;
 					// upstream   = Npx-1;
 				// }
-				// if(((*b)[downstream]-(*b)[upstream])/(dx) < reposeangle1){
+				// if((b[downstream]-b[upstream])/(dx) < reposeangle1){
 					// npoints+=1;
 					// reposefound=1;
-					// deltab = (1./2.)*(reposeangleplus*dx+(*b)[upstream]-(*b)[downstream]); 
-					// (*b)[upstream]-=deltab;
-					// (*b)[downstream]+=deltab;					
+					// deltab = (1./2.)*(reposeangleplus*dx+b[upstream]-b[downstream]);
+					// b[upstream]-=deltab;
+					// b[downstream]+=deltab;
 				// }
 			// }
 		// }
 		// cerr << "Avalanched in " << npasses << " pass(es) along the bed, adjusting " << npoints << " point(s)." << endl;
 	// }
 
-	newb=(*b);
-	(*b)=oldb;
+	newb=b;
+	b=oldb;
 
 	// rearrangement of fsz array based on xdi for next time step
 	sep_sort_fsz(4);
@@ -1905,18 +1914,18 @@ NB!! still a buggy routine!!
 ======================================================
 */
 
-vec bottom::sep_tau_distr(vec tb){
+vec bottom::sep_tau_distr(vec tb) {
 
-	int nfsz=(*fsz)[nf-1];
+	int nfsz=fsz[nf-1];
 	
 	cout << endl << endl << "Block VI: bed shear stress" << endl << endl; //OLAV
 
 	/* we gaan eerst xcin opnieuw bepalen, zijnde de maximale downstream bodemschuifspanning */
 	/* NB this is a buggy piece of code!! */
 	for (int j=0;j<nfsz;j++) {
-		int xsi=(*fsz)[j*7+0];
-		int xri=(*fsz)[j*7+1];
-		int xti=(*fsz)[j*7+3];
+		int xsi=fsz[j*7+0];
+		int xri=fsz[j*7+1];
+		int xti=fsz[j*7+3];
 		//dit doen vanaf de volgende trough, rekening houden met periodieke randvoorwaarden:
 		if (xri<xsi) xri+=Npx;
 		if (xti<xsi) xti+=Npx;
@@ -1926,7 +1935,7 @@ vec bottom::sep_tau_distr(vec tb){
 		vec ftau(Npx,0.0);
 		//ftau=filter(nfp,tb);
 		ftau=tb;
-		//ftau=(*b);
+		//ftau=b;
 		//cerr<<"xs: "<<xs;
 		xs=o3(xs);
 		//cerr<<" - "<<xs;
@@ -1938,31 +1947,31 @@ vec bottom::sep_tau_distr(vec tb){
 			if(ftau[m]>max(ftau[o2(m-1)],ftau[o2(m+1)])){
 				xcin=m;
 				//cerr<<j+1<<": xs: "<<xs<<"; xci_next: "<<xci_next<<endl;
-				//cerr<<"bed: "<<(*bp)[16]<<" : "<<(*bp)[17]<<" : "<<(*bp)[18]<<" : "<<(*bp)[19]<<" : "<<(*bp)[20]<<" : "<<(*bp)[21]<<" : "<<(*bp)[22]<<endl;
+				//cerr<<"bed: "<<bp[16]<<" : "<<bp[17]<<" : "<<bp[18]<<" : "<<bp[19]<<" : "<<bp[20]<<" : "<<bp[21]<<" : "<<bp[22]<<endl;
 				//cerr<<"m: "<<m<<endl;
 				//cerr<<"tau m-2: "<<tb[m-2]<<" : "<<"tau m-1: "<<tb[m-1]<<" : "<<"tau m: "<<tb[m]<<" : "<<"tau m+1: "<<tb[m+1]<<" : "<<"tau m+2: "<<tb[m+2]<<" : "<<endl;
 				//cerr<<" - xcin: "<<xcin<<endl;
 				break;
 			}
 		}
-		/*while ( max((*bp)[o2(xcin-1)],(*bp)[o2(xcin+1)]) > (*bp)[xcin]) {
-			if      ((*bp)[xcin]>(*bp)[o2(xcin-1)]) {xcin++;} // left of top
-			else if ((*bp)[xcin]>(*bp)[o2(xcin+1)]) {xcin--;} // right of top
+		/*while ( max(bp[o2(xcin-1)],bp[o2(xcin+1)]) > bp[xcin]) {
+			if      (bp[xcin]>bp[o2(xcin-1)]) {xcin++;} // left of top
+			else if (bp[xcin]>bp[o2(xcin+1)]) {xcin--;} // right of top
 			xcin=o3(xcin);
 		}
-		while ( (*bp)[xcin] == (*bp)[o2(xcin+1)] ) { xcin++; xcin=o3(xcin);}*/
+		while ( bp[xcin] == bp[o2(xcin+1)] ) { xcin++; xcin=o3(xcin);}*/
 
-		//cerr<<"bed: "<<(*bp)[xcin-2]<<" : "<<(*bp)[xcin-1]<<" : "<<(*bp)[xcin]<<" : "<<(*bp)[xcin+1]<<" : "<<(*bp)[xcin+2]<<" : "<<(*bp)[xcin+3]<<" : "<<(*bp)[xcin+4]<<" : "<<(*bp)[xcin+5]<<" : "<<(*bp)[xcin+6]<<endl;
-		(*fsz)[j*7+5]=xcin;
+		//cerr<<"bed: "<<bp[xcin-2]<<" : "<<bp[xcin-1]<<" : "<<bp[xcin]<<" : "<<bp[xcin+1]<<" : "<<bp[xcin+2]<<" : "<<bp[xcin+3]<<" : "<<bp[xcin+4]<<" : "<<bp[xcin+5]<<" : "<<bp[xcin+6]<<endl;
+		fsz[j*7+5]=xcin;
 	}
 
 	/* overige deel met polynoom */
 	for (int j=0;j<nfsz;j++) {
-		int xsi=(*fsz)[j*7+0];
-		int xri=(*fsz)[j*7+1];
-		int xci=(*fsz)[j*7+2];
-		int xti=(*fsz)[j*7+3];
-		int xcin=(*fsz)[j*7+5];
+		int xsi=fsz[j*7+0];
+		int xri=fsz[j*7+1];
+		int xci=fsz[j*7+2];
+		int xti=fsz[j*7+3];
+		int xcin=fsz[j*7+5];
 
 		/* bepalen van polynoom om tau aan te passen om
 		   numerieke problemen te voorkomen
@@ -1976,7 +1985,7 @@ vec bottom::sep_tau_distr(vec tb){
 		else {npts = xendi-(xri-1)+1;}
 		double Lt = (npts-1)*dx;
 
-		double dhdx_x1=((*b)[o2(xri-1)]-(*b)[o2(o2(xri-1)-1)])/dx;
+		double dhdx_x1=(b[o2(xri-1)]-b[o2(o2(xri-1)-1)])/dx;
 		double tauc_x1=cfg.thetacr*cfg.g*(2.65-1.)*cfg.D50*((1.+cfg.l2*dhdx_x1)/(pow(1.+dhdx_x1*dhdx_x1,(1./2.))));
 		double tau_x1 = tauc_x1;
 		double tau_x2 = tb[o2(xendi)];
@@ -1984,8 +1993,8 @@ vec bottom::sep_tau_distr(vec tb){
 		double dtaudx_x2 = (tb[o2(xendi)]-tb[o2(xendi-1)])/(1.*dx);
 		/*
 		cerr<<"xendi: "<<xendi<<endl;
-		cerr<<"x1: "<<(*x)[o2(xri-1)]<<endl;
-		cerr<<"x2: "<<(*x)[o2(xendi)]<<endl;
+		cerr<<"x1: "<<x[o2(xri-1)]<<endl;
+		cerr<<"x2: "<<x[o2(xendi)]<<endl;
 		cerr<<"tau_x1: "<<tau_x1<<endl;
 		cerr<<"tau_x2 [-1]: "<<tb[o2(xendi-1)]<<endl;
 		cerr<<"tau_x2: "<<tau_x2<<endl;
@@ -2022,8 +2031,8 @@ vec bottom::sep_tau_distr(vec tb){
 
 	/* naar nul zetten */
 	for (int j=0;j<nfsz;j++) {
-		int xsi=(*fsz)[j*7+0];
-		int xri=(*fsz)[j*7+1];
+		int xsi=fsz[j*7+0];
+		int xri=fsz[j*7+1];
 		int end=xri-1;
 		if (xri<xsi) end+=Npx;
 		for(int i=xsi+1;i<=end;i++)	tb[o3(i)]=0.0;
@@ -2052,11 +2061,11 @@ Includes one TODO!
 ======================================================
 */
 
-void bottom::sep_migr_lee(vec fluxtot, vec oldb){
+void bottom::sep_migr_lee(const vec& fluxtot, const vec& oldb) {
 	/* migration of the lee-side */
 
-	int sepflag=(*fsz)[nf-2];
-	int nfsz=(*fsz)[nf-1];
+	int sepflag=fsz[nf-2];
+	int nfsz=fsz[nf-1];
 	int ntolreset=1;
 	
 //	//OLAV: added 2011/03/31
@@ -2070,18 +2079,18 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 		
 		cout << endl << endl << "Block VII: migration lee side" << endl << endl;
 		
-		int	xsi=(*fsz)[j*7+0];
-		int	xti=(*fsz)[j*7+3];
-		double DH=(*b)[xsi]-(*b)[xti];
+		int	xsi=fsz[j*7+0];
+		int	xti=fsz[j*7+3];
+		double DH=b[xsi]-b[xti];
 		cerr<<j+1<<": DH="<<DH<<endl;
 		//double Ss=fluxtot[xsi]*dt-dt/dx*(fluxtot[xsi]-fluxtot[o2(xsi-1)]);
 		double Ss=dt*(fluxtot[o2(xsi+1)]);
-		Ss-=(*Sr)[j];
-		cerr<<"fluxtot[xsi="<<o2(xsi+1)<<"]: "<<fluxtot[o2(xsi+1)]*dt<<"; fluxtot[xsi+1="<<o2(o2(xsi+1)+1)<<"]: "<<fluxtot[o2(o2(xsi+1)+1)]*dt<<"; Sround_prev"<<(*Sr)[j]<<endl;
+		Ss-=Sr[j];
+		cerr<<"fluxtot[xsi="<<o2(xsi+1)<<"]: "<<fluxtot[o2(xsi+1)]*dt<<"; fluxtot[xsi+1="<<o2(o2(xsi+1)+1)<<"]: "<<fluxtot[o2(o2(xsi+1)+1)]*dt<<"; Sround_prev"<<Sr[j]<<endl;
 
 		vec rp(2,0.0);
-		double xsep=(*x)[xsi];
-		double ysep=(*b)[xsi];
+		double xsep=x[xsi];
+		double ysep=b[xsi];
 		double Npxcorr=pow(2.,round(log(double(Npx)/120.)/log(2.)));
 
 		double step=pow(2.,-2.)*Npxcorr*dx;  // has to be multiple of dx!! ,e.g. dx/(2^3). or dx*2.
@@ -2108,8 +2117,8 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 		outproglee.precision(16);
 		*/
 
-		vec b_prev = (*b);
-		(*b)[xsi] = oldb[xsi];
+		vec b_prev = b;
+		b[xsi] = oldb[xsi];
 		double xrr=DH/-repose1;
 
 		if (fluxtot[o2(xsi+1)]>0. && Ss>0.) {
@@ -2244,7 +2253,7 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 			/* when we come here, the distance to migrate the lee-side is found */
 
 			cerr<<"teller = "<<teller<<"; Ss = "<<Ss<<"; area = "<<area<<"; Sdif = "<<Sdif;
-			(*b) = b_prev;
+			b = b_prev;
 
 			/* eerst worden er een aantal karakteristieken van xdown bepaald */
 			int xdi = 0;
@@ -2253,7 +2262,7 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 			nb = paramFindNeighbors(xdown,xsi);
 			xdown_grid = nb[0];
 			for (int i=0;i<Npx;i++){
-				if ( (*x)[i]==xdown_grid ) {
+				if ( x[i]==xdown_grid ) {
 					xdi = i;}
 			}
 
@@ -2265,7 +2274,7 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 			nb = paramFindNeighbors(leerp,xdi);
 			leerp_grid = nb[0];//dit moet altijd de linker buurman zijn
 			for (int i=0;i<Npx;i++){
-				if ( (*x)[i]==leerp_grid ) {
+				if ( x[i]==leerp_grid ) {
 					leerpi = i;}
 			}
 
@@ -2273,11 +2282,11 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 			double xx=xsep;
 			if (leerpi<xsi) leerpi+=Npx;
 			for (int i=xsi;i<=leerpi;i++){
-				if (xx<=xdown) {(*b)[o3(i)]=ysep;}
+				if (xx<=xdown) {b[o3(i)]=ysep;}
 				else {
 					double val = (xx-xdown)*b1+b2;
-					(*b)[o3(i)]=val;}
-					//cerr<<leerpi<<" "<<i<<" "<<xx<<" "<<xdown<<" "<<(xx-xdown)<<" "<<(*b)[o3(i)]<<endl;
+					b[o3(i)]=val;}
+					//cerr<<leerpi<<" "<<i<<" "<<xx<<" "<<xdown<<" "<<(xx-xdown)<<" "<<b[o3(i)]<<endl;
 				xx+=dx;
 			}
 
@@ -2287,38 +2296,38 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 			double Sround = 0.0; double chiA = 0.0; double chiB = 0.0; double chiC = 0.0; double A = 0.0; double B = 0.0; double C = 0.0;
 			double xd = xdown; if (xdown>=L) xd-=L;
 			double rp0 = rp[0]; if (rp[0]>=L) rp0-=L;
-			A -= (1./2.)*(dx+xd-((*x)[o3(xdi)]+dx))*(ysep-(*b)[o2(o3(xdi+1))]);
-			chiB = ((*b)[o3(leerpi)]-(*b)[o3(leerpi+1)])*((*x)[o3(leerpi)]+dx-rp0)/dx - (rp[1]-(*b)[o3(leerpi+1)]);
+			A -= (1./2.)*(dx+xd-(x[o3(xdi)]+dx))*(ysep-b[o2(o3(xdi+1))]);
+			chiB = (b[o3(leerpi)]-b[o3(leerpi+1)])*(x[o3(leerpi)]+dx-rp0)/dx - (rp[1]-b[o3(leerpi+1)]);
 			B = (1./2.)*chiB*dx;
-			double xtemp = (*x)[o3(leerpi)];
+			double xtemp = x[o3(leerpi)];
 			chiC = rp[1]- ( (xtemp+dx-rp0)*oldb[o3(leerpi)] + (rp0-xtemp)*oldb[o3(leerpi+1)] )/dx;
 			C = (1./2.)*chiC*dx;
 			Sround=B+A+C;
 
 			/*
-	 		xtemp = (*x)[o3(xdi)];
-			double ytemp = (*b)[xdi];
-			outproglee<<xtemp<<" "<<xd<<" "<<xtemp+dx<<" "<<ytemp<<" "<<ytemp<<" "<<(*b)[o3(xdi+1)]<<" "<<A<<" ";
-			xtemp = (*x)[o3(leerpi)];
-			ytemp = (*b)[o3(leerpi)];
-			outproglee<<xtemp<<" "<<xtemp+dx<<" "<<rp0<<" "<<xtemp<<" "<<ytemp<<" "<<(*b)[o3(leerpi+1)]<<" "<<rp[1]<<" "<<ytemp<<" "<<B<<" ";
+	 		xtemp = x[o3(xdi)];
+			double ytemp = b[xdi];
+			outproglee<<xtemp<<" "<<xd<<" "<<xtemp+dx<<" "<<ytemp<<" "<<ytemp<<" "<<b[o3(xdi+1)]<<" "<<A<<" ";
+			xtemp = x[o3(leerpi)];
+			ytemp = b[o3(leerpi)];
+			outproglee<<xtemp<<" "<<xtemp+dx<<" "<<rp0<<" "<<xtemp<<" "<<ytemp<<" "<<b[o3(leerpi+1)]<<" "<<rp[1]<<" "<<ytemp<<" "<<B<<" ";
 			ytemp = oldb[o3(leerpi)];
-			outproglee<<xtemp<<" "<<rp0<<" "<<xtemp+dx<<" "<<xtemp<<" "<<ytemp<<" "<<rp[1]<<" "<<(*b)[o3(leerpi+1)]<<" "<<ytemp<<" "<<C<<" ";
+			outproglee<<xtemp<<" "<<rp0<<" "<<xtemp+dx<<" "<<xtemp<<" "<<ytemp<<" "<<rp[1]<<" "<<b[o3(leerpi+1)]<<" "<<ytemp<<" "<<C<<" ";
 			*/
 
 			cerr<<"; Sround + Sdif = "<<Sround+Sdif<<endl;
 
 			/* store some parameters */
 			//outproglee<<Sround<<endl;	outproglee.close();
-			(*fsz)[j*7+4]=xdi;
-			(*Sr)[j]=Sround+Sdif;
+			fsz[j*7+4]=xdi;
+			Sr[j]=Sround+Sdif;
 
 		} //if (fluxtot[o2(xsi+1)]>0.)
 
 		else {
 			/* this is the case when tau is below critical over entire stoss-side */
-			(*fsz)[j*7+4]=(*fsz)[j*7+0]; // op xsi zetten, niets doen
-			(*fsz)[j*7+6]=5; // case 5 identifier
+			fsz[j*7+4]=fsz[j*7+0]; // op xsi zetten, niets doen
+			fsz[j*7+6]=5; // case 5 identifier
 			if (fluxtot[o2(xsi+1)]<=0.) {
 				cerr<<"   WARNING: [j="<<j+1<<"] tau below critical over entire stoss-side; nothing done."<<endl;
 				outlog<<"T="<<tijd<<" - WARNING: [j="<<j+1<<"] tau below critical over entire stoss-side; nothing done."<<endl;
@@ -2338,12 +2347,12 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 	ofstream outSround;
 	outSround.open ("out_Sround.txt", ofstream::out | ofstream::app);
 	outSround.precision(16);
-	outSround<<tijd<<" "; for(int i=0;i<(*Sr).size();i++)outSround<<(*Sr)[i]<<" "; outSround<<endl;
+	outSround<<tijd<<" "; for(int i=0;i<Sr.size();i++)outSround<<Sr[i]<<" "; outSround<<endl;
 	outSround.close();
 	*/
 }
 
-vec bottom::crossPoint_migrlee(double xl_in, double xr_in, int max_it, int dir, double b1, double b2, double tol, int xi, int j){
+vec bottom::crossPoint_migrlee(double xl_in, double xr_in, int max_it, int dir, double b1, double b2, double tol, int xi, int j) const {
   vec rp(2,0.0);
 	vec nb(4,0.0);
 	dir=1; max_it=150;
@@ -2434,7 +2443,7 @@ vec bottom::crossPoint_migrlee(double xl_in, double xr_in, int max_it, int dir, 
 	return rp;
 }
 
-double bottom::area2D_Polygon(int n, vec xarr, vec yarr ){
+double bottom::area2D_Polygon(int n, const vec& xarr, const vec& yarr) const {
 // area2D_Polygon(): computes the area of a 2D polygon
 // see: http://softsurfer.com/Archive/algorithm_0101/algorithm_0101.htm#area2D_polygon()
     double area = 0;
@@ -2462,7 +2471,7 @@ NB both don't work correctly yet.
 ======================================================
 */
 
-vec bottom::detNd(vec bot){
+vec bottom::detNd(const vec& bot) const {
 	/* without fast fourier transform */
 
 	vec Dc(3,0.0);
@@ -2532,7 +2541,7 @@ vec bottom::detNd(vec bot){
 	for (int i=0; i<Nd; i++){
 		int tposi=tpos[i];
 		int cposi=cpos[i];
-		Ha[i]=(*b)[cposi]-(*b)[tposi];
+		Ha[i]=b[cposi]-b[tposi];
 		int il=i+1; if(i==Nd-1) il=0;
 		int tposil=tpos[il];
 		if (tposi<tposil) tposi+=Npx;
@@ -2551,7 +2560,7 @@ vec bottom::detNd(vec bot){
 	return Dc;
 }
 
-vec bottom::detNd_fft(vec bot, int fftnum){
+vec bottom::detNd_fft(const vec& bot, int fftnum) const {
 	/* dune characteristics using FFT */
 
 	// create temporary arrays to store positions
@@ -2672,11 +2681,11 @@ vec bottom::detNd_fft(vec bot, int fftnum){
 		double minval = 100.; double maxval = -100.;
 		for (int j=cposi; j<=tposi; j++) {
 			int m=o3(j);
-			if ( (*b)[m]>maxval ) {
-				maxval=(*b)[m];
+			if ( b[m]>maxval ) {
+				maxval=b[m];
 				cpos[i]=m; }
-			else if ( (*b)[m]<minval ) {
-				minval=(*b)[m];
+			else if ( b[m]<minval ) {
+				minval=b[m];
 				tpos[i]=m; }
 		}
 	}
@@ -2688,7 +2697,7 @@ vec bottom::detNd_fft(vec bot, int fftnum){
 	for (int i=0; i<Nd; i++){
 		int tposi=tpos[i];
 		int cposi=cpos[i];
-		Ha[i]=(*b)[cposi]-(*b)[tposi];
+		Ha[i]=b[cposi]-b[tposi];
 		int il=i+1; if(i==Nd-1) il=0;
 		int tposil=tpos[il];
 		if (tposi<tposil) tposi+=Npx;
@@ -2710,8 +2719,8 @@ vec bottom::detNd_fft(vec bot, int fftnum){
 	
 	//cerr<<"detNd_fft Dc0: "<<Dc[0]<<" detNd_fft Dc1: "<<Dc[1]<<" detNd_fft Dc2: "<<Dc[2]<<endl; // OLAV 2014 03 31
 
-	Dc[1]=(*b)[cpos[0]];
-	Dc[2]=(*b)[tpos[0]];
+	Dc[1]=b[cpos[0]];
+	Dc[2]=b[tpos[0]];
 	
 	//cerr<<"detNd_fft Dc0: "<<Dc[0]<<" detNd_fft Dc1: "<<Dc[1]<<" detNd_fft Dc2: "<<Dc[2]<<endl; // OLAV 2014 03 31
 
@@ -2719,7 +2728,7 @@ vec bottom::detNd_fft(vec bot, int fftnum){
 
 }
 
-vec bottom::fftBed(vec bed, int fftnum) {
+vec bottom::fftBed(const vec& bed, int fftnum) const {
 
 	vec bedfft(Npx,0.0);
 
@@ -2781,7 +2790,7 @@ using FFT
 ======================================================
 */
 
-double bottom::detMigr(vec current,vec next) {
+double bottom::detMigr(const vec& current, const vec& next) const {
 
 	double mig = 0;
 
@@ -2807,7 +2816,7 @@ double bottom::detMigr(vec current,vec next) {
 	return mig;
 }
 
-vector<complex<double> > bottom::fftbot(vec bed) {
+vector<complex<double> > bottom::fftbot(const vec& bed) const {
 
 	fft dft(Npx);
 
@@ -2821,7 +2830,7 @@ vector<complex<double> > bottom::fftbot(vec bed) {
 
 }
 
-int bottom::maxloc_complex(vector<complex<double> > du) {
+int bottom::maxloc_complex(const vector<complex<double> >& du) const {
 	double max_val = 0.0;
 	int max_loc = -1;
 	for(int i=0;i<Npx/2+1;i++) {
@@ -2844,7 +2853,7 @@ BLOCK X: REMAINING ROUTINES
 ======================================================
 */ 
 
-double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
+double bottom::detAlphaLag(const vec& ub, int method,int suppressoutput) const {
 
 	double alpha_lag1=0.;
 	double alpha_lag_temp=0.;
@@ -2949,7 +2958,7 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 	return alpha_lag1; 
 }
 
-vec bottom::detDistributeFunc(double alpha_lag1,double deltax){	
+vec bottom::detDistributeFunc(double alpha_lag1,double deltax) const {
 	double meanstle1  = alpha_lag1*cfg.D50;
 	int Npsl = (int)ceil(meanstle1*cfg.stle_factor/deltax);
 	vec distribute(Npsl,0.0);
@@ -2998,12 +3007,12 @@ void bottom::avalanche(){
 				downstream = 0;
 				upstream   = Npx-1;
 			}
-			if(((*b)[downstream]-(*b)[upstream])/(dx) < reposeangle1){
+			if((b[downstream]-b[upstream])/(dx) < reposeangle1){
 				npoints+=1;
 				reposefound=1;
-				deltab = (1./2.)*(reposeangleplus*dx+(*b)[upstream]-(*b)[downstream]); 
-				(*b)[upstream]-=deltab;
-				(*b)[downstream]+=deltab;					
+				deltab = (1./2.)*(reposeangleplus*dx+b[upstream]-b[downstream]);
+				b[upstream]-=deltab;
+				b[downstream]+=deltab;
 				}
 		}
 	}
@@ -3011,7 +3020,7 @@ void bottom::avalanche(){
 
 }
 
-vec bottom::smooth(vec bed_in){
+vec bottom::smooth(const vec& bed_in) const {
 	vec bed_out(Npx,0.0);
 	for(int i=0;i<Npx;i++) {
 		bed_out[i]=( bed_in[o2(i-1)]+bed_in[i]+bed_in[o2(i+1)] )/3.;
@@ -3019,7 +3028,7 @@ vec bottom::smooth(vec bed_in){
 	return bed_out;
 }
 
-vec bottom::filter(int np, vec inp_arr){
+vec bottom::filter(int np, const vec& inp_arr) const {
 	vec out_arr(Npx,0.0);
 	for(int i=0;i<Npx;i++) {
 		int k=(np+1)/2-1;
@@ -3039,16 +3048,16 @@ void bottom::smooth_param(int np, int num){
 	 * np geeft het aantal punten waarover gemiddeld wordt
 	 * num=1: smooth at xsi; num=2: smooth at xri */
 
-	vec oldbed=(*bp);
-	int nfsz=(*fsz)[nf-1];
+	vec oldbed=bp;
+	int nfsz=fsz[nf-1];
 	int xi = 0;
 
 	for (int j=0;j<nfsz;j++) {
 
 		if (num==1) { //xsi
-			xi = (*fsz)[j*7+0]; }
+			xi = fsz[j*7+0]; }
 		else if (num==2) { //xri
-			xi = o3((*fsz)[j*7+1]); }
+			xi = o3(fsz[j*7+1]); }
 
 		for(int i=xi-3;i<=xi+3;i++) {
 
@@ -3064,7 +3073,7 @@ void bottom::smooth_param(int np, int num){
 				else if (m>=Npx) m-=Npx;
 				sum+=oldbed[m];}
 
-			(*bp)[ii]=sum/double(np);
+			bp[ii]=sum/double(np);
 		}
 	}
 }
@@ -3073,22 +3082,22 @@ void bottom::sep_sort_fsz(int num){
 	/* sort the fsz�s in *fsz array
 	 * 2 cases: 0 uses xsi; 4 uses xdi */
 
-	int nfsz=(*fsz)[nf-1];
-	vector<int> fsztemp = (*fsz);
-	vec Srtemp = (*Sr);
+	int nfsz=fsz[nf-1];
+	vector<int> fsztemp = fsz;
+	vec Srtemp = Sr;
 	int t=0;
 	while (t<nfsz){
 		for(int i=0;i<Npx;i++){
 			for(int j=0;j<nfsz;j++){
 				if(fsztemp[j*7+num]==i){
-					(*fsz)[t*7+0]=fsztemp[j*7+0];
-					(*fsz)[t*7+1]=fsztemp[j*7+1];
-					(*fsz)[t*7+2]=fsztemp[j*7+2];
-					(*fsz)[t*7+3]=fsztemp[j*7+3];
-					(*fsz)[t*7+4]=fsztemp[j*7+4];
-					(*fsz)[t*7+5]=fsztemp[j*7+5];
-					(*fsz)[t*7+6]=fsztemp[j*7+6];
-					(*Sr)[t]=Srtemp[j];
+					fsz[t*7+0]=fsztemp[j*7+0];
+					fsz[t*7+1]=fsztemp[j*7+1];
+					fsz[t*7+2]=fsztemp[j*7+2];
+					fsz[t*7+3]=fsztemp[j*7+3];
+					fsz[t*7+4]=fsztemp[j*7+4];
+					fsz[t*7+5]=fsztemp[j*7+5];
+					fsz[t*7+6]=fsztemp[j*7+6];
+					Sr[t]=Srtemp[j];
 					t+=1;
 					break;}
 			}
@@ -3096,7 +3105,7 @@ void bottom::sep_sort_fsz(int num){
 	}
 }
 
-vec bottom::paramFindNeighbors(double x_p, int xi){
+vec bottom::paramFindNeighbors(double x_p, int xi) const {
   /* find neighboring points of the bed */
   vec Neighbors(4,0.0);
 	double a1=0.0; double a2=0.0; double b1=0.0; double b2=0.0;
@@ -3108,8 +3117,8 @@ vec bottom::paramFindNeighbors(double x_p, int xi){
   int m=o3(mm);
   a1 = m*dx;
   a2 = (m+1)*dx;
-  b1 = (*b)[m];
-  b2 = (*b)[o2(m+1)];
+  b1 = b[m];
+  b2 = b[o2(m+1)];
 /*
 	double dif=x_p-Npx*dx;
 	if (x_p<0) x_p+=Npx*dx;
@@ -3126,8 +3135,8 @@ vec bottom::paramFindNeighbors(double x_p, int xi){
 						if (tijd==3782. && xi==262-1){
 							cerr<<"x_p="<<x_p<<"; a1="<<a1<<"; a2="<<a2<<endl;
 						}
-            b1 = (*b)[m];
-            b2 = (*b)[o2(m+1)];
+            b1 = b[m];
+            b2 = b[o2(m+1)];
             break;}
 	}
 */
@@ -3135,7 +3144,7 @@ vec bottom::paramFindNeighbors(double x_p, int xi){
 	return Neighbors;
 }
 
-int bottom::findTrough(int xs, vec bed){
+int bottom::findTrough(int xs, const vec& bed) const {
 	int xti = 0;
 
   vec dhdx(Npx,0.0);
@@ -3157,7 +3166,7 @@ int bottom::findTrough(int xs, vec bed){
 	return o2(xti);
 }
 
-int bottom::findCrest(int xsi, vec bed){
+int bottom::findCrest(int xsi, const vec& bed) const{
 	int xci = 0;
 
  	vec dhdx(Npx,0.0);
@@ -3175,7 +3184,7 @@ int bottom::findCrest(int xsi, vec bed){
 	return o2(xci);
 }
 
-double bottom::meanval(vec vr, int Np) {
+double bottom::meanval(const vec& vr, int Np) const {
 	double nm = vr[0];
 	for (int i = 1; i < Np; i++) {
 		nm+=vr[i];
@@ -3183,7 +3192,7 @@ double bottom::meanval(vec vr, int Np) {
 	return nm/Np;
 }
 
-double bottom::minval(vec vr, int Np) {
+double bottom::minval(const vec& vr, int Np) const {
 	double nm = vr[0];
 	for (int i = 1; i < Np; i++) {
 		if (vr[i]<nm) nm=vr[i];
@@ -3191,39 +3200,39 @@ double bottom::minval(vec vr, int Np) {
 	return nm;
 }
 
-vec bottom::getShape(int sepflag){
+vec bottom::getShape(int sepflag) const {
 	if (sepflag==0){
-		return (*b);}
+		return b;}
 	if (sepflag==1){
-		return (*bp);}
-    return (*b); // JW avoid warning
+		return bp;}
+    return b; // JW avoid warning
 }
 
-vector<int> bottom::getFsz(){
-	return (*fsz);
+vector<int> bottom::getFsz() const {
+	return fsz;
 }
 
-vector<double> bottom::getSr(){
-	return (*Sr);
+vector<double> bottom::getSr() const {
+	return Sr;
 }
 
-void bottom::write_flowsep(){
+void bottom::write_flowsep() const {
 	// Write flow separation zone characteristics to screen
 	cerr<<"Flowsep characteristics:"<<endl;
 	cerr<<setw(7)<<"xsi"<<setw(5)<<"xri"<<setw(5)<<"xci"<<setw(5)<<"xti"<<setw(5)<<"xdi"<<setw(6)<<"xcin"<<setw(6)<<"case"<<endl;
-	int nfsz=(*fsz)[nf-1];
+	int nfsz=fsz[nf-1];
 	for (int j=0;j<nfsz;j++) {
-		int xsi=(*fsz)[j*7+0];
-		int xri=(*fsz)[j*7+1];
-		int xci=(*fsz)[j*7+2];
-		int xti=(*fsz)[j*7+3];
-		int xdi=(*fsz)[j*7+4];
-		int xcin=(*fsz)[j*7+5];
-		int fscase=(*fsz)[j*7+6];
+		int xsi=fsz[j*7+0];
+		int xri=fsz[j*7+1];
+		int xci=fsz[j*7+2];
+		int xti=fsz[j*7+3];
+		int xdi=fsz[j*7+4];
+		int xcin=fsz[j*7+5];
+		int fscase=fsz[j*7+6];
 		cerr<<j+1<<":"<<setw(5)<<xsi<<setw(5)<<xri<<setw(5)<<xci<<setw(5)<<xti<<setw(5)<<xdi<<setw(6)<<xcin<<setw(6)<<fscase<<endl;
 	}
 }
-double bottom::detint1(vec bed){
+double bottom::detint1(const vec& bed) const {
 	double bint = 0.0;
 	for(int i=0;i<Npx;i++){
 		bint+=dx*(bed[i]+bed[o2(i+1)])/2.;
@@ -3232,7 +3241,7 @@ double bottom::detint1(vec bed){
 	return bint;
 }
 
-double bottom::detint2(vec bed){
+double bottom::detint2(const vec& bed) const {
 	double bint = 0.0;
 	double minbed = bed[0];
 	for(int i=1;i<Npx;i++){
