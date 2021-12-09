@@ -2791,12 +2791,26 @@ double bottom::detMigr(vec current,vec next) {
 	double a0 = real(du0[loc0]);
 	double b0 = imag(du0[loc0]);
 	double phi0 = atan2(-b0,a0);
+#define SHOW_SPECTRUM
+#ifdef SHOW_SPECTRUM
+	vec amp(du0.size());
+	for (auto i = 0; i < du0.size(); ++i) {
+		amp[i] = abs(du0[i]);
+		cout << i << " " << amp[i] << " " << arg(du0[i]) <<endl;
+	}
+#endif
 
 	vector<complex<double> > du1 = fftbot(next);
 	int loc1 = maxloc_complex(du1);
 	double a1 = real(du1[loc1]);
 	double b1 = imag(du1[loc1]);
 	double phi1 = atan2(-b1,a1);
+#ifdef SHOW_SPECTRUM
+	for (auto i = 0; i < du0.size(); ++i) {
+		amp[i] = abs(du1[i]);
+		cout << i << " " << amp[i] << " " << arg(du1[i]) <<endl;
+	}
+#endif
 
 	double phidif = phi1-phi0;
     if (phi1<0 && phi0>0) {phidif = phidif + 2.*M_PI;}
