@@ -8,20 +8,20 @@ double interpolate(vec x,vec y,double x0){
 	int in_range = -999;
 	double y0;
 	
-	for(int j=0;j<x.size();j++){
+	for(auto j=0u;j<x.size();j++){
 		if(x[j]>=x0) {
 			in_range =j;
 			break;
 		}
 	}
 
-	if(in_range>0){ //x0 is between two values in the range
+	if(in_range>0) { //x0 is between two values in the range
 		y0=y[in_range-1]+(y[in_range]-y[in_range-1])*(x0-x[in_range-1])/(x[in_range]-x[in_range-1]);
 	}
-	else if(in_range==0){ //the first x is already larger than x0
+	else if(in_range==0) { //the first x is already larger than x0
 		y0=y[0];
 	}
-	else if(in_range==-999){ //the last x is still smaller than x0
+	else { //the last x is still smaller than x0
 		y0=y[x.size()-1];
 	}
 	
@@ -52,22 +52,21 @@ vec colmatvec(const mat &m,const mat &v,int s,int c){
 #endif
 
 double L2(const vec &v){
-	double sum=v[0]*v[0];
-	for(int i=1;i<v.size();i++){
-		sum+=v[i]*v[i];
+	double sum = 0;
+	for (auto x : v) {
+		sum += x * x;
 	}
-	sum/=(double)v.size();
-	sum=sqrt(sum);
+	sum /= v.size();
+	sum = sqrt(sum);
 	return sum;
 }
 
 double L2err(const vec &v){
-	double sum=v[0]*v[0];
-	for(int i=1;i<v.size();i++){
-		sum+=v[i]*v[i];
+	double sum = 0;
+	for (auto x : v) {
+		sum += x * x;
 	}
-	//sum/=(double)v.size();
-	sum=sqrt(sum);
+	sum = sqrt(sum);
 	return sum;
 }
 
@@ -204,11 +203,11 @@ double gmres(vec x0, vec &b, crMat &A, crLU &P, int m) {
 	vec r0(n, 0.0);
 	//vec wj(n, 0.0);
 	auto mv = A.matvec(x0);
-	for (auto i = 0; i < n; i++)
+	for (auto i = 0u; i < n; i++)
 		r0[i] = b[i] - mv[i];
 	P.bf(r0);
 	auto beta = L2err(r0);
-	for (auto i = 0; i < n; i++)
+	for (auto i = 0u; i < n; i++)
 		V[i][0] = r0[i] / beta;
 
 	for (auto j = 0; j < m; j++) {
@@ -216,7 +215,7 @@ double gmres(vec x0, vec &b, crMat &A, crLU &P, int m) {
 		P.bf(wj);
 		for (auto i = 0; i <= j; i++) {
 			H[i][j] = coldot(wj, V, n, i);
-			for (auto il = 0; il < n; il++)
+			for (auto il = 0u; il < n; il++)
 				wj[il] -= H[i][j] * V[il][i];
 		}
 		H[j + 1][j] = L2err(wj);
@@ -224,7 +223,7 @@ double gmres(vec x0, vec &b, crMat &A, crLU &P, int m) {
 			cerr << "Lucky breakdown!!!" << endl;
 			break;
 		}
-		for (auto il = 0; il < n; il++)
+		for (auto il = 0u; il < n; il++)
 			V[il][j + 1] = wj[il] / H[j + 1][j];
 	}
 	//givens
@@ -259,20 +258,20 @@ double gmres(vec x0, vec &b, crMat &A, crLU &P, int m) {
 			betae1[i] -= H[i][j] * betae1[j];
 		betae1[i] /= H[i][i];
 	}
-	for (auto j = 0; j < n; j++) {
+	for (auto j = 0u; j < n; j++) {
 		for (auto i = 0; i < m; i++)
 			x0[j] += V[j][i] * betae1[i];
 	}
 	mv = A.matvec(x0);
-	for (auto i = 0; i < n; i++)
+	for (auto i = 0u; i < n; i++)
 		r0[i] = b[i] - mv[i];
-	for (auto i = 0; i < n; i++)
+	for (auto i = 0u; i < n; i++)
 		b[i] = x0[i];
 	return L2err(r0);
 }
 
 ostream & operator<<(ostream & s,const vec &v){
-	for(int j=0;j<v.size();j++){
+	for(auto j=0u;j<v.size();j++){
 		s<<v[j];
 	}
 	s<<endl;
@@ -366,7 +365,7 @@ crMat::~crMat(){
 }
 vec	crMat::matvec(const vec &v){
 	vec p(v.size());
-	for(int j=0;j<v.size();j++){
+	for(auto j=0u;j<v.size();j++){
 		p[j]=0.0;
 		for(int i=ri[j];i<ri[j+1];i++){
 			p[j]+=val[i]*v[ci[i]];

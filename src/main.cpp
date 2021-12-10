@@ -412,7 +412,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		//cerr << "next: " << next[1] << " bint2: " << bint2 << endl; //OLAV 2014 03 31
 		
 		double flux_av=0.;
-		for(int i=0;i<fluxtot.size();i++) flux_av+=fluxtot[i];
+		for(auto f : fluxtot) flux_av+=f;
 		flux_av/=cfg.Npx;
 
 		double mig=sand.detMigr(current,next);
@@ -422,22 +422,22 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			const auto& stateFsz=sand.getFsz();
 			const auto& stateSr=sand.getSr();
 			//wegschrijven fsz:
-			outfsz<<tijd<<" ";		for(int i=0;i<stateFsz.size();i++)outfsz<<stateFsz[i]<<" "; outfsz<<endl;
-			outSround<<tijd<<" "; for(int i=0;i<stateSr.size();i++)outSround<<stateSr[i]<<" "; outSround<<endl;
+			outfsz<<tijd<<" "; for (auto fsz : stateFsz) outfsz << fsz << " "; outfsz<<endl;
+			outSround<<tijd<<" "; for(auto sr : stateSr) outSround << sr << " "; outSround<<endl;
 		}
 
 	  	if(write_teller==cfg.dt_write/dt){
 			outint<<tijd<<" "<<H<<" "<<bint1<<" "<<bint2<<" "<<zetaint1<<" "<<zetaint2<<" "<<cr<<" "<<tr<<" "<<Nd<<" "<<mig<<" "<<flux_av<<endl;
-			outflux<<tijd<<" ";    for(int i=0;i<fluxtot.size();i++)outflux<<fluxtot[i]<<" "; outflux <<endl;
-			outdhdx<<tijd<<" ";    for(int i=0;i<dhdx.size();   i++)outdhdx<<dhdx[i]   <<" "; outdhdx <<endl;
-			outbss<<tijd<<" ";     for(int i=0;i<bss1.size();   i++)outbss <<bss1[i]   <<" "; outbss  <<endl;
-			outbss<<tijd+0.1<<" "; for(int i=0;i<bss2.size();   i++)outbss <<bss2[i]   <<" "; outbss  <<endl;
+			outflux<<tijd<<" ";    for(auto f : fluxtot) outflux << f << " "; outflux <<endl;
+			outdhdx<<tijd<<" ";    for(auto d : dhdx) outdhdx << d <<" "; outdhdx <<endl;
+			outbss<<tijd<<" ";     for(auto b : bss1) outbss << b <<" "; outbss <<endl;
+			outbss<<tijd+0.1<<" "; for(auto b : bss2) outbss << b <<" "; outbss <<endl;
 			write_teller = 0;
 		}
 
 	  	const auto nt = next.size();
 	  	vec verschil(nt);
-	  	for(int k=0;k<nt;k++)verschil[k]=next[k]-current[k];
+	  	for(auto k = 0u; k < nt ; k++) verschil[k] = next[k] - current[k];
 	  	auto norm=L2(verschil);
 	  	sand.setShape(next);
 

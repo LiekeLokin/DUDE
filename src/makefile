@@ -1,7 +1,7 @@
 
 #CXX = clang++
 
-CPPFLAGS = -W -Wall -Wno-sign-compare
+CPPFLAGS = -W -Wall
 
 CXXFLAGS = -g
 CXXFLAGS += -O3

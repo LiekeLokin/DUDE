@@ -309,10 +309,19 @@ void bottom::writeBottom() const {
 	int nfsz=fsz[nf-1];
 	ofstream bb("out_bottom.inp");
 	bb.precision(16);
-	bb<<tijd<<" "<<sepflag<<" "<<nfsz<<" "<<0<<" "<<H<<" "<<L<<" "; for(int i=0;i<b.size();i++)bb<<b[i]<<" "; bb<<endl;
+	bb<<tijd<<" "<<sepflag<<" "<<nfsz<<" "<<0<<" "<<H<<" "<<L<<" ";
+	for (auto v : b)
+		bb<<v<<" ";
+	bb<<endl;
 	if (sepflag==1){
-		bb<<tijd<<" "; for(int i=0;i<fsz.size();i++)bb<<fsz[i]<<" "; bb<<endl;
-		bb<<tijd<<" "; for(int i=0;i<Sr.size();i++)bb<<Sr[i]<<" "; bb<<endl;
+		bb<<tijd<<" ";
+		for (auto f : fsz)
+			bb<<f<<" ";
+		bb<<endl;
+		bb<<tijd<<" ";
+		for (auto s : Sr)
+			bb<<s<<" ";
+		bb<<endl;
 	}
 	bb.close();
 }
