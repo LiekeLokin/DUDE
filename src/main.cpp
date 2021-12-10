@@ -511,7 +511,7 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 	vector<vector<double> > dta(num+1,vector<double>(cols));
 	
 	//double Lmax=Hi*Hifactor; //OLAV: changed 2011 04 01 (was 10*Hi)
-	double minfactor = 3.; 
+	double minfactor = 3.; // TODO: moet net als Hifactor een opgegeven var worden (Lowfactor)
 	double Lmax=H*cfg.Hifactor; //OLAV: changed 2014 01 31
 	double Lstep=(Lmax-H*minfactor)/num; //was double Lstep=Lmax/num-H*3; 
 	//OLAV: 2012 09 17: shouldnt this be H? 
@@ -544,6 +544,7 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 		newbed=sand.update(ubed,dump1,dump2,dump3);
 		//TODO LL: Kijken welke modus groeit (fourier analyse)
 		double gri=(1/dt)*log(maxval(newbed)/ampbeds);
+		//TODO LL: double gri = sand.detGrow()
 		cerr<<"gri: "<<gri<<endl;
 		double mig=sand.detMigr(bedstab,newbed);
 		cerr<<"mig: "<<mig<<endl<<endl;

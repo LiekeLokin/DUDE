@@ -2774,11 +2774,22 @@ cout << endl << endl << "Block VIII: dune char fft bed" << endl << endl; //OLAV
 ======================================================
 ======================================================
 
-BLOCK IX: DETERMINATION OF DUNE MIGRATION.
+BLOCK IX: DETERMINATION OF DUNE MIGRATION AND GROWTH.
 using FFT
 
 ======================================================
 ======================================================
+*/
+
+//TODO maak bottom::detGrow(vec current, vec next), om daarmee de groei te bepalen in plaats van met het zoeken van het lokale maximum
+//TODO schrijf bij de laatste tijdstap van het model ook de de abs (amplitude) en het argument (fase) van de fourier weg.
+
+/*
+double bottom::detGrow(vec current, vec next){
+	double grow = 0;
+	vector<complex<double> > du0 = fftbot(current);
+
+}
 */
 
 double bottom::detMigr(vec current,vec next) {
@@ -2796,7 +2807,7 @@ double bottom::detMigr(vec current,vec next) {
 	vec amp(du0.size());
 	for (auto i = 0; i < du0.size(); ++i) {
 		amp[i] = abs(du0[i]);
-		cout << i << " " << amp[i] << " " << arg(du0[i]) <<endl;
+		//cout << i << " " << amp[i] << " " << arg(du0[i]) <<endl;
 	}
 #endif
 
@@ -2806,9 +2817,13 @@ double bottom::detMigr(vec current,vec next) {
 	double b1 = imag(du1[loc1]);
 	double phi1 = atan2(-b1,a1);
 #ifdef SHOW_SPECTRUM
+	for (auto i = 0; i < next.size(); ++i){
+		cout << i << " "  << next[i] << endl;
+	}
 	for (auto i = 0; i < du0.size(); ++i) {
 		amp[i] = abs(du1[i]);
-		cout << i << " " << amp[i] << " " << arg(du1[i]) <<endl;
+		if (amp[i] > 1e-8)
+			cout << i << " " << amp[i] << " " << arg(du1[i]) <<endl;
 	}
 #endif
 
