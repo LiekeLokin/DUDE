@@ -77,10 +77,10 @@ int flow::o(int j_ex,int i_ex,int v) const {
 	}
 	return int(i*(Npz+1)+j+v*Npz);
 }
-void flow::det_AvS(const vec& bottom_state){
+void flow::det_AvS(const vec& bottom_state __attribute__((unused))){
 	//bsp = bottom_state with parameterization
 	for(int i=0;i<Npx;i++){
-		double loc_wd=-bottom_state[i]+H+iu[o(0,i,2)]/beta[2*i+1];
+		//double loc_wd=-bottom_state[i]+H+iu[o(0,i,2)]/beta[2*i+1];
 		Avx[i]=Av;
 		Sx[i]=S;
 		//cerr<<"loc_wd: "<<loc_wd<<"; ustar: "<<ustar<<"; Av: "<<Avx[i]<<"; S: "<<Sx[i]<<endl;
@@ -280,7 +280,7 @@ void flow::testNewton(vec bottom_state,double eps){
 
 int flow::solve_gm(const vec& bottom_state,int gmn) {
 	//flowsolver die gebruikt maakt van gmres, gmn is het aantal iteratiestappen
-	double eta=0.1;
+	//double eta=0.1;
 	double gmtresh=cfg.tresh;
 	int teller=0;
 	double resid=0.;

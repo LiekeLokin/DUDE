@@ -100,7 +100,7 @@ void bottom::setWave(int xwi, int xcin){
 	Np*=2;
 	//cerr<<Np<<endl;
 	double L_wave= Np*deltax;
-	double alpha=30.; //graden
+	//double alpha=30.; //graden
 
 	double tanalpha = sqrt(3.)/3.;
 	//int Npx_wave = int(round((L_wave/deltax)/2.)*2.)+1;
@@ -339,11 +339,12 @@ void bottom::checkFlowsep(){
     vector<int> dta(2,0);
 	int sepflag; //=fsz[nf-2];
 	int sepflag1=fsz_prev[nf-2];
-	int xsi=-1;	int xri=0; int xci=0; int xti=0; int xdi;
+	int xsi=-1;	int xri=0; int xci=0; int xti=0;
+	//int xdi;
 	int nfsz=0;
 	int nfsz1=fsz_prev[nf-1];
 	int col=4; //xdi
-	int cnt=0;
+	//int cnt=0;
 	int solve_method=0;
 	int nmerge=0;  // keeps track of # of fsz's that have merged (and removed)
 	int skipped=0; // keeps track # of skipped fsz that are too small
@@ -640,8 +641,8 @@ void bottom::checkFlowsep(){
 			if (xsi==-1) xsii=Npx-1;
 			for(int j=0;j<nfsz1;j++){
 				int xdip=fsz_prev[j*7+4];
-				int xsip=fsz_prev[j*7+0];
-				int xrip=fsz_prev[j*7+1];
+				//int xsip=fsz_prev[j*7+0];
+				//int xrip=fsz_prev[j*7+1];
 				cerr<<"j: "<<j+1<<" - xdip: "<<xdip<<" - xsii: "<<xsii<<" - xci: "<<xci<<endl;
 				if (xdip==xsii || xdip==xcii) {
 					cerr<<endl<<endl<<endl<<endl<<endl<<"         ------ PUNT WAAR HET MIS GING!! -------"<<endl<<endl<<endl<<endl<<endl;
@@ -757,7 +758,7 @@ Contains functions:
 ======================================================
 */
 
-vector<int> bottom::setFSZ(int xsi, int nfsz, int wavelet){
+vector<int> bottom::setFSZ(int xsi, int nfsz, int wavelet __attribute__((unused))){
 
   vector<int> dta(2,0);
 	int xri=0; int xci=0;	int xti=0;
@@ -836,7 +837,7 @@ vector<int> bottom::setFSZ(int xsi, int nfsz, int wavelet){
 /* reimplemenation of this function after
  * 10/04/2007
  */
-int bottom::paramSepline(int xsi, int xti, int xci, int nfsz){
+int bottom::paramSepline(int xsi, int xti, int xci __attribute__((unused)), int nfsz){
 	/* bepaling separating streamline
 	 * shape of the separation streamline as determined from the data-set,
 	 * described in Paarlberg et al. 2007 submitted WRR
@@ -870,7 +871,7 @@ int bottom::paramSepline(int xsi, int xti, int xci, int nfsz){
 	// x and z coordinate of the flow separation and reattachment point
 	double xs=x[xsi];
 	double Hs=b[xsi];
-	double xt=x[xti];
+	//double xt=x[xti];
 	double Ht=b[xti];
 	
 	// height and total lengte of the flow separation zone
@@ -892,7 +893,7 @@ int bottom::paramSepline(int xsi, int xti, int xci, int nfsz){
 	int dir = 1;  // 1 = left2right; 2 = right2left
 	double xl = xs+dx;
 	double xr = xs+Hfsz*tLs;
-	double dif = 0.0;
+	//double dif = 0.0;
 	double x_p = 0.0;
 	double x_p_bed;
 	double fac=1;
@@ -903,7 +904,7 @@ int bottom::paramSepline(int xsi, int xti, int xci, int nfsz){
 	
 	for(int k=1;k<=max_it;k++){
 		// find cross-point within maximum number of iterations
-		dif = xr - xl;
+		//dif = xr - xl;
 		// 1 = left2right; 2 = right2left
 		if (dir==2){
 			x_p = xr - dx/fac;}
@@ -937,7 +938,7 @@ int bottom::paramSepline(int xsi, int xti, int xci, int nfsz){
 
 		if (abs(y2-y1) <= tol || abs(y2-y1) == 0){
 		// cross-point fond or maximum # iteration reached
-			int nb1=o3(int(ceil(x_p/dx)));
+			//int nb1=o3(int(ceil(x_p/dx)));
 			rp[0]=x_p;
 			rp[1]=y2;
 			break;
@@ -956,7 +957,7 @@ int bottom::paramSepline(int xsi, int xti, int xci, int nfsz){
 	} // for
 	
 	double xret = rp[0];
-	double Hret = rp[1];
+	//double Hret = rp[1];
 	double Ls = xret - xs;
 	int sxi=int(ceil(Ls/dx));
 	int xri=xsi+sxi;
@@ -1031,7 +1032,7 @@ void bottom::detQcr(vec ub, vec &dhdx){
 	/* determine fluxes in case of flowsep some extra code is used*/
 	int sepflag=fsz[nf-2];
 	vec tau(Npx,0.0);
-	double sepflux; // OLAV 2013 04 16
+	//double sepflux; // OLAV 2013 04 16
 	double meanstle1;  // OLAV 2014 02 25
 	double alpha_lag1;  // OLAV 2014 02 25
 	
@@ -1231,7 +1232,7 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 	// JW vec newb(Npx,0.0);
 	vec oldb(b);
 	vec distribute;
-	double bint = 0.0;
+	//double bint = 0.0;
 	double ep=(1/(1-cfg.epsilonp));
 	
 	// Needed for N&T
@@ -1917,8 +1918,8 @@ vec bottom::sep_tau_distr(vec tb) {
 		if (xri<xsi) xri+=Npx;
 		if (xti<xsi) xti+=Npx;
 		int xcin = 0;
-    int xs=xri;
-		int nfp=1;
+		int xs=xri;
+		//int nfp=1;
 		vec ftau(Npx,0.0);
 		//ftau=filter(nfp,tb);
 		ftau=tb;
@@ -1954,10 +1955,10 @@ vec bottom::sep_tau_distr(vec tb) {
 
 	/* overige deel met polynoom */
 	for (int j=0;j<nfsz;j++) {
-		int xsi=fsz[j*7+0];
+		//int xsi=fsz[j*7+0];
 		int xri=fsz[j*7+1];
-		int xci=fsz[j*7+2];
-		int xti=fsz[j*7+3];
+		//int xci=fsz[j*7+2];
+		//int xti=fsz[j*7+3];
 		int xcin=fsz[j*7+5];
 
 		/* bepalen van polynoom om tau aan te passen om
@@ -2051,7 +2052,7 @@ Includes one TODO!
 void bottom::sep_migr_lee(const vec& fluxtot, const vec& oldb) {
 	/* migration of the lee-side */
 
-	int sepflag=fsz[nf-2];
+	//int sepflag=fsz[nf-2];
 	int nfsz=fsz[nf-1];
 	int ntolreset=1;
 	
@@ -2280,7 +2281,13 @@ void bottom::sep_migr_lee(const vec& fluxtot, const vec& oldb) {
 			/* due to numerical grid, rounding errors are made, which can explicitely be computed
 			   these are separated in 3 areas: A,B&C. See notes on this
 			   errors are corrected for in the next time step */
-			double Sround = 0.0; double chiA = 0.0; double chiB = 0.0; double chiC = 0.0; double A = 0.0; double B = 0.0; double C = 0.0;
+			double Sround = 0.0;
+			//double chiA = 0.0;
+			double chiB = 0.0;
+			double chiC = 0.0;
+			double A = 0.0;
+			double B = 0.0;
+			double C = 0.0;
 			double xd = xdown; if (xdown>=L) xd-=L;
 			double rp0 = rp[0]; if (rp[0]>=L) rp0-=L;
 			A -= (1./2.)*(dx+xd-(x[o3(xdi)]+dx))*(ysep-b[o2(o3(xdi+1))]);
@@ -2434,7 +2441,7 @@ double bottom::area2D_Polygon(int n, const vec& xarr, const vec& yarr) const {
 // area2D_Polygon(): computes the area of a 2D polygon
 // see: http://softsurfer.com/Archive/algorithm_0101/algorithm_0101.htm#area2D_polygon()
     double area = 0;
-    int   i, j, k;     // indices
+    //int   i, j, k;     // indices
 
     cout << endl << "Block VII: area started" << endl << endl; //OLAV
 
@@ -2547,7 +2554,7 @@ vec bottom::detNd(const vec& bot) const {
 	return Dc;
 }
 
-vec bottom::detNd_fft(const vec& bot, int fftnum) const {
+vec bottom::detNd_fft(const vec& bot, int fftnum __attribute__((unused))) const {
 	/* dune characteristics using FFT */
 
 	// create temporary arrays to store positions
@@ -2695,8 +2702,8 @@ vec bottom::detNd_fft(const vec& bot, int fftnum) const {
 
 	//cerr<<"La: "; for (int i=0; i<Nd; i++){cerr<<La[i]<<" ";} cerr<<endl;
 	//cerr<<"Ha: "; for (int i=0; i<Nd; i++){cerr<<Ha[i]<<" ";} cerr<<endl;
-	double Lav=meanval(La,Nd);
-	double Hav=meanval(Ha,Nd); 
+	//double Lav=meanval(La,Nd);
+	//double Hav=meanval(Ha,Nd);
 	
 	//cerr<<"detNd_fft Hav: "<<Hav<<endl; // OLAV 2014 03 31
 	
@@ -2843,7 +2850,7 @@ BLOCK X: REMAINING ROUTINES
 double bottom::detAlphaLag(const vec& ub, int method,int suppressoutput) const {
 
 	double alpha_lag1=0.;
-	double alpha_lag_temp=0.;
+	//double alpha_lag_temp=0.;
 	double u_star = 0.;
 	double u_star_temp = 0.;
 	double theta  = 0.;
@@ -3092,7 +3099,7 @@ void bottom::sep_sort_fsz(int num){
 	}
 }
 
-vec bottom::paramFindNeighbors(double x_p, int xi) const {
+vec bottom::paramFindNeighbors(double x_p, int xi __attribute__((unused))) const {
   /* find neighboring points of the bed */
   vec Neighbors(4,0.0);
 	double a1=0.0; double a2=0.0; double b1=0.0; double b2=0.0;
