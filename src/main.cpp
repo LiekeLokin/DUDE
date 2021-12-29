@@ -511,9 +511,11 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 	vector<vector<double> > dta(num+1,vector<double>(cols));
 	
 	//double Lmax=Hi*Hifactor; //OLAV: changed 2011 04 01 (was 10*Hi)
-	double minfactor = 3.; // TODO: moet net als Hifactor een opgegeven var worden (Lowfactor)
+//	double minfactor = 3.; // TODO: moet net als Hifactor een opgegeven var worden (Lowfactor)
+	double Lmin=H*cfg.Minfactor;
 	double Lmax=H*cfg.Hifactor; //OLAV: changed 2014 01 31
-	double Lstep=(Lmax-H*minfactor)/num; //was double Lstep=Lmax/num-H*3; 
+//	double Lstep=(Lmax-H*minfactor)/num; //was double Lstep=Lmax/num-H*3;
+	double Lstep= (Lmax-Lmin)/num;
 	//OLAV: 2012 09 17: shouldnt this be H? 
 	
 	dt=cfg.dts;
@@ -529,7 +531,8 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 		//L=Hi/10+Lstep*(p+1);  //2013 1 31: OLAV (was L=Hi/10+Lstep*(p);)
 		//L=Hi/numStab+Lstep*(p); //2012 09 17: OLAV (was with /10., now with numStab)
 		//L=Hi*5+Lstep*(p); //2012 09 17: OLAV test
-		L=H*minfactor+Lstep*(p);  //OLAV: changed 2014 01 31 was L=Hi*5+Lstep*(p);
+//		L=H*minfactor+Lstep*(p);  //OLAV: changed 2014 01 31 was L=Hi*5+Lstep*(p);
+		L=Lmin+Lstep*(p);
 		dx=L/cfg.Npx;
 
 		cerr<<p<<" "<<L<<" "<<H<<" "<<dx<<endl;

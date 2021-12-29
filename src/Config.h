@@ -31,6 +31,7 @@ public:
 	int SimpleLengthFactor;
 	int numStab;
 	int Hifactor;
+	int Minfactor;
 	double Hcrit_global;
 	int transport_eq;
 	int alpha_varies;
