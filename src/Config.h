@@ -83,7 +83,7 @@ public:
 	double theta_min_S;
 	double theta_max_S;
 	double H_ref;
-	bool keepsgrowing;
+//	bool keepsgrowing;
 
 	Config(const std::string& path = "config.cfg");
 	virtual ~Config() {}

@@ -24,6 +24,7 @@ public:
 	//0: alpha = constant
 	//1: Sekine&Kikkawa (with N&T)
 	//2: Shimizu et al. (with N&T)
+	//3: Shimizu et al., adjusted by van Duin et al. 2021 (with N&T)
 	const double alpha_lag;	// For alpha_varies=0 with LRE or N&T
 	const int moeilijkdoen;	// different guess flux(0) method for lag with linear relaxation
 	const int Npsl_min;		//for N&T
@@ -59,7 +60,7 @@ public:
 	const double theta_min_S;
 	const double theta_max_S;
 	const double H_ref;
-	const int keepsgrowing;
+//	const int keepsgrowing; //
 
 	BedConfig(const Config& cfg);
 	BedConfig(const BedConfig&) = default;

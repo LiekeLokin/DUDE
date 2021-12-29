@@ -179,7 +179,7 @@ Config::Config(const std::string& path) {
 			ASSIGNDOUBLE(theta_min_S);
 			ASSIGNDOUBLE(theta_max_S);
 			ASSIGNDOUBLE(H_ref);
-			ASSIGNBOOL(keepsgrowing);
+			//ASSIGNBOOL(keepsgrowing);
 
 			// Fall through
 			warn("Unknown number parameter");

@@ -44,6 +44,6 @@ BedConfig::BedConfig(const Config& cfg) :
 	alpha_max_S(cfg.alpha_max_S),
 	theta_min_S(cfg.theta_min_S),
 	theta_max_S(cfg.theta_max_S),
-	H_ref(cfg.H_ref),
-	keepsgrowing(cfg.keepsgrowing)
+	H_ref(cfg.H_ref)
+//	keepsgrowing(cfg.keepsgrowing)
 {}

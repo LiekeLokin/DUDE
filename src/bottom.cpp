@@ -1249,11 +1249,11 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 	vec depositemp(Npx,0.0);
 	vec fluxtemp(Npx,0.0);
 	
-	if(cfg.alpha_varies==0 && cfg.transport_eq == 2){
-		alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,1);
-		
-		distribute=detDistributeFunc(alpha_lag1,dx);
-	}
+//	if(cfg.alpha_varies==0 && cfg.transport_eq == 2){
+//		alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,1);
+//
+//		distribute=detDistributeFunc(alpha_lag1,dx);
+//	}
 	
 	double depositot =0.;
 	double tobedepositot =0.;
@@ -1276,10 +1276,15 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 	else if(cfg.transport_eq == 2){
 	
 		//Determine alpha and prepare distribution function if needed 
-		if(cfg.alpha_varies==1 || cfg.alpha_varies == 2){
+		if(cfg.alpha_varies==0){
+			alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,1);
+			distribute=detDistributeFunc(alpha_lag1,dx);
+		}
+
+		else{
+//		if(cfg.alpha_varies==1 || cfg.alpha_varies == 2 || cfg.alpha_varies == 3){
 			//Determine alpha
 			alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,t);
-			
 			//Determine distribution
 			distribute = detDistributeFunc(alpha_lag1,dx);
 
@@ -2932,12 +2937,8 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 		//theta=0.06+0.3*pow(theta_temp,(3/2)); //Change Olav 2015 02 28 
 		
 		if(theta>cfg.theta_max_S){
-			if (cfg.keepsgrowing == 1){
-				alpha_lag1=cfg.alpha_max_S+(theta-cfg.theta_max_S)*(cfg.alpha_max_S-cfg.alpha_min_S)/(cfg.theta_max_S-cfg.theta_min_S);
-			}
-			else{
-				alpha_lag1=cfg.alpha_max_S;
-			}
+			alpha_lag1=cfg.alpha_max_S;
+
 		}
 		else if(theta<cfg.theta_min_S)	{
 			alpha_lag1=cfg.alpha_min_S;
@@ -2948,7 +2949,7 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 		
 		if(suppressoutput==0){cerr << "alpha IS ADJUSTED from " << alpha_lag1 << endl;} //Change Olav 2015 02 28 
 		
-		alpha_lag1 = alpha_lag1 / cfg.H_ref * H; //Change Olav 2015 02 28
+//		alpha_lag1 = alpha_lag1 / cfg.H_ref * H; //not in orignial Shimizu model only in changed model Change Olav 2015 02 28
 		
 		if(suppressoutput==0){cerr << "alpha IS ADJUSTED to " << alpha_lag1 << endl;} //Change Olav 2015 02 28 
 		
@@ -2957,9 +2958,41 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 			cerr << "alpha_lag1=" << alpha_lag1<< " theta=" << theta << endl;
 		}
 		
-		//theta = theta_temp; //Change Olav 2015 02 28 
 	}
 	
+	else if(method == 3){ // Shimizu et al. adjusted to van Duin 2021
+		for(int i=0;i<Npx;i++) {
+			theta_temp = S*(1./2.)*(ub[o2(i-1)]+ub[i])/(cfg.delta*cfg.g*cfg.D50);
+
+			if(theta_temp>cfg.thetacr){ //2014 02 04 theta_temp>0
+				theta = theta+theta_temp; //theta = theta+(1/double(Npx))*theta_temp;
+			}
+			else{
+				skipped+=1;
+			}
+		}
+
+		theta/=double(Npx-skipped);
+
+
+		if(theta<cfg.theta_min_S)	{
+			alpha_lag1=cfg.alpha_min_S;
+		}
+		else{
+			alpha_lag1=cfg.alpha_min_S+(theta-cfg.theta_min_S)*(cfg.alpha_max_S-cfg.alpha_min_S)/(cfg.theta_max_S-cfg.theta_min_S);
+		}
+
+		if(suppressoutput==0){cerr << "alpha IS ADJUSTED from " << alpha_lag1 << endl;} //Change Olav 2015 02 28
+
+		alpha_lag1 = alpha_lag1 / cfg.H_ref * H; //Change Olav 2015 02 28
+
+		if(suppressoutput==0){cerr << "alpha IS ADJUSTED to " << alpha_lag1 << endl;} //Change Olav 2015 02 28
+
+		if(suppressoutput==0){
+			cerr << "alpha_lag1=" << alpha_lag1<< " theta=" << theta << endl;
+		}
+	}
+
 	// double reductionfactor = 0.99;
 	// if (5.*alpha_lag1*cfg.D50 > L) {
 		// if(suppressoutput==0) {cerr << "WARNING: alpha too large with: " << alpha_lag1 << ". Set to: " << reductionfactor*L/5./cfg.D50 << endl;}
