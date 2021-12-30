@@ -1276,12 +1276,12 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 	else if(cfg.transport_eq == 2){
 	
 		//Determine alpha and prepare distribution function if needed 
-		if(cfg.alpha_varies==0){
+		if(cfg.alpha_varies==0 && t==0){
 			alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,1);
 			distribute=detDistributeFunc(alpha_lag1,dx);
 		}
 
-		else{
+		if(cfg.alpha_varies!=0){
 //		if(cfg.alpha_varies==1 || cfg.alpha_varies == 2 || cfg.alpha_varies == 3){
 			//Determine alpha
 			alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,t);
@@ -1619,12 +1619,7 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 
 	write_flowsep();
 	
-	if(cfg.alpha_varies==0 && cfg.transport_eq == 2){
-		alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,1);
-		
-		distribute=detDistributeFunc(alpha_lag1,dx);
-	}
-		
+
 	//if(cfg.alpha_varies==0 && transport_eq == 2) { //needed for x-dependent distribution
 	//    for(int j=0;j<Npsl;j++){ //needed for x-dependent distribution
 	//		distribute[j] = exp(-dx*j/meanstle)/meanstle; //needed for x-dependent distribution
@@ -1661,14 +1656,20 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 	else if(cfg.transport_eq == 2){
 	
 		//START OLAV 2014 01 30
-		//Determine alpha and prepare distribution function if needed 
-		if(cfg.alpha_varies==1 || cfg.alpha_varies == 2){
+		//Determine alpha and prepare distribution function if needed
+		if(cfg.alpha_varies==0 && t==0){
+			alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,1);
+			distribute=detDistributeFunc(alpha_lag1,dx);
+		}
+
+		if(cfg.alpha_varies!=0){
 			//Determine alpha
 			alpha_lag1=detAlphaLag(bss2,cfg.alpha_varies,t);
 			
 			//Determine distribute function
 			distribute=detDistributeFunc(alpha_lag1,dx);
 		} //end of calculation for alpha and distribution
+
 		int Npsl = distribute.size();
 		//END OLAV 2014 01 30
 	
@@ -2807,7 +2808,7 @@ double bottom::detMigr(vec current,vec next) {
 	double a0 = real(du0[loc0]);
 	double b0 = imag(du0[loc0]);
 	double phi0 = atan2(-b0,a0);
-#define SHOW_SPECTRUM
+//#define SHOW_SPECTRUM
 #ifdef SHOW_SPECTRUM
 	vec amp(du0.size());
 	for (auto i = 0; i < du0.size(); ++i) {
@@ -2916,7 +2917,7 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 			cerr << "alpha_lag1=" << alpha_lag1<< " D_star=" << cfg.D_star<< " u_star=" << u_star << " u_star_cr=" << cfg.u_star_cr << " w_s=" << cfg.w_s << endl;
 		}
 	}			
-	else if(method == 2){ // Shimizu et al. adjusted
+	else if(method == 2){ // Shimizu et al. original model
 		for(int i=0;i<Npx;i++) {
 			// S*ub=volumetric bed shear stress;
 			// S*ub*ro = bed shear stress
@@ -2973,7 +2974,6 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 		}
 
 		theta/=double(Npx-skipped);
-
 
 		if(theta<cfg.theta_min_S)	{
 			alpha_lag1=cfg.alpha_min_S;
