@@ -4,7 +4,7 @@
 CPPFLAGS = -W -Wall
 
 CXXFLAGS = -g
-CXXFLAGS += -O3
+CXXFLAGS += -O3 -march=native
 # -flto gains about 2% speed, but triggers a spurious warning
 #CXXFLAGS += -flto
 
