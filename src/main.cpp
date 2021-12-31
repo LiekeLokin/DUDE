@@ -259,6 +259,8 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		}
 		//OLAV: 2011 02 21 changed from 
         //Hdiff=(H-H0)/H0;
+
+		// TODO: Hdiff moet eigenlijk het verschil in waterdiepte met de laatste keer dat stabanalysis is gedaan zijn, en niet de vergelijkin met de beginwaarde
 		const auto Hdiff=abs((H-cfg.H0)/cfg.H0); //equals 0 when exactly the same, 1 when the difference is 100%
 		const auto Hcrit = cfg.Hcrit_global;
 		cerr<<"Hdiff = " <<Hdiff <<" (Hcrit = "<<Hcrit<<")"<<endl;
@@ -275,6 +277,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			  doStabAnalysis(stabWrite, H2O, sand, q_in, cfg);
 			  dt=cfg.dtr; // reset, stab analysis uses dt=dts
 			  stabWrite=0;
+//			  const auto Hstab = H;
 			  //OLAV: 2013 02 06 added doStab=0;
 			  doStab=0; 
 			  }
@@ -511,7 +514,7 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 	vector<vector<double> > dta(num+1,vector<double>(cols));
 	
 	//double Lmax=Hi*Hifactor; //OLAV: changed 2011 04 01 (was 10*Hi)
-//	double minfactor = 3.; // TODO: moet net als Hifactor een opgegeven var worden (Lowfactor)
+//	double minfactor = 3.;
 	double Lmin=H*cfg.Minfactor;
 	double Lmax=H*cfg.Hifactor; //OLAV: changed 2014 01 31
 //	double Lstep=(Lmax-H*minfactor)/num; //was double Lstep=Lmax/num-H*3;
