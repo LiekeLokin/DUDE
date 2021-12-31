@@ -22,7 +22,7 @@ private:
 	std::vector<int> fsz;
 	int o3(int i_in) const;
 	//void detQ(vec ub, vec &dhdx);
-	void detQcr(vec ub, vec &dhdx);
+	void detQcr(const vec& ub, vec &dhdx);
 	void sep_migr_lee(const vec& fluxtot, const vec& oldb);
 	void sep_sort_fsz(int num);
 	vec sep_tau_distr(vec ub);
@@ -46,14 +46,13 @@ public:
 	bottom() = delete;
 	bottom(const BedConfig& cfg);
 	~bottom();
-	vec update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx);
-	vec update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &dhdx);
+	vec update(const vec& ub, vec &bss1, vec &fluxtot, vec &dhdx);
+	vec update_flowsep(const vec& ub, vec &bss1, vec &bss2, vec &fluxtot, vec &dhdx);
 	vec readBottomInp(const std::string& readbed);
 	void writeBottom() const;
 	void checkFlowsep();
 	void write_flowsep() const;
 	void setShape(const vec& b_in);
-	void setSin(double amp);
 	void setSin(double amp,int n);
 #if 0
 	void setRand(double amp);

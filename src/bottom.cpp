@@ -30,16 +30,16 @@ int bottom::o3(int i_in) const {
 	/*adres vertaling voor periodieke rvw ten behoeve van parameterisatie*/
 	int i_uit = i_in;
 
-	if (i_in>=Npx) i_uit = i_in-Npx;
-	if (i_in<0) i_uit = i_in+Npx;
+	if (i_in >= Npx)
+		i_uit = i_in - Npx;
+	if (i_in < 0)
+		i_uit = i_in + Npx;
 
-	if (i_uit>=0 && i_uit<Npx)
-	 	{return i_uit;} // alleen dan return (want dan 0<=i<Npx)
-	 					// zoniet print error
-	else {
-		cerr<<"  ERROR: o3() buffer overflow (i_in="<<i_in<<"; i_uit="<<i_uit<<")"<<endl;
-		cout<<"T="<<tijd<<" - ERROR: o3() buffer overflow (i_in="<<i_in<<"; i_uit="<<i_uit<<")"<<endl;
-        return i_uit;
+	if (i_uit >= 0 && i_uit < Npx) {
+		return i_uit; // alleen dan return (want dan 0<=i<Npx)
+	} else { // zoniet print error
+		cerr<<"T="<<tijd<<" - ERROR: o3() buffer overflow (i_in="<<i_in<<"; i_uit="<<i_uit<<")"<<endl;
+		return i_uit;
 	}
 }
 
@@ -55,20 +55,14 @@ temporal bottom profiles
 ======================================================
 */
 
-void bottom::setShape(const vec& b_in){
+void bottom::setShape(const vec& b_in) {
 	b=b_in;
 }
 
-void bottom::setSin(double amp){
+void bottom::setSin(double amp,int n) {
 	/*vullen van vector met voor de bodemverstoring geschaalde dz*/
-	for(int i=0;i<Npx;i++){
-		b[i]=amp*sin(2.0*M_PI/Npx*(i));
-	}
-}
-void bottom::setSin(double amp,int n){
-	/*vullen van vector met voor de bodemverstoring geschaalde dz*/
-	for(int i=0;i<Npx;i++){
-		b[i]=amp*sin(n*2.0*M_PI/Npx*(i));
+	for(auto i = 0; i < Npx; i++) {
+		b[i] = amp * sin(n * 2.0 * M_PI / Npx * i);
 	}
 }
 
@@ -89,74 +83,71 @@ void bottom::setRand(double amp){
 }
 #endif
 
-void bottom::setWave(int xwi, int xcin){
+void bottom::setWave(int xwi, int xcin) {
 
-	double H_wave=0.004;
-	double deltax = dx;
-	int Np=xcin-xwi;
+	double H_wave = 0.004;
+	auto deltax = dx;
+	auto Np = xcin - xwi;
 	//cerr<<Np<<endl;
-	Np=int(floor((Np+0.0001)/2.));
+	Np = int(floor((Np + 0.0001) / 2));
 	//cerr<<Np<<endl;
-	Np*=2;
+	Np *= 2;
 	//cerr<<Np<<endl;
-	double L_wave= Np*deltax;
+	double L_wave = Np * deltax;
 	//double alpha=30.; //graden
 
-	double tanalpha = sqrt(3.)/3.;
+	auto tanalpha = sqrt(3) / 3;
 	//int Npx_wave = int(round((L_wave/deltax)/2.)*2.)+1;
-	int Npx_wave = int(round(L_wave/deltax)) +1;
+	auto Npx_wave = int(round(L_wave / deltax)) + 1;
 
-	vec x_wave (Npx_wave,0.0);
+	vec x_wave (Npx_wave, 0.0);
 
-	for(int i=0;i<(Npx_wave);i++){
-			(x_wave)[i]=(round(((-1*L_wave/2.)+deltax*i)*100.))/100.;
-		}
+	for (auto i = 0; i < Npx_wave; i++) {
+		x_wave[i] = round(((-L_wave / 2) + deltax * i) * 100) / 100;
+	}
 
-	double x_trough1 = H_wave/tanalpha;
-	double x_trough = deltax * round(x_trough1/deltax); //round
-	double x_crest = -1*x_trough;
+	auto x_trough1 = H_wave / tanalpha;
+	auto x_trough = deltax * round(x_trough1 / deltax); //round
+	auto x_crest = -x_trough;
 
 	//redefine H_wave
-	double H2 = x_trough*tanalpha;
+	auto H2 = x_trough * tanalpha;
 
 	//for(int i=0;i<x_wave.size();i++)cerr<<x_wave[i]<<" "; cerr<<endl<<endl;
-	cerr<<"Npx_wave="<<Npx_wave<<endl;
+	cerr << "Npx_wave=" << Npx_wave << endl;
 	/*
 	cerr<<"xtrough="<<x_trough;
 	cerr<<"xcrest="<<x_crest;
 	cerr<<"H2="<<H2<<endl;
 	*/
 
-	outlog<<"T="<<tijd<<" -          Npx_wave: "<<Npx_wave<<endl;
+	outlog << "T=" << tijd << " -          Npx_wave: " << Npx_wave << endl;
 
 	//slope of leeside
-	double slope_lee = tanalpha;
+	auto slope_lee = tanalpha;
 	//slope of stoss side
-	double slope_stoss = H2/((L_wave/2.)-x_trough);
+	auto slope_stoss = H2 / (L_wave / 2 - x_trough);
 
 	vec wavelet1 (Npx_wave,0.0);
 
-	for(int i=0;i<(Npx_wave);i++){
+	for (auto i = 0; i < Npx_wave; i++) {
 
-		if (x_wave[i]<x_crest){
-		(wavelet1)[i]=slope_stoss*(x_wave[i]+(L_wave/2.));
-		}
-		else if(x_wave[i]>x_trough){
-		(wavelet1)[i] = slope_stoss*(x_wave[i]-(L_wave/2.));
-		}
-		else{
-			(wavelet1)[i]=-1*slope_lee*x_wave[i];
+		if (x_wave[i] < x_crest) {
+			wavelet1[i] = slope_stoss * (x_wave[i] + L_wave / 2);
+		} else if (x_wave[i] > x_trough) {
+			wavelet1[i] = slope_stoss * (x_wave[i] - L_wave / 2);
+		} else{
+			wavelet1[i] = -slope_lee * x_wave[i];
 		}
 
 		//cerr<<x_wave[i]<<" - "<<wavelet1[i]<<endl;
 
 	}
 
-	for(int i=xwi;i<xwi+Npx_wave;i++){							//xwi = beginpositie van de wave
-
-			b[o3(i)]+=wavelet1[i-xwi];
-
-}}
+	for (int i = xwi ; i < xwi + Npx_wave; i++) { //xwi = beginpositie van de wave
+			b[o3(i)] += wavelet1[i - xwi];
+	}
+}
 
 #if 0
 void bottom::setDist(double amp_dist){
@@ -198,46 +189,58 @@ void bottom::setRand(double amp,int seed){
 }
 #endif
 
-void bottom::setMidSin(double amp, double length){
+void bottom::setMidSin(double amp, double length) {
 	/*fill bottom vector with a sine in the middle
 	length of the sine is length, domain length is L*/
-	int N2=(int)(length/dx);
-	int start=(int)((Npx/2.0)-(N2/2.0));
-	for(int i=0;i<start;i++)b[i]=0.0;
-	for(int i=start;i<start+N2;i++){
-		b[i]=amp*sin(2.0*M_PI/N2*(i-start));
+
+	int N2 = (int) (length / dx);
+	int start = (int) (Npx / 2.0 -  N2 / 2.0);
+	for (auto i = 0; i < start; i++)
+		b[i] = 0.0;
+	for (auto i = start; i < start + N2; i++) {
+		b[i] = amp * sin (2.0 * M_PI / N2 * (i - start));
 	}
-	for(int i=start+N2;i<Npx;i++)b[i]=0.0;
+	for (auto i = start + N2; i < Npx; i++)
+		b[i] = 0.0;
 }
 
-void bottom::setCustom(double amp, int n){
+void bottom::setCustom(double amp, int n) {
 	/*vullen van vector met voor de bodemverstoring geschaalde dz*/
 	/*custom gemaakt op 10/02/2006*/
-	for(int i=0;i<Npx;i++){
-		b[i]=amp*sin(n*2.0*M_PI/Npx*(i));
+
+	for (auto i = 0; i < Npx; i++) {
+		b[i] = amp * sin(n * 2.0 * M_PI / Npx * i);
 	}
-	vec func(Npx,1.0);
-	double dist=6.0; double x0=1.0; double xx;
-	for(int i=0;i<Npx/2;i++) {
-		xx=i*dx;
-		if (xx>=0 && xx<=x0) {
-			func[i]=0.0; }
-		if (xx>=x0 && xx<=dist) {
-			double a=0.5/dist;
-			func[i]=a*(xx-x0);}
+	vec func(Npx, 1.0);
+	double dist = 6.0;
+	double x0 = 1.0;
+	for (auto i = 0; i < Npx / 2; i++) {
+		auto xx = i * dx;
+		if (xx >= 0 && xx <= x0) {
+			func[i] = 0.0;
+		}
+		if (xx >= x0 && xx <= dist) {
+			auto a = 0.5 / dist;
+			func[i] = a * (xx - x0);
+		}
 	}
-	for(int i=Npx/2;i<Npx;i++){
-		func[i]=func[Npx-i];
+	for (auto i = Npx / 2; i < Npx; i++) {
+		func[i] = func[Npx - i];
 	}
-	for(int i=0;i<Npx;i++){
-		b[i]*=func[i];
+	for (int i = 0; i < Npx; i++) {
+		b[i] *= func[i];
 	}
 }
 
-vec bottom::readBottomInp(const std::string& readbed){
+vec bottom::readBottomInp(const std::string& readbed) {
 	/*fill bottom vector from input file, after Sobek computation*/
-	vec inp(3,0.0);
-	double dump; int sep;	double tijd; double wd; double Lin;
+
+	vec inp(3, 0.0);
+	double dump;
+	int sep;
+	double tijd;
+	double wd;
+	double Lin;
 	ifstream in1(readbed);
 	if (!in1) {
 		std::cerr << "ERROR: Can't open bed file: " << readbed << std::endl;
@@ -249,18 +252,18 @@ vec bottom::readBottomInp(const std::string& readbed){
     // outdebug.precision(16);
 	// outdebug << tijd << " ";
 	
-	in1>>tijd; 
+	in1 >> tijd;
 	// outdebug << tijd << " ";
-    in1>>sep; 
+    in1 >> sep;
    	// outdebug << sep << " ";
-    in1>>dump;
-	in1>>dump; 
+    in1 >> dump;
+	in1 >> dump;
     // outdebug << dump << " ";
     // in1>>dump;	
 	// outdebug << dump << " ";
-    in1>>wd; 
+    in1 >> wd;
    	// outdebug << wd << " ";
-    in1>>Lin;
+    in1 >> Lin;
    	// outdebug << Lin << " ";
    	// outdebug << endl;
 	
@@ -269,20 +272,24 @@ vec bottom::readBottomInp(const std::string& readbed){
 	//wd=0.5;
 	//Lin=4.;
     	
-	cerr<<tijd<<" "<<sep<<" "<<wd<<endl;
-	for(int i=0;i<Npx;i++)in1>>b[i];
-	if (wd==0.) {
-		tijd=0.;
-		wd=H; }
-	inp[0]=tijd;
-	inp[1]=wd;
-	inp[2]=Lin;
+	cerr << tijd << " " << sep << " " << wd << endl;
+	for (auto i = 0; i < Npx; i++)
+		in1 >> b[i];
+	if (wd == 0.) {
+		tijd = 0.;
+		wd = H;
+	}
+	inp[0] = tijd;
+	inp[1] = wd;
+	inp[2] = Lin;
 
 	if (sep==1) {
-		in1>>dump;
-		for(int i=0;i<nf;i++)in1>>fsz[i];
-		in1>>dump;
-		for(int i=0;i<nf2;i++)in1>>Sr[i];
+		in1 >> dump;
+		for (auto i = 0; i < nf; i++)
+			in1 >> fsz[i];
+		in1 >> dump;
+		for (auto i = 0; i < nf2; i++)
+			in1 >> Sr[i];
 	}
 	in1.close();
 	
@@ -305,23 +312,24 @@ vec bottom::readBottomInp(const std::string& readbed){
 
 void bottom::writeBottom() const {
 	/*write bottom for restart after Sobek computation*/
-	int sepflag=fsz[nf-2];
-	int nfsz=fsz[nf-1];
+
+	auto sepflag = fsz[nf - 2];
+	auto nfsz = fsz[nf - 1];
 	ofstream bb("out_bottom.inp");
 	bb.precision(16);
-	bb<<tijd<<" "<<sepflag<<" "<<nfsz<<" "<<0<<" "<<H<<" "<<L<<" ";
+	bb << tijd << " " << sepflag << " " << nfsz << " " << 0 << " " << H << " " << L << " ";
 	for (auto v : b)
-		bb<<v<<" ";
-	bb<<endl;
-	if (sepflag==1){
-		bb<<tijd<<" ";
+		bb << v << " ";
+	bb << endl;
+	if (sepflag == 1){
+		bb << tijd << " ";
 		for (auto f : fsz)
-			bb<<f<<" ";
-		bb<<endl;
-		bb<<tijd<<" ";
+			bb << f << " ";
+		bb << endl;
+		bb << tijd << " ";
 		for (auto s : Sr)
-			bb<<s<<" ";
-		bb<<endl;
+			bb << s << " ";
+		bb << endl;
 	}
 	bb.close();
 }
@@ -343,22 +351,26 @@ fsz is filled for later use
 
 void bottom::checkFlowsep(){
 	vector<int> fsz_prev = fsz;        // previous fsz characteristics
-	for(int i=0;i<Npx;i++)x[i]=i*dx;
+	for (auto i = 0; i < Npx; i++)
+		x[i] = i * dx;
 	bp=b;                           // vector for parameterized bottom
-    vector<int> dta(2,0);
+    vector<int> dta(2, 0);
 	int sepflag; //=fsz[nf-2];
-	int sepflag1=fsz_prev[nf-2];
-	int xsi=-1;	int xri=0; int xci=0; int xti=0;
+	int sepflag1 = fsz_prev[nf - 2];
+	int xsi = -1;
+	int xri = 0;
+	int xci = 0;
+	int xti = 0;
 	//int xdi;
-	int nfsz=0;
-	int nfsz1=fsz_prev[nf-1];
-	int col=4; //xdi
+	int nfsz = 0;
+	int nfsz1 = fsz_prev[nf - 1];
+	int col = 4; //xdi
 	//int cnt=0;
-	int solve_method=0;
-	int nmerge=0;  // keeps track of # of fsz's that have merged (and removed)
-	int skipped=0; // keeps track # of skipped fsz that are too small
-	int newwave=0;  // new fsz's due to wavelet generation
-	int wavelet=0;
+	int solve_method = 0;
+	int nmerge = 0;  // keeps track of # of fsz's that have merged (and removed)
+	int skipped = 0; // keeps track # of skipped fsz that are too small
+	int newwave = 0;  // new fsz's due to wavelet generation
+	int wavelet = 0;
 	double sepcritangle1 = tan(cfg.sepcritangle);
 	int iinit = 0;
 
@@ -383,36 +395,37 @@ void bottom::checkFlowsep(){
 	cout << endl << endl << "Block II: check for flow sep" << endl << endl; //OLAV
 	
 	/* determination of bed gradients dhdx */
-	vec dhdx(Npx,0.0);
-    for(int i=0;i<Npx;i++) dhdx[i]=(b[i]-b[o2(i-1)])/(dx);
-        
+	vec dhdx(Npx, 0.0);
+	for (auto i = 0; i < Npx; i++)
+		dhdx[i] = (b[i] - b[o2(i - 1)]) / dx;
+
 	/* als het begin van het domein in de vorige tijdstap een fsz was
 	 * dan moet dit gedeelte overgeslagen worden; anders wordt er een
 	 * fsz op de lij-zijde van het duin gevonden */
-	if (sepflag1==1){ //Olav: opens if (sepflag1==1) check if start was fsz
-			
-		int xsi_prev=fsz_prev[(nfsz1-1)*7+0];
-		int xri_prev=fsz_prev[(nfsz1-1)*7+1];
-		int xdi_prev=fsz_prev[(nfsz1-1)*7+4];
-		if (xdi_prev>=xsi_prev && xri_prev<xsi_prev){ //Olav: opens if (xdi_prev>=xsi_prev && xri_prev<xsi_prev) "checkFlowsep: case 0"
-			cerr<<"checkFlowsep: case 0"<<endl;
-	 		iinit=xri_prev;
+	if (sepflag1 == 1) { //Olav: opens if (sepflag1==1) check if start was fsz
+
+		auto xsi_prev = fsz_prev[(nfsz1 - 1) * 7 + 0];
+		auto xri_prev = fsz_prev[(nfsz1 - 1) * 7 + 1];
+		auto xdi_prev = fsz_prev[(nfsz1 - 1) * 7 + 4];
+		if (xdi_prev >= xsi_prev && xri_prev < xsi_prev){ //Olav: opens if (xdi_prev>=xsi_prev && xri_prev<xsi_prev) "checkFlowsep: case 0"
+			cerr << "checkFlowsep: case 0" << endl;
+	 		iinit = xri_prev;
 			/* iinit kan ook binnen een statische fsz vallen
 			 * die aan het begin van het domein zit: dan moet iinit
 			 * 1 fsz opschuiven naar downstream */ //OLAV 02-21-2010 added */
-			int xsi_prev_next=fsz_prev[0];
-			int xri_prev_next=fsz_prev[1];
-			int xdi_prev_next=fsz_prev[4];
-			if (iinit>=xsi_prev_next && iinit<=xri_prev_next){ //OLAV: opens
-				iinit=xdi_prev_next;
-				cerr<<"iinit reset since iinit is in between a static fsz"<<endl;
-                } // closes if (iinit>=xsi_prev_next && iinit<=xri_prev_next)
-				cerr<<"iinit set to: "<<iinit<<endl;
-	 		} // closes if (xdi_prev>=xsi_prev && xri_prev<xsi_prev)
+			auto xsi_prev_next = fsz_prev[0];
+			auto xri_prev_next = fsz_prev[1];
+			auto xdi_prev_next = fsz_prev[4];
+			if (iinit >= xsi_prev_next && iinit <= xri_prev_next) { //OLAV: opens
+				iinit = xdi_prev_next;
+				cerr << "iinit reset since iinit is in between a static fsz" << endl;
+			} // closes if (iinit>=xsi_prev_next && iinit<=xri_prev_next)
+			cerr << "iinit set to: " << iinit << endl;
+		} // closes if (xdi_prev>=xsi_prev && xri_prev<xsi_prev)
 	} // closes if (sepflag1==1)
 
 	/* here starts the loop over the complete bed, two cases, see block description */
-	for(int i=iinit;i<Npx;i++){
+	for (auto i = iinit; i < Npx; i++) {
 
 		/* case 1: fsz op dezelfde locatie als in de vorige tijdstap */
 		
@@ -421,8 +434,8 @@ void bottom::checkFlowsep(){
 		//Above Correct? Seems to point to xdi, should be xsi. 
 		//if (i==fsz_prev[(nfsz1-1)*7+0] && fsz_prev[nf-2]==1){ //now points to xsi
 		//Above correct? 
-		if (i==fsz_prev[col] && fsz_prev[nf-2]==1){ 
-			sepflag=1;
+		if (i == fsz_prev[col] && fsz_prev[nf - 2] == 1) {
+			sepflag = 1;
 			nfsz++;
 			
 			//OLAV 2014 01 09 
@@ -432,156 +445,176 @@ void bottom::checkFlowsep(){
 			//Above correct? 
 			
 			xsi = fsz_prev[col];
-			col+=7;
+			col += 7;
 			//col=col+skipped*7;
 			
 			cerr << nfsz << " " << xsi << " " << col << " " << nfsz1 << endl;
 			
-			cerr<<"checkFlowsep case 1 met i_in: "<<i<<endl;
-			cerr<<"checkFlowsep case 1 met xsi_in: "<<xsi<<" - nfsz_in: "<<nfsz<< " - wavelet_in: " << wavelet<<endl;
+			cerr << "checkFlowsep case 1 met i_in: " << i << endl;
+			cerr << "checkFlowsep case 1 met xsi_in: " << xsi << " - nfsz_in: " << nfsz << " - wavelet_in: " << wavelet << endl;
 			
-			dta=setFSZ(xsi,nfsz,wavelet);  // het zetten van sepzone karakteristieken
-			i=dta[0];
+			dta = setFSZ(xsi, nfsz, wavelet);  // het zetten van sepzone karakteristieken
+			i = dta[0];
 
-			cerr<<"checkFlowsep case 1 met xsi: "<<xsi<<" - xri(temp): "<<i<<endl;
+			cerr << "checkFlowsep case 1 met xsi: " << xsi << " - xri(temp): " << i << endl;
 
-			if (i!=-1) { // else fsz too small
+			if (i != -1) { // else fsz too small
 
-				fsz[(nfsz-1)*7+6]=1;  // identifier case 1
-				xri=fsz[(nfsz-1)*7+1];
+				fsz[(nfsz - 1) * 7 + 6] = 1;  // identifier case 1
+				xri = fsz[(nfsz - 1) * 7 + 1];
 				//cerr<<"   xri: "<<xri<<" (i: "<<i<<")"<<" col: "<<(col-4)/7<<endl;
 
 				// following is used to force to use SOLVE as flow routine
 				// if position of xri changes abruptly
-				int xsip=fsz_prev[(nfsz+nmerge-1+skipped-newwave)*7+0];
-				int xrip=fsz_prev[(nfsz+nmerge-1+skipped-newwave)*7+1];
-				int xsin=xsi;
-				int xrin=o3(xri);
-				if (xsin>xrin && xsip<xrip) {xrin+=Npx;}
-				int xri_dif=xrin-xrip;
-				if (xri_dif>3) {
+				auto xsip = fsz_prev[(nfsz + nmerge - 1 + skipped - newwave) * 7 + 0];
+				auto xrip = fsz_prev[(nfsz + nmerge - 1 + skipped - newwave) * 7 + 1];
+				auto xsin = xsi;
+				auto xrin = o3(xri);
+				if (xsin > xrin && xsip < xrip) {
+					xrin += Npx;
+				}
+				auto xri_dif = xrin - xrip;
+				if (xri_dif > 3) {
 					solve_method++;
-					cerr<<"   WARNING: [j="<<nfsz<<"] solve_method set to "<<solve_method<<" (xri_dif="<<xri_dif<<")"<<endl;
-					outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] solve_method set to "<<solve_method<<" (xri_dif="<<xri_dif<<")"<<endl;
+					cerr << "   WARNING: [j=" << nfsz << "] solve_method set to " << solve_method << " (xri_dif=" << xri_dif << ")" << endl;
+					outlog << "T=" << tijd << " - WARNING: [j=" << nfsz << "] solve_method set to " << solve_method << " (xri_dif=" << xri_dif << ")" << endl;
 					//cerr<<"   Parameters for xri_dif: "<<xsip<<" "<<xrip<<" "<<xsin<<" "<<xrin<<endl;
 				}
 
 				/* check for fszs merge */
 				int merge=0; // initieer merge op 0: default geen merging
 				int mfsz;
-				if (nfsz1>1) {
+				if (nfsz1 > 1) {
 
-					int kk; int col2=col-4;
+					int kk;
+					int col2 = col-4;
 
 					//cerr<<col2/7<<" "<<nfsz1<<endl;
 
-					if (col2/7==nfsz1) {
-							//cerr<<"ik kom hier A"<<endl;
-							col2=0;} // dan domein gehad
+					if (col2 / 7 == nfsz1) {
+						//cerr<<"ik kom hier A"<<endl;
+						col2 = 0;
+					} // dan domein gehad
 
 					/* het checken werkt het beste door in upstream richting te checken
-				   er kunnen namelijk meerdere fsz's overlappen */
-					for (int k=col2/7-2;k>=(col2/7-1)-(nfsz1-1);k--) {
-						kk=k;
-						if (kk<0) {
-								//cerr<<"ik kom hier B"<<endl;
-								kk+=nfsz1;}
-						int xsi1=fsz_prev[kk*7+0];
-						int xri1=fsz_prev[kk*7+1];
-						if (xsi1>xri1) xri1+=Npx;
+					   er kunnen namelijk meerdere fsz's overlappen */
+					for (auto k = col2 / 7 - 2; k >= (col2 / 7 - 1) - (nfsz1 - 1); k--) {
+						kk = k;
+						if (kk < 0) {
+							//cerr<<"ik kom hier B"<<endl;
+							kk += nfsz1;
+						}
+						int xsi1 = fsz_prev[kk * 7 + 0];
+						int xri1 = fsz_prev[kk * 7 + 1];
+						if (xsi1 > xri1)
+							xri1+=Npx;
 						//cerr<<"kk :"<<kk<<" - xri: "<<xri<<" - xsi1: "<<xsi1<<" - xri1: "<<xri1<<endl;
 						/* valt xri tussen downstream xsi en xri?  (gelijk->dan merge) */
 						//if (xri>xsi1 && xri<xri1) {
 						//op 16/04/2007 vervangen door:
 						// maar op 26/04/2007 weer teruggezet!
-						if (xri>xsi1 && xri<xri1) {
+						if (xri > xsi1 && xri < xri1) {
 							//cerr<<"ik kom hier C"<<endl;
-							xri=xri1; merge=1;
+							xri = xri1;
+							merge=1;
 							/* checken of ie ook niet tussen een volgende fsz zit */
-							while (xri>=fsz_prev[(kk+1)*7+0] && xri<=fsz_prev[(kk+1)*7+1]) {
-								xri=fsz_prev[(kk+1)*7+1];
+							while (xri >= fsz_prev[(kk + 1) * 7 + 0] && xri <= fsz_prev[(kk + 1) * 7 + 1]) {
+								xri = fsz_prev[(kk + 1) * 7 + 1];
 								kk++;
 								break;
 							}
 							//cerr<<"kk: "<<kk<<endl;
 							//cerr<<"nfsz: "<<nfsz<<endl;
 							//cerr<<"nfsz1: "<<nfsz1<<endl;
-							mfsz=nfsz;
+							mfsz = nfsz;
 							//kk-=skipped;
-							if (kk<(nfsz-newwave)) {
-									//cerr<<"ik kom hier D"<<endl;
-									mfsz-=nfsz1; i=Npx;}
-							else {
-									//cerr<<"ik kom hier E"<<endl;
-									i=xri;}
+							if (kk < nfsz - newwave) {
+								//cerr<<"ik kom hier D"<<endl;
+								mfsz -= nfsz1;
+								i = Npx;
+							} else {
+								//cerr<<"ik kom hier E"<<endl;
+								i = xri;}
 							//i=xri;
 							//write_flowsep();
-							cerr<<"   WARNING: [j="<<nfsz<<"] overlapping fsz's: "<<nfsz<<" -> ("<<mfsz+1<<"-"<<kk+1<<")"<<"; i set to: "<<i<<"; col: "<<(col-4)/7<<endl;
-							outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] overlapping fsz's: "<<nfsz<<" -> ("<<mfsz+1<<"-"<<kk+1<<")"<<"; i set to: "<<i<<"; col: "<<(col-4)/7<<endl;
+							cerr << "   WARNING: [j=" << nfsz << "] overlapping fsz's: " << nfsz << " -> (" << mfsz+1 << "-" << kk+1 << ")" << "; i set to: " << i << "; col: " << (col - 4) / 7 << endl;
+							outlog << "T=" << tijd << " - WARNING: [j=" << nfsz << "] overlapping fsz's: " << nfsz << " -> ("<< mfsz+1 << "-" << kk+1 << ")" << "; i set to: " << i << "; col: " << (col-4)/7 << endl;
 				 			break;
-				 		}
-						else if (xri>=xsi1 && xri<xri1){ // xri==xsi
+				 		} else if (xri >= xsi1 && xri < xri1){ // xri==xsi
 							//cerr<<"ik kom hier F"<<endl;
-							i--;}
+							i--;
+				 		}
 					} // for
 
 					/* bij het onderstaande overlappen 2 FSZ's
 					 * de static FSZ moet dan ook nog blijven "bestaan", zonder te migreren */
-					if (merge==1) {
+					if (merge == 1) {
 						//int mm;
-						for (int mm=mfsz+nmerge-newwave+skipped;mm<=kk;mm++) {
-							cerr<<"mm: "<<mm<<endl;
-							cerr<<"mfsz: "<<mfsz<<endl;
- 							int cnum=4; // case number
-							if (fsz_prev[mm*7+6]==5) cnum=5;
-							int mmfsz=mfsz-skipped;
-							if (nfsz>mfsz) mmfsz-=newwave;
-							fsz[mmfsz*7+6]=cnum;
-							for (int j=0;j<6;j++){
-								fsz[mmfsz*7+j]=fsz_prev[mm*7+j];
-								Sr[mmfsz]=Sr[mm];
+						for (auto mm = mfsz + nmerge - newwave + skipped; mm <= kk; mm++) {
+							cerr << "mm: " << mm << endl;
+							cerr << "mfsz: " << mfsz << endl;
+ 							int cnum = 4; // case number
+							if (fsz_prev[mm * 7 + 6] == 5)
+								cnum = 5;
+							int mmfsz = mfsz - skipped;
+							if (nfsz > mfsz)
+								mmfsz -= newwave;
+							fsz[mmfsz * 7 + 6] = cnum;
+							for (auto j = 0;j < 6; j++){
+								fsz[mmfsz * 7 + j] = fsz_prev[mm * 7 + j];
+								Sr[mmfsz] = Sr[mm];
 							}
 							//cerr<<"ik kom hier.."<<endl;
-							mfsz++; col+=7;
-							if (i!=Npx) {nfsz++;} // anders hebben we domein al gehad
+							mfsz++;
+							col += 7;
+							if (i != Npx) {
+								nfsz++; // anders hebben we domein al gehad
+							}
 							//cerr<<mfsz<<": xri: "<<fsz[(mfsz-1)*7+1]<<" (i: "<<i<<")"<<" col: "<<(col-4)/7<<endl;
 						}
 					} // if (merge==1)
 
 					/* bij het onderstaande mergen 2 FSZ's
 					 * de mergende moet dan ook verwijderd worden */
-					else if (merge==0 && fsz_prev[(col2/7+0)*7+6]>=4) {
+					else if (merge == 0 && fsz_prev[(col2 / 7 + 0) * 7 + 6] >= 4) {
 						//cerr<<"ik kom hier - 1"<<endl;
 						//cerr<<"col: "<<(col-4)/7<<endl;
 						//int xsii=fsz[(col2/7-1)*7+0];
 						//int xrii=fsz[(col2/7-1)*7+1];
-						int xsii=xsi;
-						int xrii=xri;
-						if (xrii<xsii) xrii+=Npx;
-						int xsi1=fsz_prev[(col2/7+0)*7+0];
-						int xri1=fsz_prev[(col2/7+0)*7+1];
-						if (xri1<xsii) xri1+=Npx;
-						if (xsi1<xsii) xsi1+=Npx;
+						auto xsii=xsi;
+						auto xrii=xri;
+						if (xrii<xsii)
+							xrii += Npx;
+						auto xsi1 = fsz_prev[(col2 / 7 + 0) * 7 + 0];
+						auto xri1 = fsz_prev[(col2 / 7  +0) * 7 + 1];
+						if (xri1 < xsii)
+							xri1 += Npx;
+						if (xsi1 < xsii)
+							xsi1 += Npx;
 						//cerr<<col2/7-1<<endl;
 						//cerr<<"xsii: "<<xsii<<"; xrii: "<<xrii<<"xsi1: "<<xsi1<<"; xri1: "<<xri1<<endl;
 						// for case = 5 moet ie er wel tussenin liggen
-						if (fsz_prev[(col2/7+0)*7+6]==5 && (xsii<xsi1 && xrii>=xri1)) {
+						if (fsz_prev[(col2 / 7 + 0) * 7 + 6] == 5 && (xsii < xsi1 && xrii >= xri1)) {
 							//cerr<<"ik kom hier - 2"<<endl;
-							col+=7; col2+=7;
+							col += 7;
+							col2 += 7;
 							nmerge++;
-							while (xrii<xri1) {
+							while (xrii < xri1) {
 								//cerr<<"ik kom hier - 3"<<endl;
 								nmerge++;
-								col+=7; col2+=7;
-								xri1=fsz_prev[(col2/7+0)*7+1];
-								if (xri1<xsii) xri1+=Npx;
-								if (col2/7>=nfsz1) col2=0-nfsz*7; // dan domein gehad
+								col += 7;
+								col2 += 7;
+								xri1 = fsz_prev[(col2 / 7 + 0) * 7 + 1];
+								if (xri1 < xsii)
+									xri1 += Npx;
+								if (col2 / 7 >= nfsz1)
+									col2 = 0 - nfsz * 7; // dan domein gehad
 							}
-							cerr<<"   WARNING: static fsz's ("<<nfsz+1<<"-"<<col2/7<<") merge with fsz ("<<nfsz<<") (no need for removal, goes automatically)"<<endl;
-							outlog<<"T="<<tijd<<" - WARNING: static fsz's ("<<nfsz+1<<"-"<<col2/7<<") merge with fsz ("<<nfsz<<") (no need for removal, goes automatically)"<<endl;
+							cerr << "   WARNING: static fsz's (" << nfsz+1 << "-" << col2/7 << ") merge with fsz (" << nfsz << ") (no need for removal, goes automatically)" << endl;
+							outlog << "T=" << tijd << " - WARNING: static fsz's (" << nfsz+1 << "-" << col2/7 << ") merge with fsz (" << nfsz << ") (no need for removal, goes automatically)" << endl;
 							solve_method++;
-							cerr<<"   WARNING: solve_method set to "<<solve_method<<endl;
-							outlog<<"T="<<tijd<<" - WARNING: solve_method set to "<<solve_method<<endl;
+							cerr << "   WARNING: solve_method set to " << solve_method << endl;
+							outlog << "T=" << tijd << " - WARNING: solve_method set to " << solve_method << endl;
 							/* Als het goed is wordt hier doorgelinkt naar "check for abandonned fsz's */
 						} // if (merge==1)
 						//else: do nothing
@@ -593,165 +626,177 @@ void bottom::checkFlowsep(){
 			} // (i!=-1)
 			// if fsz too small to account for
 			else {
-				i=findTrough(xsi,filter(3,bp));
-				if (i<xsi) i=Npx;
+				i = findTrough(xsi, filter(3, bp));
+				if (i < xsi)
+					i=Npx;
 				nfsz--;
 				skipped++;
-				cerr<<"   WARNING: fsz too small: (xsi="<<xsi<<", i set to "<<i<<")"<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: fsz too small: i set to "<<i<<endl;
+				cerr << "   WARNING: fsz too small: (xsi=" << xsi << ", i set to " << i << ")" << endl;
+				outlog << "T=" << tijd << " - WARNING: fsz too small: i set to " << i << endl;
 			} // else
 		} //end case 1
 
-		else if(dhdx[i]<sepcritangle1){
+		else if (dhdx[i] < sepcritangle1) {
 
 		/* case 2: fsz omdat dhdx < sepcritangle */
 
-			sepflag=1;
+			sepflag = 1;
 			nfsz++;
-			xsi = i-1;
+			xsi = i - 1;
 
-			cerr<<"checkFlowsep case 2 met xsi: "<<xsi<<endl;
+			cerr << "checkFlowsep case 2 met xsi: " << xsi << endl;
 
-			if (dhdx[o2(xsi+1)]<-0.50) { //dan wavelet
+			if (dhdx[o2(xsi + 1)] < -0.50) { //dan wavelet
 				// dit stuk: initieel steil (dus opgelegde bodem)
-				wavelet=1;
-				cerr<<"ik kom hier"<<endl;
-				cerr<<"xsi: "<<xsi<<endl;
-				cerr<<"nfsz: "<<nfsz<<endl;
-				cerr<<dhdx[o2(xsi)]<<" "<<dhdx[o2(xsi+1)]<<" "<<dhdx[o2(xsi+2)]<<endl;
-				dta=setFSZ(o2(xsi),nfsz,wavelet);
-				i=dta[0];
-				nfsz=dta[1];
-				xri=i;
+				wavelet = 1;
+				cerr << "ik kom hier" << endl;
+				cerr << "xsi: " << xsi << endl;
+				cerr << "nfsz: " << nfsz << endl;
+				cerr << dhdx[o2(xsi)] << " " << dhdx[o2(xsi + 1)] << " " << dhdx[o2(xsi + 2)] << endl;
+				dta = setFSZ(o2(xsi), nfsz, wavelet);
+				i = dta[0];
+				nfsz = dta[1];
+				xri = i;
 				newwave++;
-				if (newwave>2) {
+				if (newwave > 2) {
 						break;
 						//return 0;
 				}
 				solve_method++;
-				cerr<<"   WARNING: [j="<<nfsz<<"] fsz behind a newly formed wavelet (newwave="<<newwave<<" & solve_method="<<solve_method<<")"<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] fsz behind a newly formed wavelet (newwave="<<newwave<<" & solve_method="<<solve_method<<")"<<endl;
+				cerr << "   WARNING: [j=" << nfsz << "] fsz behind a newly formed wavelet (newwave=" << newwave << " & solve_method=" << solve_method << ")" << endl;
+				outlog << "T=" << tijd << " - WARNING: [j=" << nfsz << "] fsz behind a newly formed wavelet (newwave=" << newwave << " & solve_method=" << solve_method << ")" << endl;
 				//dit stuk: initieel steil
-				cerr<<"nfsz: "<<nfsz<<endl;
-				cerr<<"i: "<<i<<endl;
+				cerr << "nfsz: " << nfsz << endl;
+				cerr << "i: " << i << endl;
 				//write_flowsep();
-				wavelet=0;
-			}
-			else {
-			// dit stuk: development
-			xci=findCrest(o2(xsi),filter(1,b));
-			xti=findTrough(xsi,filter(3,b));
-			// check if fsz needs to be skipped
-			// reattachment point of small dune on lee, so double flow sep point found
-			cerr<<"ik kom hierrr"<<endl;
-			int skip=0;
-			int xsii=xsi+1;
-			int xcii=o2(xci-1);
-			if (xsi==-1) xsii=Npx-1;
-			for(int j=0;j<nfsz1;j++){
-				int xdip=fsz_prev[j*7+4];
-				//int xsip=fsz_prev[j*7+0];
-				//int xrip=fsz_prev[j*7+1];
-				cerr<<"j: "<<j+1<<" - xdip: "<<xdip<<" - xsii: "<<xsii<<" - xci: "<<xci<<endl;
-				if (xdip==xsii || xdip==xcii) {
-					cerr<<endl<<endl<<endl<<endl<<endl<<"         ------ PUNT WAAR HET MIS GING!! -------"<<endl<<endl<<endl<<endl<<endl;
-					cerr<<"   WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
-					cerr<<"j: "<<j+1<<" - xdip: "<<xdip<<" - xsii: "<<xsii<<" - xcii: "<<xcii<<endl;
-					outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
-					skip=1;
+				wavelet = 0;
+			} else {
+				// dit stuk: development
+				xci = findCrest(o2(xsi), filter(1, b));
+				xti = findTrough(xsi, filter(3, b));
+				// check if fsz needs to be skipped
+				// reattachment point of small dune on lee, so double flow sep point found
+				cerr << "ik kom hierrr" << endl;
+				int skip = 0;
+				auto xsii = xsi + 1;
+				auto xcii = o2(xci - 1);
+				if (xsi == -1)
+					xsii = Npx - 1;
+				for(auto j = 0; j < nfsz1; j++) {
+					auto xdip=fsz_prev[j*7+4];
+					//int xsip=fsz_prev[j*7+0];
+					//int xrip=fsz_prev[j*7+1];
+					cerr << "j: " << j + 1 << " - xdip: " << xdip << " - xsii: " << xsii << " - xci: " << xci << endl;
+					if (xdip == xsii || xdip == xcii) {
+						cerr << endl << endl << endl << endl << endl
+								<< "         ------ PUNT WAAR HET MIS GING!! -------"
+								<< endl << endl << endl << endl << endl;
+						cerr << "   WARNING: [j=" << nfsz << "] sep point is equal to previous, and has to be skipped" << endl;
+						cerr << "j: " << j + 1 << " - xdip: " << xdip << " - xsii: " << xsii << " - xcii: " << xcii<< endl;
+						outlog << "T=" << tijd << " - WARNING: [j=" << nfsz << "] sep point is equal to previous, and has to be skipped" << endl;
+						skip = 1;
+					}
 				}
-			}
-			xsi=xci;
-			if ((nfsz>1 && xsi==fsz[(nfsz-2)*7+2]) || skip==1){
-				//than sep point is equal to previous, and has to be skipped
-				cerr<<"   WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
-				nfsz--;
-			}
-			else {
-				xri=xti;
-				cerr<<"   WARNING: [j="<<nfsz<<"] xri set to xti since first time flowsep case 2"<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] xri set to xti since first time flowsep case 2"<<endl;
-				fsz[(nfsz-1)*7+2]=xci;
-				fsz[(nfsz-1)*7+3]=xti;
-				fsz[(nfsz-1)*7+0]=xsi;
-				fsz[(nfsz-1)*7+1]=xri;
-				fsz[(nfsz-1)*7+6]=2;
+				xsi = xci;
+				if ((nfsz > 1 && xsi == fsz[(nfsz - 2 ) * 7 + 2]) || skip==1) {
+					//than sep point is equal to previous, and has to be skipped
+					cerr << "   WARNING: [j=" << nfsz << "] sep point is equal to previous, and has to be skipped" << endl;
+					outlog << "T=" << tijd << " - WARNING: [j=" << nfsz << "] sep point is equal to previous, and has to be skipped" << endl;
+					nfsz--;
+				} else {
+					xri=xti;
+					cerr << "   WARNING: [j=" << nfsz << "] xri set to xti since first time flowsep case 2" << endl;
+					outlog << "T=" << tijd << " - WARNING: [j=" << nfsz << "] xri set to xti since first time flowsep case 2" << endl;
+					fsz[(nfsz - 1) * 7 + 2] = xci;
+					fsz[(nfsz - 1) * 7 + 3] = xti;
+					fsz[(nfsz - 1) * 7 + 0] = xsi;
+					fsz[(nfsz - 1) * 7 + 1] = xri;
+					fsz[(nfsz - 1) * 7 + 6] = 2;
 
-				if (xti>i) i=xti;
-				else if (xti<i) i=Npx;
+					if (xti > i)
+						i = xti;
+					else if (xti < i)
+						i = Npx;
 
-				cerr<<"   xri: "<<xri<<" (i: "<<i<<")"<<endl;
-			}
+					cerr << "   xri: " << xri << " (i: " << i << ")" << endl;
+				}
 			}
 		} // end case 2
 
 	}  // end for loop over bottom points
 
-    /* xdi gaat niet goed: NB wat was dit ook al weer?
+	/* xdi gaat niet goed: NB wat was dit ook al weer?
 	 * volgens mij komen we hier niet meer.
 	 * checken door weg te schrijven naar het log-bestand */
-	if (fsz_prev[col]==0 && fsz_prev[col-4]>0){ //Olav: opens if (fsz_prev[col]==0 && fsz_prev[col-4]>0)
-			cerr<<"   WARNING: checkFlowsep: case 1 extra"<<endl;
-			outlog<<"T="<<tijd<<" - WARNING: checkFlowsep: case 1 extra"<<endl;
-    	    sepflag=1;
-			nfsz++;
-			xsi = fsz_prev[col];
-			col+=7;
-			dta=setFSZ(xsi,nfsz,wavelet);
-			nfsz=dta[1];
-			fsz[(nfsz-1)*7+6]=3;
+	if (fsz_prev[col] == 0 && fsz_prev[col - 4] > 0) { //Olav: opens if (fsz_prev[col]==0 && fsz_prev[col-4]>0)
+		cerr << "   WARNING: checkFlowsep: case 1 extra" << endl;
+		outlog << "T=" << tijd << " - WARNING: checkFlowsep: case 1 extra" << endl;
+		sepflag = 1;
+		nfsz++;
+		xsi = fsz_prev[col];
+		col += 7;
+		dta = setFSZ(xsi, nfsz, wavelet);
+		nfsz = dta[1];
+		fsz[(nfsz - 1) * 7 + 6] = 3;
 	} //Olav: closes if (fsz_prev[col]==0 && fsz_prev[col-4]>0)
 
 	/* check for merged fsz's at the beginning of *fsz that have to be removed from array */
-	int c1=fsz[6];
-	int c2=fsz_prev[6];
-	if (c1==4 || c2==5) {
-		int xsi1=fsz[0];
-		int xri1=fsz[1]; if(xsi1>xri1){xsi1-=Npx;}
-		int xsi2=fsz[(nfsz-1)*7+0];
-		int xri2=fsz[(nfsz-1)*7+1]; if(xsi2>xri2){xsi2-=Npx;}
+	auto c1 = fsz[6];
+	auto c2 = fsz_prev[6];
+	if (c1 == 4 || c2 == 5) {
+		auto xsi1 = fsz[0];
+		auto xri1 = fsz[1];
+		if (xsi1 > xri1)
+			xsi1 -= Npx;
+		auto xsi2 = fsz[(nfsz - 1) * 7 + 0];
+		auto xri2 = fsz[(nfsz - 1) * 7 + 1];
+		if (xsi2 > xri2)
+			xsi2 -= Npx;
 		//cerr<<"xsi1 "<<xsi1<<"; xri1: "<<xri1<<"xsi2: "<<xsi2<<"; xri2: "<<xri2<<endl;
-		if (xri2>=xri1 && xsi2<=xsi1) {
-			cerr<<"   WARNING: static flow separation zone is merged and removed from array"<<endl;
-			outlog<<"T="<<tijd<<" - WARNING: static flow separation zone is merged and removed from array"<<endl;
-			for (int i=0;i<7;i++){
-				fsz[i]=fsz[(nfsz-1)*7+i];
-				Sr[0]=Sr[(nfsz-1)];
+		if (xri2 >= xri1 && xsi2 <= xsi1) {
+			cerr << "   WARNING: static flow separation zone is merged and removed from array" << endl;
+			outlog << "T=" << tijd << " - WARNING: static flow separation zone is merged and removed from array" << endl;
+			for (auto i = 0; i < 7; i++) {
+				fsz[i] = fsz[(nfsz - 1) * 7 + i];
+				Sr[0] =Sr[(nfsz - 1)];
 			}
-		nfsz--;
+			nfsz--;
 		}
 	} //Olav: closes if (c1==4 || c2==5) 
 
-	if(nfsz==0)sepflag=0;
+	if (nfsz == 0)
+		sepflag = 0;
 
 	/* store some parameters in *fsz array */
-	fsz[nf-3]=solve_method;
-	fsz[nf-2]=sepflag;
-	fsz[nf-1]=nfsz;
+	fsz[nf - 3]=solve_method;
+	fsz[nf - 2]=sepflag;
+	fsz[nf - 1]=nfsz;
 
 	/* set old fszï¿½s to zero in array fsz */
-	for(int i=nfsz*7;i<nf-3;i++){
-		fsz[i]=0;
+	for (auto i = nfsz*7; i < nf - 3; i++) {
+		fsz[i] = 0;
 	}
 
 	/* initialize rounding errors to zero */
-	for(int i=nfsz;i<nf2;i++){
-		Sr[i]=0;
+	for(auto i = nfsz; i < nf2; i++) {
+		Sr[i] = 0;
 	}
 
 	/* write separation zone characteristics to screen */
-	if (sepflag==1) write_flowsep();
+	if (sepflag == 1)
+		write_flowsep();
 
 	/* max of bed and param bed: is bedflow in main */
-	for(int i=0;i<Npx;i++) {
-		bp[i]=max(bp[i],b[i]);}
+	for (auto i = 0; i < Npx; i++) {
+		bp[i] = max(bp[i], b[i]);
+	}
 
 	/* smooth bed to avoid strong bed gradients at separation and reattachment */
 	smooth_param(5,1); // smooth at xsi
 	smooth_param(5,2); // smooth at xri
 
-	if (sepflag==0) cerr<<"Minimum dhdx: "<<atan(minval(dhdx,Npx))*grad_2_deg<<" degrees"<<endl;
+	if (sepflag == 0)
+		cerr << "Minimum dhdx: " << atan(minval(dhdx, Npx)) * grad_2_deg << " degrees" << endl;
 } 
 
 /*
@@ -769,10 +814,9 @@ Contains functions:
 
 vector<int> bottom::setFSZ(int xsi, int nfsz, int wavelet __attribute__((unused))){
 
-  vector<int> dta(2,0);
-	int xri=0; int xci=0;	int xti=0;
-	xti=findTrough(xsi,filter(3,bp));
-	xci=findCrest(xsi,filter(1,bp));
+	vector<int> dta(2, 0);
+	auto xti = findTrough(xsi, filter(3, bp));
+	auto xci = findCrest(xsi, filter(1, bp));
 
 	/*
 	int tel=0;
@@ -790,7 +834,7 @@ vector<int> bottom::setFSZ(int xsi, int nfsz, int wavelet __attribute__((unused)
 		cerr<<"param sepline reset"<<endl;}
 	*/
 
-	xri=paramSepline(xsi,xti,xci,nfsz);
+	auto xri = paramSepline(xsi, xti, xci, nfsz);
 
 	/*
 	if (xri-xsi<=1) {
@@ -804,23 +848,24 @@ vector<int> bottom::setFSZ(int xsi, int nfsz, int wavelet __attribute__((unused)
 	}
 	*/
 
-	int m=xsi;
+	auto m = xsi;
 
-	int xrin=xri;
-	if (xri!=-1 && xrin<xsi) xrin+=Npx; // periodic bcs
-	if (xrin==-1 || xrin-xsi<=1){
+	auto xrin = xri;
+	if (xri != -1 && xrin < xsi)
+		xrin += Npx; // periodic bcs
+	if (xrin == -1 || xrin - xsi <=1 ) {
 		// xri -1 from paramSepline | too small FSZ: then neglect
-		cerr<<"   WARNING: [j="<<nfsz<<"] xri set to -1 in paramSepline(...), since FSZ too small"<<endl;
-		cerr<<"xsi: "<<xsi<<"; xri: "<<xri<<endl;
-		outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] xri set to -1 in paramSepline(...), since FSZ too small"<<endl;
+		cerr << "   WARNING: [j=" << nfsz << "] xri set to -1 in paramSepline(...), since FSZ too small" << endl;
+		cerr << "xsi: " << xsi << "; xri: " << xri << endl;
+		outlog << "T=" << tijd << " - WARNING: [j=" << nfsz << "] xri set to -1 in paramSepline(...), since FSZ too small" << endl;
 		nfsz--;
-		dta[0]=-1; dta[1]=nfsz;
-	}
-	else {
-		fsz[(nfsz-1)*7+0]=xsi;
-		fsz[(nfsz-1)*7+1]=xri;
-		fsz[(nfsz-1)*7+2]=xci;
-		fsz[(nfsz-1)*7+3]=xti;
+		dta[0] = -1;
+		dta[1] = nfsz;
+	} else {
+		fsz[(nfsz - 1) * 7 + 0] = xsi;
+		fsz[(nfsz - 1) * 7 + 1] = xri;
+		fsz[(nfsz - 1) * 7 + 2] = xci;
+		fsz[(nfsz - 1) * 7 + 3] = xti;
 		/*
 		cerr<<"xsi: "<<xsi<<"; xri: "<<xri<<endl;
 		cerr<<"alpha at xsi-1: "<<atan(dhdx[o2(xsi-1)])*grad_2_deg<<endl;
@@ -828,25 +873,25 @@ vector<int> bottom::setFSZ(int xsi, int nfsz, int wavelet __attribute__((unused)
 		cerr<<"alpha at xsi+1: "<<atan(dhdx[o2(xsi+1)])*grad_2_deg<<endl;
 		*/
 		//if ( ( xri<xsi | xti<xsi ) && wavelet==0 ){  // dan domein gehad!
-		if ( xri<xsi ) {
-			cerr<<"ik kom hierr"<<endl;
-			m=Npx;}
-		else
-			{m=xri;}
-
+		if (xri < xsi ) {
+			cerr << "ik kom hierr" << endl;
+			m = Npx;
+		} else {
+			m = xri;
+		}
 		dta[0]=m;
 	} // if (xri==-1)
 
 	//cerr<<"m: "<<m<<endl;
 	//cerr<<"xri: "<<xri<<endl;
-	dta[1]=nfsz;
+	dta[1] = nfsz;
 	return dta;
 }
 
 /* reimplemenation of this function after
  * 10/04/2007
  */
-int bottom::paramSepline(int xsi, int xti, int xci __attribute__((unused)), int nfsz){
+int bottom::paramSepline(int xsi, int xti, int xci __attribute__((unused)), int nfsz) {
 	/* bepaling separating streamline
 	 * shape of the separation streamline as determined from the data-set,
 	 * described in Paarlberg et al. 2007 submitted WRR
@@ -858,139 +903,143 @@ int bottom::paramSepline(int xsi, int xti, int xci __attribute__((unused)), int 
 	 */
 
 	// determination of tan alpha_s & xsi
-	vec dhdx(Npx,0.0);
-  for(int i=0;i<Npx;i++){
-   	dhdx[i]  = ( b[i] - b[o2(i-1)] )/(dx);
-  }
+	vec dhdx(Npx, 0.0);
+	for (auto i = 0; i < Npx; i++) {
+		dhdx[i]  = (b[i] - b[o2(i-1)]) / dx;
+	}
 
-	int pt=xsi;
-	while (b[pt]==b[o2(pt-1)]){// && b[o2(xsi-1)]!=b[o2(o2(xsi-1)-1)]){
-		pt=o2(pt-1);
-		cerr<<"pt-- voor param. sepline dhdx bepaling"<<endl;
+	auto pt = xsi;
+	while (b[pt] == b[o2(pt - 1)]) { // && b[o2(xsi-1)]!=b[o2(o2(xsi-1)-1)]){
+		pt = o2(pt - 1);
+		cerr << "pt-- voor param. sepline dhdx bepaling" << endl;
 	}
 
 	// 11-08-2006: TODO: dit kan ook meer dan 1 punt moeten zijn!! (dus een while)
 	// if (dhdx[pt]==0) pt--; pt=o2(pt);
 	// double alpha_b=(dhdx[o2(o2(pt-1)-1)]+dhdx[o2(pt-1)]+dhdx[pt])/3.;
-	double alpha_s=dhdx[pt]/1.;
+	double alpha_s = dhdx[pt];
 
 	//override!!!
 	//alpha_s=0;
 
 	// x and z coordinate of the flow separation and reattachment point
-	double xs=x[xsi];
-	double Hs=b[xsi];
-	//double xt=x[xti];
-	double Ht=b[xti];
-	
+	auto xs = x[xsi];
+	auto Hs = b[xsi];
+	//auto xt = x[xti];
+	auto Ht = b[xti];
+
 	// height and total lengte of the flow separation zone
 	// total length: point where separation streamline crosses the trough elevation
-	double Hfsz = Hs-Ht;
-	double tLs = (6.48*alpha_s + 5.17);
-		
+	auto Hfsz = Hs-Ht;
+	auto tLs = (6.48 * alpha_s + 5.17);
+
 	// coefficients according to Paarlberg et al (2007, WRR)
-	double s0 = 1.;
-	double s1 = alpha_s;
-	double s2, s3;
-	s3=2./pow(tLs,3.)+(-0.53+alpha_s)/(tLs*tLs);
-	if (alpha_s<0) s3=0.;
-	s2=-s3*tLs-alpha_s/tLs-1./(tLs*tLs);
+	double s0 = 1.0;
+	auto s1 = alpha_s;
+	auto s3 = 2. / pow(tLs, 3.) + (-0.53 + alpha_s) / (tLs * tLs);
+	if (alpha_s < 0)
+		s3=0.;
+	auto s2 = -s3 * tLs - alpha_s / tLs - 1 / (tLs * tLs);
 
 	// numerical implementation to find crossing point
 	double tol  = 1e-10;
 	int max_it  = 150;
 	int dir = 1;  // 1 = left2right; 2 = right2left
-	double xl = xs+dx;
-	double xr = xs+Hfsz*tLs;
+	auto xl = xs + dx;
+	auto xr = xs + Hfsz * tLs;
 	//double dif = 0.0;
 	double x_p = 0.0;
 	double x_p_bed;
-	double fac=1;
-	int pr_dir=dir;
+	double fac = 1;
+	auto pr_dir = dir;
 
-	vec nb(4,0.0);
-	vec rp(2,0.0);
-	
-	for(int k=1;k<=max_it;k++){
+	vec nb(4, 0.0);
+	vec rp(2, 0.0);
+
+	for (auto k = 1; k <= max_it; k++) {
 		// find cross-point within maximum number of iterations
 		//dif = xr - xl;
 		// 1 = left2right; 2 = right2left
-		if (dir==2){
-			x_p = xr - dx/fac;}
-		else if (dir==1){
-			x_p = xl + dx/fac;}
+		if (dir == 2){
+			x_p = xr - dx / fac;}
+		else if (dir == 1){
+			x_p = xl + dx / fac;}
 		// find neighboring points of the bed
-		nb=paramFindNeighbors(x_p,xsi);
+		nb = paramFindNeighbors(x_p, xsi);
 
 		x_p_bed = x_p;
-		if (x_p>=Npx*dx || x_p==L) x_p_bed = x_p-Npx*dx;
-		if (x_p<0) x_p_bed = x_p+Npx*dx;
-		double y1 = ((nb[1]-x_p_bed)*nb[2]+(x_p_bed-nb[0])*nb[3])/(nb[1]-nb[0]);
-		double xx=(x_p-xsi*dx)/Hfsz;
-		double y2 = s3*pow(xx,3) + s2*pow(xx,2) + s1*xx + s0; // height of sepline
-		y2=y2*Hfsz+Ht;
+		if (x_p >= Npx * dx || x_p == L)
+			x_p_bed = x_p - Npx * dx;
+		if (x_p < 0)
+			x_p_bed = x_p + Npx * dx;
+		auto y1 = ((nb[1] - x_p_bed) * nb[2] + (x_p_bed - nb[0]) * nb[3]) / (nb[1] - nb[0]);
+		auto xx = (x_p -xsi * dx) / Hfsz;
+		auto y2 = s3 * pow(xx, 3) + s2 * pow(xx, 2) + s1 * xx + s0; // height of sepline
+		y2 = y2 * Hfsz + Ht;
 
-		if (nb[2]==0 && nb[3]==0) {
-			cerr<<"   WARNING: [j="<<nfsz<<"] neighbor points not found correctly!:"<<endl;
-			outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] neighbor points not found correctly!:"<<endl;
-			cerr<<"x_p="<<x_p<<"; xsi="<<xsi<<endl;
-			cerr<<"Npx*dx="<<Npx*dx<<"; xr_in="<<xs+Hfsz*tLs<<endl;
-			cerr<<nb[0]<<" "<<nb[1]<<" "<<nb[2]<<" "<<nb[3]<<endl;
-			cerr<<k<<" "<<dir<<" "<<xs+dx<<" "<<x_p<<" "<<y1<<" "<<y2<<" "<<xx<<" "<<abs(y2-y1)<<endl;
+		if (nb[2] == 0 && nb[3] == 0) {
+			cerr << "   WARNING: [j=" << nfsz << "] neighbor points not found correctly!:" << endl;
+			outlog << "T=" << tijd << " - WARNING: [j=" << nfsz << "] neighbor points not found correctly!:" << endl;
+			cerr << "x_p=" << x_p << "; xsi=" << xsi << endl;
+			cerr << "Npx*dx=" << Npx*dx << "; xr_in=" << xs+Hfsz*tLs << endl;
+			cerr << nb[0] << " " << nb[1] << " " << nb[2] << " " << nb[3] << endl;
+			cerr << k << " " << dir << " " << xs+dx << " " << x_p << " " << y1 << " " << y2 << " " << xx << " " << abs(y2-y1) << endl;
 		}
 
-		if (k==max_it) {
-			cerr<<"maximum number of iterations reached"<<endl;
-			outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] maximum number of iterations reached to determine reattachment point!:"<<endl;
-			cerr<<x_p<<endl;
+		if (k == max_it) {
+			cerr << "maximum number of iterations reached" << endl;
+			outlog << "T=" << tijd << " - WARNING: [j=" << nfsz << "] maximum number of iterations reached to determine reattachment point!:" << endl;
+			cerr << x_p << endl;
 		}
 
-		if (abs(y2-y1) <= tol || abs(y2-y1) == 0){
-		// cross-point fond or maximum # iteration reached
+		if (abs(y2 - y1) <= tol || abs(y2 - y1) == 0){
+			// cross-point fond or maximum # iteration reached
 			//int nb1=o3(int(ceil(x_p/dx)));
-			rp[0]=x_p;
-			rp[1]=y2;
+			rp[0] = x_p;
+			rp[1] = y2;
 			break;
-			}
-		else{
+		} else {
 			// next iteration
 			if (y2 > y1){
 				dir = 1;  // left2right
-				xl  = x_p;}
-			else{
-				dir     = 2;  // right2left
-				xr = x_p;}
-			if (dir!=pr_dir) {fac*=2;}
-			pr_dir=dir;
+				xl  = x_p;
+			} else {
+				dir = 2;  // right2left
+				xr = x_p;
+			}
+			if (dir != pr_dir)
+				fac*=2;
+			pr_dir = dir;
 		}
 	} // for
-	
-	double xret = rp[0];
-	//double Hret = rp[1];
-	double Ls = xret - xs;
-	int sxi=int(ceil(Ls/dx));
-	int xri=xsi+sxi;
-	
+
+	auto xret = rp[0];
+	//auto Hret = rp[1];
+	auto Ls = xret - xs;
+	auto sxi = int(ceil(Ls / dx));
+	auto xri = xsi + sxi;
+
 	/* actual determination of separating streamline */
-	vec sx(sxi+1,0.0);
-	vec s (sxi+1,0.0);
+	vec sx(sxi + 1, 0.0);
+	vec s(sxi + 1, 0.0);
 
-	for(int i=0;i<=sxi;i++) sx[i]=(i*dx)/Hfsz;
-	
-	for(int i=0;i<=sxi;i++){
-		
-		s[i] = s3*pow(sx[i],3) + s2*pow(sx[i],2) + s1*sx[i] + s0;
-		s[i] = s[i]*Hfsz+Ht;
+	for (auto i = 0; i <= sxi; i++)
+		sx[i] = (i * dx) / Hfsz;
+
+	for (auto i = 0; i <= sxi; i++) {
+		s[i] = s3 * pow(sx[i], 3) + s2 * pow(sx[i] , 2) + s1 * sx[i] + s0;
+		s[i] = s[i] * Hfsz + Ht;
 	}
-	for(int i=xsi;i<=xri;i++) {
-
-		int m = i;
-		if (i>=Npx) m = i-Npx;
-		bp[m]=s[i-xsi];
+	for (auto i = xsi; i <= xri; i++) {
+		auto m = i;
+		if (i >= Npx)
+			m = i - Npx;
+		bp[m] = s[i - xsi];
 	}
 
-	if(xri>Npx) xri-=Npx;
-	
+	if (xri > Npx)
+		xri -= Npx;
+
 	return xri;
 }
 
@@ -1037,14 +1086,11 @@ the volumetric stress at xsi (flux@xsi)
 //	}
 //}
 
-void bottom::detQcr(vec ub, vec &dhdx){
+void bottom::detQcr(const vec& ub, vec &dhdx) {
 	/* determine fluxes in case of flowsep some extra code is used*/
-	int sepflag=fsz[nf-2];
-	vec tau(Npx,0.0);
-	//double sepflux; // OLAV 2013 04 16
-	double meanstle1;  // OLAV 2014 02 25
-	double alpha_lag1;  // OLAV 2014 02 25
-	
+	auto sepflag = fsz[nf - 2];
+	vec tau(Npx, 0.0);
+
 //        // ADDED 2011 2 25 (OLAV)
 //        ofstream outdebug;
 //	    outdebug.open ("out_debug1.txt", ofstream::out | ofstream::app);
@@ -1059,70 +1105,70 @@ void bottom::detQcr(vec ub, vec &dhdx){
 //    outdebug.close();
 // END ADDED 2011 2 25 (OLAV)
                
-	for(int i=0;i<Npx;i++){
-		tau[i]=S*(ub[i]);
-		dhdx[i]=(b[i]-b[o2(i-1)])/dx;
+	for (auto i = 0; i < Npx; i++) {
+		tau[i] = S * ub[i];
+		dhdx[i] = (b[i] - b[o2(i - 1)]) / dx;
 	}
     
-	for(int i=0;i<Npx;i++){
-		flux[i]=0.0;
-		double taui=(1./2.)*(tau[o2(i-1)]+tau[i]);
-		
-		// Meyer-Peter Mï¿½ller (original)
-        if(cfg.transport_eq == 1 || cfg.transport_eq == 3){
-           double tauc=cfg.thetacr*cfg.g*cfg.delta*cfg.D50*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.)))); //OLAV 2011 02 24
-		   //ORIGINAL: double tauc=cfg.thetacr*g*(2.65-1.)*cfg.D50*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))));
-		   
-           if (tau[i]>tauc && taui>0.) {
-			   taui=max(taui,tauc); //OLAV: 2011 2 23 --> why this operation?
-			   flux[i]+=cfg.alpha*pow(taui-tauc,cfg.be)*(1./(1.+cfg.l2*(dhdx[i])));
-           }
-            
-           /* in case of flow separation, the flux@xsi, based on local tau in that
-	       * point, is stored in flux[xsi+1]
-		   * this is a correction afterwards    */
-           if (sepflag==1 ){ //OLAV 2013 04 16 // && AllowAvalanching==1
-		      int nfsz=fsz[nf-1];
-		      for (int j=0;j<nfsz;j++) {
-			           int xsi=fsz[j*7+0];
-                       flux[o2(xsi+1)]=0.0;
-                       //ORIGINAL: tauc=cfg.thetacr*cfg.g*(2.65-1.)*cfg.D50*((1.+cfg.l2*dhdx[xsi])/(pow(1.+dhdx[xsi]*dhdx[xsi],(1./2.))));
-                       double tauc=cfg.thetacr*cfg.g*cfg.delta*cfg.D50 *((1.+cfg.l2*dhdx[xsi])/(pow(1.+dhdx[xsi]*dhdx[xsi],(1./2.))));
-			
-			           if (tau[xsi]>tauc && tau[xsi]>0.) {
-                          flux[o2(xsi+1)]+=cfg.alpha*pow(tau[xsi]-tauc,cfg.be)*(1./(1.+cfg.l2*(dhdx[xsi])));
-				          // ORIGINAL: flux[o2(xsi+1)]+=alpha*pow(tau[xsi]-tauc,be)*(1./(1.+cfg.l2*(dhdx[xsi])));
-                       }
-              }
-           } // CLOSES if (sepflag==1)
-        } // CLOSES if(transport_eq == 1)
-        
-        // Nakagawa / Tsujimoto
-		       
-        else if(cfg.transport_eq == 2 ){
-		   //non-corrected tauc
-		   double tauc=cfg.thetacr*cfg.g*cfg.delta*cfg.D50; //OLAV 2013 07 08
-		   //double tauc=cfg.thetacr*cfg.g*cfg.delta*cfg.D50*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.)))); //OLAV 2014 02 07
-		   
-		   double thetai = taui / (cfg.g*cfg.delta*cfg.D50);
+	for (auto i = 0; i < Npx; i++) {
+		flux[i] = 0.0;
+		auto taui = 0.5 * (tau[o2(i - 1)] + tau[i]);
 
-           if (tau[i]>tauc && taui>0.) {
-			   thetai=max(thetai,cfg.thetacr);
-			   //thetai=max(thetai,cfg.thetacr*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))))); //OLAV 2014 02 07
+		// Meyer-Peter Müller (original)
+		if (cfg.transport_eq == 1 || cfg.transport_eq == 3) {
+			auto tauc = cfg.thetacr * cfg.g * cfg.delta * cfg.D50 * (1. + cfg.l2 * dhdx[i]) / sqrt(1. + dhdx[i] * dhdx[i]); //OLAV 2011 02 24
+			//ORIGINAL: double tauc=cfg.thetacr*g*(2.65-1.)*cfg.D50*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))));
 
-			   flux[i]=cfg.F0_dim*thetai*pow(1.-cfg.thetacr/thetai,3.); //pickup
+			if (tau[i] > tauc && taui > 0.) {
+				taui = max(taui, tauc); //OLAV: 2011 2 23 --> why this operation?
+				flux[i] += cfg.alpha * pow(taui - tauc, cfg.be) / (1. + cfg.l2 * dhdx[i]);
+			}
 
-			   //flux[i]=F0_dim*thetai*pow(1.-((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))))*cfg.thetacr/thetai,3.);
-           }
-		   
-        } // CLOSES if(transport_eq == 2)
+			/* in case of flow separation, the flux@xsi, based on local tau in that
+			 * point, is stored in flux[xsi+1]
+			 * this is a correction afterwards    */
+			if (sepflag == 1) { //OLAV 2013 04 16 // && AllowAvalanching==1
+				auto nfsz = fsz[nf - 1];
+				for (auto j = 0; j < nfsz; j++) {
+					auto xsi = fsz[j * 7 + 0];
+					flux[o2(xsi + 1)] = 0.0;
+					//ORIGINAL: tauc=cfg.thetacr*cfg.g*(2.65-1.)*cfg.D50*((1.+cfg.l2*dhdx[xsi])/(pow(1.+dhdx[xsi]*dhdx[xsi],(1./2.))));
+					double tauc = cfg.thetacr * cfg.g * cfg.delta * cfg.D50 * (1. + cfg.l2 * dhdx[xsi]) / sqrt(1. + dhdx[xsi] * dhdx[xsi]);
+
+					if (tau[xsi] > tauc && tau[xsi] > 0.) {
+						flux[o2(xsi + 1)] += cfg.alpha * pow(tau[xsi] - tauc, cfg.be) / (1. + cfg.l2 * dhdx[xsi]);
+						// ORIGINAL: flux[o2(xsi+1)]+=alpha*pow(tau[xsi]-tauc,be)*(1./(1.+cfg.l2*(dhdx[xsi])));
+					}
+				}
+			} // CLOSES if (sepflag==1)
+		} // CLOSES if(transport_eq == 1)
+
+		// Nakagawa / Tsujimoto
+
+		else if (cfg.transport_eq == 2 ) {
+			//non-corrected tauc
+			double tauc = cfg.thetacr * cfg.g * cfg.delta * cfg.D50; //OLAV 2013 07 08
+			//double tauc=cfg.thetacr*cfg.g*cfg.delta*cfg.D50*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.)))); //OLAV 2014 02 07
+
+			double thetai = taui / (cfg.g * cfg.delta * cfg.D50);
+
+			if (tau[i] > tauc && taui > 0.) {
+				thetai = max(thetai, cfg.thetacr);
+				//thetai=max(thetai,cfg.thetacr*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))))); //OLAV 2014 02 07
+
+				flux[i] = cfg.F0_dim * thetai * pow(1. - cfg.thetacr / thetai, 3); //pickup
+
+				//flux[i]=F0_dim*thetai*pow(1.-((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))))*cfg.thetacr/thetai,3.);
+			}
+
+		} // CLOSES if(transport_eq == 2)
 		/*
         else if(transport_eq == 2 ){
 		   //non-corrected tauc
 		   double tauc=cfg.thetacr*g*cfg.delta*cfg.D50; //OLAV 2013 07 08
 		   //corrected tauc
 		   //double tauc=cfg.thetacr*g*cfg.delta*cfg.D50*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.)))); //OLAV 2011 02 24
-		   
+
 		   double alpha_2 = correction*F0*pow(g*cfg.delta/cfg.D50,(1./2.));
            if (tau[i]>tauc && taui>0.) {
 			   taui=max(taui,tauc); 
@@ -1130,91 +1176,90 @@ void bottom::detQcr(vec ub, vec &dhdx){
 			   flux[i]=alpha_2*thetai*pow(1.-tauc/taui,3.);
            }         
         } // CLOSES if(transport_eq == 2) */
-		
-    } // CLOSES for(int i=0;i<Npx;i++)
-	  
-    //Fluxes are determined, now optionally a lag is applied. 
-    if(cfg.transport_eq == 3 ){
-	
-		if(cfg.alpha_varies>0){
-			alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,0);
-			meanstle1 = alpha_lag1*cfg.D50;
+
+	} // CLOSES for(int i=0;i<Npx;i++)
+
+	//Fluxes are determined, now optionally a lag is applied.
+	if (cfg.transport_eq == 3) {
+
+		double meanstle1;  // OLAV 2014 02 25
+		if (cfg.alpha_varies > 0) {
+			auto alpha_lag1 = detAlphaLag(ub, cfg.alpha_varies, 0);
+			meanstle1 = alpha_lag1 * cfg.D50;
 		} 
 		else {
 			meanstle1 = cfg.meanstle;
 		}
 
-                   
-		double dxtenth=dx/10;
-		double flux_eq_k;
-		double flux_k;
-		double flux_k_prev;
-				
-		vec flux_eq(Npx,0.0);
-		flux_eq=flux;
-				
-		double flux_temp; //changed 2012 09 07 OLAV, was: 
-				
-		if(cfg.moeilijkdoen==0){
+		//auto dxtenth = dx / 10;
+		//double flux_eq_k;
+		//double flux_k;
+
+		auto flux_eq = flux;
+
+		//double flux_temp; //changed 2012 09 07 OLAV, was:
+
+		if (cfg.moeilijkdoen == 0) {
 			//Guess flux(0)
-			flux[0]=flux_eq[0]/2;
+			flux[0] = flux_eq[0] / 2;
 				
-			for(int i=1;i<Npx;i++){ //From 1, because 0 was already guessed
+			for (auto i = 1; i < Npx; i++) { //From 1, because 0 was already guessed
 				//Backwards Euler
-				flux[i]=(flux[i-1]+dx/meanstle1*flux_eq[i])/(1+dx/meanstle1);
+				flux[i] = (flux[i - 1] + dx / meanstle1 * flux_eq[i]) / (1 + dx / meanstle1);
 			} //closes for(int i=1;i<Npx;i++)
 						
-			flux_temp = (flux[Npx-1]+dx/meanstle1*flux_eq[0])/(1+dx/meanstle1);//changed 2012 09 07 OLAV, was:
+			auto flux_temp = (flux[Npx - 1] + dx / meanstle1 * flux_eq[0]) / (1 + dx / meanstle1);//changed 2012 09 07 OLAV, was:
 				
-			for(int j=0;j<30;j++){
+			for (auto j = 0; j < 30; j++) {
 				//Re-guess flux(0)
-				flux[0]=(flux[0]+flux_temp)/2;
+				flux[0] = (flux[0] + flux_temp) / 2;
 				//changed 2012 09 07 OLAV, was: flux[0]=(flux[0]+flux[Npx-1])/2;
-							
+
 				//flux[0]=flux[Npx-1];
-				for(int i=1;i<Npx;i++){
+				for (auto i = 1; i < Npx; i++) {
 					//Backwards Euler
-					flux[i]=(flux[i-1]+dx/meanstle1*flux_eq[i])/(1+dx/meanstle1);
+					flux[i] = (flux[i - 1] + dx / meanstle1 * flux_eq[i]) / (1 + dx / meanstle1);
 				} //closes for(int i=1;i<Npx;i++)
 				//outdebug << "j=" << j << " (*flux_eq)[0]=" << flux_eq[0] << " flux[0]=" << flux[0] << " flux[L]="<< flux[Npx-1];
 				//outdebug << endl;
-							
-				flux_temp = (flux[Npx-1]+dx/meanstle1*flux_eq[0])/(1+dx/meanstle1);;//changed 2012 09 07 OLAV, was:
-							
+
+				flux_temp = (flux[Npx - 1] + dx / meanstle1 * flux_eq[0]) / (1 + dx / meanstle1);//changed 2012 09 07 OLAV, was:
+
 				//changed 2012 09 07 OLAV, was: if( abs( (flux[0]-flux[Npx-1])/flux[0]) < 0.001 ) {j=30;};
-				if( abs( (flux[0]-flux_temp)/flux[0]) < 0.001 ) {j=30;};
-					} //closes for(int j=0;j<30;i++)
-						   
-					//changed 2012 09 07 OLAV, was: flux[0]=flux[Npx-1];
-					flux[0]=flux_temp;
-							
-		}
-		else { //i.e. moeilijkdoen = 1
+				if (abs((flux[0] - flux_temp) / flux[0]) < 0.001 )
+					break;
+
+			} //closes for(int j=0;j<30;i++)
+
+			//changed 2012 09 07 OLAV, was: flux[0]=flux[Npx-1];
+			flux[0] = flux_temp;
+
+		} else { //i.e. moeilijkdoen = 1
 			//Guess flux(0)
-			flux[0]=flux_eq[0]/2;
-			
-			for(int j=0;j<30;j++){                            
-				flux_k_prev = flux[0];
-				for(int i=0;i<Npx-1;i++){
-							
-					for(int k_dx=1;k_dx<11;k_dx++) {
-						flux_eq_k = (flux_eq[o2(i+1)]-flux_eq[i])*k_dx/10+flux_eq[i];
-						flux_k = (flux_k_prev+dxtenth/meanstle1*flux_eq_k)/(1+dxtenth/meanstle1);
+			flux[0] = flux_eq[0] / 2;
+			const auto dxtenth = dx / 10;
+
+			for (auto j = 0; j < 30; j++) {
+				auto flux_k_prev = flux[0];
+				for (auto i = 0; i < Npx - 1; i++) {
+					double flux_k;
+					for (auto k_dx = 1; k_dx < 11; k_dx++) {
+						auto flux_eq_k = (flux_eq[o2(i + 1)] - flux_eq[i]) * k_dx / 10 + flux_eq[i];
+						flux_k = (flux_k_prev + dxtenth / meanstle1 * flux_eq_k) / (1 + dxtenth / meanstle1);
 						flux_k_prev = flux_k;
 					}  //closes for(int k=1;k<11;j++){
-							//outdebug.close();
-					flux[o2(i+1)]=flux_k;
+					//outdebug.close();
+					flux[o2(i + 1)] = flux_k;
 				} //closes for(int i=0;i<Npx;i++){
-							  
+
 				//Re-guess flux(0)
-				flux[0]=(flux[0]+flux[Npx-1])/2;
-					
-				if( abs( (flux[0]-flux[Npx-1])/flux[0]) < 0.001 ) {
-					j=30;
-					};
-				} //closes for(int j=0;j<30;j++)
-			flux[0]=flux[Npx-1];
-					
+				flux[0] = (flux[0] + flux[Npx - 1]) / 2;
+
+				if (abs((flux[0] - flux[Npx - 1]) / flux[0]) < 0.001 )
+					break;
+			} //closes for(int j=0;j<30;j++)
+			flux[0] = flux[Npx - 1];
+
 		} //close else (if moeilijkdoen = 0)
     } //closes if(transport_eq == 3 )
 } // CLOSES function		
@@ -1232,179 +1277,184 @@ Vb routine in case with flow separation   : update_flowsep
 ======================================================
 */
 
-vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
+vec bottom::update(const vec& ub, vec &bss1, vec &fluxtot, vec &dhdx) {
 	/* bottom-update without flow separation */
 
-	for(int i=0;i<Npx;i++) {bss1[i]=S*ub[i];
-							fluxtot[i]=0.; /* fluxtot is required for storage */
+	for (auto i = 0; i < Npx; i++) {
+		bss1[i] = S * ub[i];
+		fluxtot[i] = 0.; /* fluxtot is required for storage */
 	}
 	// JW vec newb(Npx,0.0);
 	vec oldb(b);
 	vec distribute;
 	//double bint = 0.0;
-	double ep=(1/(1-cfg.epsilonp));
+	const auto ep = 1 / (1 - cfg.epsilonp);
 	
 	// Needed for N&T
-	double alpha_lag1=0.;
-	int Npsl = 0;
+	double alpha_lag1 = 0.;
 	int dxsubdiv;
-	double dxGhost=0;
-	int GhostProtocol=0;
-	int ghostNpx=0;
-	int ghostNpsl=0;
-	vec depositemp(Npx,0.0);
-	vec fluxtemp(Npx,0.0);
-	
-	if(cfg.alpha_varies==0 && cfg.transport_eq == 2){
-		alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,1);
-		
-		distribute=detDistributeFunc(alpha_lag1,dx);
+	//double dxGhost = 0;
+	//int GhostProtocol = 0;
+	int ghostNpx = 0;
+	int ghostNpsl = 0;
+	vec depositemp(Npx, 0.0);
+	vec fluxtemp(Npx, 0.0);
+
+	if (cfg.alpha_varies == 0 && cfg.transport_eq == 2) {
+		alpha_lag1 = detAlphaLag(ub, cfg.alpha_varies, 1);
+		distribute = detDistributeFunc(alpha_lag1, dx);
 	}
 	
-	double depositot =0.;
-	double tobedepositot =0.;
-	double tobedeposi=0.;
-	int depopoint =0;
-	vec deposi(Npx,0.0);
-					
-	for(int t=0;t<int(cfg.tt);t++){
+	double depositot = 0.;
+	double tobedepositot = 0.;
+	double tobedeposi = 0.;
+	int depopoint = 0;
+	vec deposi(Npx, 0.0);
+	
+	for (auto t = 0; t < int(cfg.tt); t++){
 		//Joris: deze loop zit er in omdat expliciet niet al te grote tijdstappen aankan, moet nog aan getweekt worden.
 		detQcr(ub, dhdx);
-	
-	if(cfg.transport_eq == 1 || cfg.transport_eq == 3){ //OLAV: 2013 05 22
-		for(int i=0;i<Npx;i++){
-				b[i]-=ep*dt/cfg.tt/dx*(flux[o2(i+1)]-flux[i]);
-				fluxtot[i]+=flux[i]/cfg.tt*ep;
-        }
-	} //closes if(transport_eq == 1 || transport_eq == 3)
- 
-	//OLAV: 2013 05 22 START
-	else if(cfg.transport_eq == 2){
-	
-		//Determine alpha and prepare distribution function if needed 
-		if(cfg.alpha_varies==1 || cfg.alpha_varies == 2){
-			//Determine alpha
-			alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,t);
-			
-			//Determine distribution
-			distribute = detDistributeFunc(alpha_lag1,dx);
 
-		} //end of calculation for alpha and distribution
-		
-		Npsl = distribute.size();
-		
-		if(t==0){
-			cerr << "NPSL: " << Npsl << " dx:" << dx << endl;
-		} 
-		
-		GhostProtocol=0;
-		if (Npsl < cfg.Npsl_min){
-		
-			GhostProtocol=1;
-
-			dxsubdiv=int(ceil(dx/((cfg.stle_factor*alpha_lag1*cfg.D50)/cfg.Npsl_min)));
-			dxGhost = dx/dxsubdiv;
-			distribute = detDistributeFunc(alpha_lag1,dxGhost);
-			ghostNpsl = distribute.size();
-			
-			ghostNpx = Npx*dxsubdiv;
-			depositemp.resize(ghostNpx);
-			fluxtemp.resize(ghostNpx);
-			
-			if(t==0){
-				cerr << "Npsl_min: " << cfg.Npsl_min << " ghostNpsl:" << ghostNpsl << " dxGhost:" << dxGhost << endl;
-				cerr << "Npx: " << Npx << " ghostNpx: "<< ghostNpx << endl;
+		if (cfg.transport_eq == 1 || cfg.transport_eq == 3) { //OLAV: 2013 05 22
+			for (auto i = 0; i < Npx; i++) {
+				b[i] -= ep * dt / cfg.tt / dx * (flux[o2(i + 1)]-flux[i]);
+				fluxtot[i] += flux[i] / cfg.tt * ep;
 			}
-			
-			for(int i=0;i<Npx-1;i++){ //for i = 1:length(testflux)
-				fluxtemp[dxsubdiv*(i)]=flux[i]; //original x point 1
-				fluxtemp[dxsubdiv*(i)+dxsubdiv]=flux[i+1]; //original x point 2
-                
-				for(int j=2;j<dxsubdiv+1;j++){
-					fluxtemp[dxsubdiv*(i)-(1-j)]=flux[i]+(j-1)*(flux[i+1]-flux[i])/dxsubdiv;
+		} //closes if(transport_eq == 1 || transport_eq == 3)
+
+		//OLAV: 2013 05 22 START
+		else if (cfg.transport_eq == 2){
+
+			//Determine alpha and prepare distribution function if needed
+			if (cfg.alpha_varies == 1 || cfg.alpha_varies == 2){
+				//Determine alpha
+				alpha_lag1 = detAlphaLag(ub,cfg.alpha_varies,t);
+
+				//Determine distribution
+				distribute = detDistributeFunc(alpha_lag1, dx);
+			} //end of calculation for alpha and distribution
+
+			int Npsl = distribute.size(); // JW not 'auto' yet
+
+			if (t == 0)
+				cerr << "NPSL: " << Npsl << " dx:" << dx << endl;
+
+			int GhostProtocol = 0;
+			if (Npsl < cfg.Npsl_min) {
+
+				GhostProtocol = 1;
+
+				dxsubdiv = int(ceil(dx / ((cfg.stle_factor * alpha_lag1 * cfg.D50) / cfg.Npsl_min)));
+				auto dxGhost = dx / dxsubdiv;
+				distribute = detDistributeFunc(alpha_lag1,dxGhost);
+				ghostNpsl = distribute.size();
+
+				ghostNpx = Npx * dxsubdiv;
+				depositemp.resize(ghostNpx);
+				fluxtemp.resize(ghostNpx);
+
+				if (t == 0) {
+					cerr << "Npsl_min: " << cfg.Npsl_min << " ghostNpsl:" << ghostNpsl << " dxGhost:" << dxGhost << endl;
+					cerr << "Npx: " << Npx << " ghostNpx: "<< ghostNpx << endl;
 				}
-			}
 
-			fluxtemp[dxsubdiv*(Npx-1)]=flux[Npx-1]; //original last x point
-            
-			for (int j=2;j<dxsubdiv+1;j++) {
-				fluxtemp[dxsubdiv*(Npx-1)-(1-j)]=flux[Npx-1]+(j-1)*(flux[0]-flux[Npx-1])/dxsubdiv;
-			}
-		}
-		
-		//Deposition protocol
-		if (GhostProtocol==0){
-		for(int i=0;i<Npx;i++){
-			depositot = flux[i];    //to keep track of the running total of deposited material
-			tobedepositot = depositot; //the goal value of the total deposited material
-			
-			while(depositot>0){
-				for(int j=0;j<Npsl;j++){
-					tobedeposi=distribute[j]*tobedepositot; //was tobedeposi=distribute[j]*dx*tobedepositot; Olav 2014 03 17
-					
-					if(i+j>Npx-1){
-						depopoint=i+j;
-						while (depopoint > Npx-1){
-							depopoint=depopoint-Npx;
-						}
+				for (auto i = 0; i < Npx - 1; i++ ) { //for i = 1:length(testflux)
+					fluxtemp[dxsubdiv * i] = flux[i]; //original x point 1
+					fluxtemp[dxsubdiv * i + dxsubdiv] = flux[i+1]; //original x point 2
+
+					for (auto j = 2; j < dxsubdiv + 1; j++) {
+						fluxtemp[dxsubdiv * i - (1 - j)] = flux[i] + (j - 1) * (flux[i + 1] -flux[i]) / dxsubdiv;
 					}
-					else{depopoint=i+j;}
-					
-					if(tobedeposi < depositot){depositot=depositot-tobedeposi;}
-					else{tobedeposi=depositot;depositot=0;}
-					
-					depositemp[depopoint] += tobedeposi; //correct with i+j and o3/o2? 
 				}
-			} // closes while
-		} //closes loop over x 
-		}
-		else if (GhostProtocol==1){
-				
-		for(int i=0;i<ghostNpx;i++){
-			depositot = fluxtemp[i];    //to keep track of the running total of deposited material
-			tobedepositot = depositot; //the goal value of the total deposited material
-			
-			while(depositot>0){
-				for(int j=0;j<ghostNpsl;j++){
-					tobedeposi=distribute[j]*tobedepositot; //was tobedeposi=distribute[j]*dxGhost*tobedepositot; Olav 2014 03 17
-					
-					if(i+j>ghostNpx-1){
-						depopoint=i+j;
-						while (depopoint > ghostNpx-1){
-							depopoint=depopoint-ghostNpx;
-						}
-					}
-					else{depopoint=i+j;}
-					
-					if(tobedeposi < depositot){depositot=depositot-tobedeposi;}
-					else{tobedeposi=depositot;depositot=0;}
-					
-					depositemp[depopoint] += tobedeposi; //correct with i+j and o3/o2? 
+
+				fluxtemp[dxsubdiv * (Npx-1)] = flux[Npx - 1]; //original last x point
+
+				for (int j = 2; j < dxsubdiv + 1; j++) {
+					fluxtemp[dxsubdiv *(Npx - 1) - (1 - j)] = flux[Npx - 1] + (j - 1) * (flux[0] - flux[Npx - 1]) / dxsubdiv;
 				}
-			} // closes while
-		} //closes loop over x 
-		}
-		
-		// Make the real deposi vector
-		if (GhostProtocol==0){
-			deposi=depositemp;
-		}
-		else if (GhostProtocol==1){ 
-		    for(int i=0;i<Npx;i++){
-				//cerr << dxsubdiv*(i) << endl;
-				deposi[i]= depositemp[dxsubdiv*(i)];
 			}
-		}
-		
-		/*
+
+			//Deposition protocol
+			if (GhostProtocol == 0) {
+				for (auto i = 0; i < Npx; i++) {
+					depositot = flux[i];    //to keep track of the running total of deposited material
+					tobedepositot = depositot; //the goal value of the total deposited material
+
+					while (depositot > 0) {
+						for (auto j = 0; j <Npsl; j++){
+							tobedeposi = distribute[j] * tobedepositot; //was tobedeposi=distribute[j]*dx*tobedepositot; Olav 2014 03 17
+
+							if (i + j > Npx - 1){
+								depopoint = i+j;
+								while (depopoint > Npx - 1) {
+									depopoint = depopoint - Npx;
+								}
+							} else {
+								depopoint = i + j;
+							}
+
+							if (tobedeposi < depositot) {
+								depositot = depositot - tobedeposi;
+							} else {
+								tobedeposi = depositot;
+								depositot = 0;
+							}
+
+							depositemp[depopoint] += tobedeposi; //correct with i+j and o3/o2?
+						}
+					} // closes while
+				} //closes loop over x
+			} else if (GhostProtocol == 1) {
+
+				for (auto i = 0; i < ghostNpx; i++) {
+					depositot = fluxtemp[i];    //to keep track of the running total of deposited material
+					tobedepositot = depositot; //the goal value of the total deposited material
+
+					while (depositot > 0) {
+						for(auto j = 0; j < ghostNpsl; j++) {
+							tobedeposi = distribute[j] * tobedepositot; //was tobedeposi=distribute[j]*dxGhost*tobedepositot; Olav 2014 03 17
+
+							if (i + j > ghostNpx - 1) {
+								depopoint = i + j;
+								while (depopoint > ghostNpx - 1) {
+									depopoint = depopoint - ghostNpx;
+								}
+							} else {
+								depopoint=i+j;
+							}
+
+							if (tobedeposi < depositot) {
+								depositot = depositot-tobedeposi;
+							} else {
+								tobedeposi = depositot;
+								depositot = 0;
+							}
+
+							depositemp[depopoint] += tobedeposi; //correct with i+j and o3/o2?
+						}
+					} // closes while
+				} //closes loop over x
+			}
+
+			// Make the real deposi vector
+			if (GhostProtocol == 0){
+				deposi = depositemp;
+			} else if (GhostProtocol == 1) {
+				for (auto i = 0; i < Npx; i++) {
+					//cerr << dxsubdiv*(i) << endl;
+					deposi[i] = depositemp[dxsubdiv * i];
+				}
+			}
+
+			/*
 		ofstream outdebug2;
 		outdebug2.open ("out_debug2.txt", ofstream::out | ofstream::app);
 		outdebug2.precision(16);
-		
+
 		ofstream outdebug3;
 		outdebug3.open ("out_debug3.txt", ofstream::out | ofstream::app);
 		outdebug3.precision(16); 
-		
+
 		for(int i=0;i<Npx;i++){ 
 			outdebug2 << flux[i] << " ";
 		}
@@ -1413,7 +1463,7 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 			outdebug2 << deposi[i] << " ";
 		}
 		outdebug2 << endl;
-		
+
 		for(int i=0;i<ghostNpx;i++){ 
 			outdebug3 << fluxtemp[i] << " ";
 		}
@@ -1422,179 +1472,183 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 			outdebug3 << depositemp[i] << " ";
 		}
 		outdebug3 << endl;
-		*/
-		
-		//Smoothing OLAV 2014 04 14
-		int sepsmooth=0;
-		for(int i=0;i<Npx;i++){
-			if(dhdx[i]<tan(cfg.sepcritangle)){sepsmooth=1;}
-		}
-		
-		int poscr=-1;
-		int postr=-1;
-		int pos=0;
-		int nsmooth=0;
-		
-		if (sepsmooth == 100){
-			double maxval=-1.e99;
-			double minval=1.e99;
-			
-			for(int i=0;i<Npx;i++){
-				if (b[i]>maxval){
-					poscr=i;
-					maxval=b[i];
+			 */
+
+			//Smoothing OLAV 2014 04 14
+			int sepsmooth = 0;
+			for (auto i = 0; i < Npx; i++) {
+				if (dhdx[i] < tan(cfg.sepcritangle)) {
+					sepsmooth = 1;
 				}
 			}
-			
-			// for(int i=0;i<Npx;i++){
+
+			int poscr = -1;
+			int postr = -1;
+			int pos = 0;
+			int nsmooth = 0;
+
+			if (sepsmooth == 100) { // JW ?? dus nooit ??
+				double maxval = -1.e99;
+				double minval = 1.e99;
+
+				for (auto i = 0; i < Npx; i++) {
+					if (b[i] > maxval){
+						poscr = i;
+						maxval = b[i];
+					}
+				}
+
+				// for(int i=0;i<Npx;i++){
 				// if(b[i]<minval){
-					// postr=i;
-					// minval=b[i];
+				// postr=i;
+				// minval=b[i];
 				// }
-			// }
-			for(int i=poscr;i<poscr+Npx;i++){
-			
-				if (i>Npx-1){pos=i-Npx;}
+				// }
+				for (auto i = poscr; i < poscr + Npx; i++) {
 
-				if(b[pos]<minval){
-					postr=pos;
-					minval=b[pos];
+					if ( i >Npx - 1) {
+						pos = i - Npx;
+					}
+
+					if (b[pos] < minval) {
+						postr = pos;
+						minval = b[pos];
+					}
 				}
-			}
-			
-			cerr << poscr << " " << postr << endl;
-			if (postr<poscr){postr=postr+Npx;}
-			
-			double deposmooth=0.;
-			double fluxsmooth=0.;
-			//poscr=poscr+1; //shift one further
-			
-			for(int i=poscr;i<postr+1;i++){
-			
-				nsmooth+=1;
-				
-				if (i>Npx-1){pos=i-Npx;}
-				else{pos=i;}
-				
-				cerr << pos << " " ;
-				
-				deposmooth+=deposi[pos];
-				fluxsmooth+=flux[pos];
-			}
-			cerr << endl; 
-			
-			//int nsmooth=postr-poscr+1;
-			for(int i=poscr;i<postr+1;i++){
-				
-				if (i>Npx-1){pos=i-Npx;}
-				else{pos=i;}
-				
-				cerr << pos << " " ;
-				
-				deposi[pos]=deposmooth/nsmooth;
-				flux[pos]=fluxsmooth/nsmooth;
-			}
-			cerr << endl; 
-		}
-		
-		fluxtemp.resize(Npx);
-		depositemp.resize(Npx);
-		distribute.resize(1);
-		for(int i=0;i<Npx;i++){
-			b[i]-=ep*dt/cfg.tt*cfg.D50*(flux[i]-deposi[i]);
-			
-			fluxtot[i]+=flux[i]/cfg.tt*ep; //not the real flux! Is pick-up only!
-			
-			deposi[i]=0; 
-			depositemp[i]=0;
-			fluxtemp[i]=0;
-		} //closes loop over x	
-		
-		if (sepsmooth == 100){
-			double maxdh = 1./2.*(b[o2(poscr-1)]-b[o2(poscr-2)]);
-			int nsandvault =nsmooth-1;
-			pos = poscr;
-			//double maxdh = b[o2(poscr-2)]-b[o2(poscr-3)];
-			//int nsandvault =nsmooth;
-			//pos = poscr-1;
-			
-			double sandvault = 0.;
-			if (maxdh > 0){
 
-				// while(b[o2(pos)]-b[o2(pos-1)]>maxdh && pos<postr){
+				cerr << poscr << " " << postr << endl;
+				if (postr < poscr) {
+					postr = postr + Npx;
+				}
+
+				double deposmooth = 0.;
+				double fluxsmooth = 0.;
+				//poscr=poscr+1; //shift one further
+
+				for (auto i = poscr; i < postr + 1; i++) {
+
+					nsmooth++;
+
+					if (i > Npx - 1) {
+						pos = i - Npx;
+					} else {
+						pos = i;
+					}
+
+					cerr << pos << " " ;
+
+					deposmooth += deposi[pos];
+					fluxsmooth += flux[pos];
+				}
+				cerr << endl;
+
+				//int nsmooth=postr-poscr+1;
+				for (auto i = poscr; i < postr + 1; i++) {
+
+					if (i > Npx - 1) {
+						pos = i - Npx;
+					} else {
+						pos = i;
+					}
+
+					cerr << pos << " " ;
+
+					deposi[pos] = deposmooth / nsmooth;
+					flux[pos] = fluxsmooth / nsmooth;
+				}
+				cerr << endl;
+			}
+
+			fluxtemp.resize(Npx);
+			depositemp.resize(Npx);
+			distribute.resize(1);
+			for (auto i = 0; i < Npx; i++) {
+				b[i] -= ep * dt / cfg.tt * cfg.D50 * (flux[i] - deposi[i]);
+
+				fluxtot[i] += flux[i] / cfg.tt * ep; //not the real flux! Is pick-up only!
+
+				deposi[i] = 0;
+				depositemp[i] = 0;
+				fluxtemp[i] = 0;
+			} //closes loop over x
+
+			if (sepsmooth == 100) {
+				double maxdh = 0.5 * (b[o2(poscr - 1)] - b[o2(poscr - 2)]);
+				int nsandvault = nsmooth - 1;
+				pos = poscr;
+				//double maxdh = b[o2(poscr-2)]-b[o2(poscr-3)];
+				//int nsandvault =nsmooth;
+				//pos = poscr-1;
+
+				double sandvault = 0.;
+				if (maxdh > 0){
+
+					// while(b[o2(pos)]-b[o2(pos-1)]>maxdh && pos<postr){
 					// sandvault = b[o2(pos)]-b[o2(pos-1)] - maxdh;
 					// b[o2(pos)] = b[o2(pos-1)]+maxdh;
 					// for(int i=pos+1;i<postr+1;i++){
-					
-						// if (i>Npx-1){pos=i-Npx;}
-						// else{pos=i;}
-					
-						// cerr << pos << " " ;
-					
-						// b[pos]+=sandvault/nsandvault;
+
+					// if (i>Npx-1){pos=i-Npx;}
+					// else{pos=i;}
+
+					// cerr << pos << " " ;
+
+					// b[pos]+=sandvault/nsandvault;
 					// }
-					
+
 					// nsandvault-=1;
 					// pos+=1;
-				// }
-								
-				if (b[o2(poscr)]-b[o2(poscr-1)]>maxdh){ //then the angle towards the crest is too high
-					sandvault = b[o2(poscr)]-b[o2(poscr-1)] - maxdh;
-					b[o2(poscr)] = b[o2(poscr-1)]+maxdh;
-					
-					for(int i=poscr+1;i<postr+1;i++){
-					
-						if (i>Npx-1){pos=i-Npx;}
-						else{pos=i;}
-					
-						cerr << pos << " " ;
-					
-						b[pos]+=sandvault/nsandvault;
-					}	
+					// }
+
+					if (b[o2(poscr)] - b[o2(poscr - 1)] > maxdh) { //then the angle towards the crest is too high
+						sandvault = b[o2(poscr)] - b[o2(poscr - 1)] - maxdh;
+						b[o2(poscr)] = b[o2(poscr - 1)] + maxdh;
+
+						for (auto i = poscr + 1; i < postr + 1; i++) {
+
+							if (i > Npx - 1) {
+								pos = i - Npx;
+							} else {
+								pos=i;
+							}
+
+							cerr << pos << " " ;
+
+							b[pos] += sandvault / nsandvault;
+						}
+					}
 				}
 			}
-		}
-		
-	} //closes else if(transport_eq == 2){
-	//OLAV: 2013 05 22 END
-	
+
+		} //closes else if(transport_eq == 2){
+		//OLAV: 2013 05 22 END
+
 	} // closes for(int t=0;t<int(cfg.tt);t++){
 	
 	//avalanching protocol
-	if(cfg.transport_eq == 2 && cfg.AllowAvalanching == 1){
+	if (cfg.transport_eq == 2 && cfg.AllowAvalanching == 1) {
 		avalanche(); 
 	}
 			
 	auto newb(b);
-	b=oldb;
+	b = oldb;
 
 	return newb;
 }
 
-vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_spec){
+vec bottom::update_flowsep(const vec& ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_spec){
 	/* bottom-update with flow separation */
 
-	for(int i=0;i<Npx;i++) {bss1[i]=S*ub[i];}
-	vec newb(Npx,0.0);
-	vec oldb=b;
+	for (auto i = 0; i < Npx; i++) {
+		bss1[i] = S * ub[i];
+	}
+	vec oldb = b;
 	
-	//int Npsl = (int)ceil(meanstle*5/dx); //needed for x-dependent distribution
-	double depositot =0.;
-	double tobedepositot =0.;
-	double tobedeposi=0.;
-	double depocorrection;
-	double n_depocorrection;
-	int depopoint =0;
-	int smooth1st; 
-	int smoothlast;
-	double smoothdiff;
-	vec deposi(Npx,0.0);
-	//vec distribute(Npsl,0.0);            //needed for x-dependent distribution
+	vec deposi(Npx, 0.0);
 	vec distribute;
-	double alpha_lag1 = 0.;
 		
 	/* determine shear stress distribution over dune */
-	bss2=sep_tau_distr(bss1);
+	bss2 = sep_tau_distr(bss1);
 
 	// op het reattachment point is de bodemschuifspanning gelijk aan de lokale tau_cr.
 	// dit betekent dat er iets fout gaat op het moment dat 2 fsz's mergen en voorheen
@@ -1602,28 +1656,29 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 	// daarom wordt er (tijdelijk) een correctie uitgevoerd op de bodemschuifspanning
 	// door te checken of twee omliggende bss-waarden 0  zijn. De tussenliggende wordt
 	// dan ook op 0 gezet
-	for (int i=0;i<Npx;i++){
-		if (bss2[o2(i-1)]==0 && bss2[o2(i+1)]==0) bss2[i]=0;
+	for (auto i = 0; i < Npx; i++) {
+		if (bss2[o2(i - 1)] == 0 && bss2[o2(i + 1)] == 0)
+			bss2[i] = 0;
 		//cerr<<"bodemschuifspanning op nul t.b.v. merging of fsz zones."<<endl;
 	}
-	for(int i=0;i<Npx;i++){bss2[i]/=S;} //makes it u_bed
-
+	for (auto i = 0; i < Npx; i++) {
+		bss2[i] /= S; //makes it u_bed
+	}
 	// rearrangement of fsz array based on xsi
 	sep_sort_fsz(0);
 
 	/* het uitvoeren van een bodem-update zonder migratie lijzijde */
 
 	/* fluxtot is required for storage */
-	for(int i=0;i<Npx;i++){
-		fluxtot[i]=0.;
+	for (auto i = 0; i < Npx; i++) {
+		fluxtot[i] = 0.0;
 	}
 
 	write_flowsep();
-	
-	if(cfg.alpha_varies==0 && cfg.transport_eq == 2){
-		alpha_lag1=detAlphaLag(ub,cfg.alpha_varies,1);
-		
-		distribute=detDistributeFunc(alpha_lag1,dx);
+
+	if (cfg.alpha_varies == 0 && cfg.transport_eq == 2) {
+		auto alpha_lag1 = detAlphaLag(ub, cfg.alpha_varies, 1);
+		distribute = detDistributeFunc(alpha_lag1, dx);
 	}
 		
 	//if(cfg.alpha_varies==0 && transport_eq == 2) { //needed for x-dependent distribution
@@ -1632,145 +1687,155 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 	//	} //needed for x-dependent distribution
 	//} //needed for x-dependent distribution
 
-	double ep=(1/(1-cfg.epsilonp));
-	for(int t=0;t<int(cfg.tt);t++){  //deze loop zit er in omdat expliciet niet al te grote tijdstappen aankan, moet nog aan getweekt worden.
+	auto ep = 1 / (1 - cfg.epsilonp);
+	for (auto t = 0; t < int(cfg.tt); t++) {  //deze loop zit er in omdat expliciet niet al te grote tijdstappen aankan, moet nog aan getweekt worden.
 
 		detQcr(bss2, q_spec);
 
-		int nfsz=fsz[nf-1];
-		int j=0;
-		int xsi=fsz[j*7+0];
+		auto nfsz=fsz[nf - 1];
+		int j = 0;
+		auto xsi = fsz[j*7+0];
 		
-		if(cfg.transport_eq == 1 || cfg.transport_eq == 3){ //OLAV: 2013 05 22
-		for(int i=0;i<Npx;i++){
+		if (cfg.transport_eq == 1 || cfg.transport_eq == 3) { //OLAV: 2013 05 22
+		for (auto i = 0; i < Npx; i++) {
 			/* see notes on details on this */
-			if (i==xsi){ // OLAV 2013 04 16 (was just i==xsi check)
-				double fluxxsi = flux[o2(xsi+1)];
-				b[xsi]-=ep*dt/cfg.tt/dx*(fluxxsi-flux[xsi])*2.;
-				b[o2(xsi+1)]=oldb[o2(xsi+1)];
+			if (i == xsi) { // OLAV 2013 04 16 (was just i==xsi check)
+				auto fluxxsi = flux[o2(xsi + 1)];
+				b[xsi] -= ep * dt / cfg.tt / dx * (fluxxsi - flux[xsi]) * 2;
+				b[o2(xsi + 1)] = oldb[o2(xsi + 1)];
 				
-				if (j<nfsz) {j++; i++; xsi=fsz[j*7+0];} }
-			else {
-			b[i]-=ep*dt/cfg.tt/dx*(flux[o2(i+1)]-flux[i]);}
+				if (j < nfsz) {
+					j++;
+					i++;
+					xsi = fsz[ j * 7 + 0];
+				}
+			} else {
+				b[i] -= ep * dt / cfg.tt / dx * (flux[o2(i + 1)] -flux[i]);
+			}
 		}
-		for(int i=0;i<Npx;i++){
-			fluxtot[i]+=flux[i]/cfg.tt*ep;
+		for(auto i = 0; i < Npx; i++) {
+			fluxtot[i] += flux[i] / cfg.tt * ep;
 		}
 		
 		} //} //OLAV: 2011 02 28 end if (transport_eq == 1)
 
-	else if(cfg.transport_eq == 2){
-	
-		//START OLAV 2014 01 30
-		//Determine alpha and prepare distribution function if needed 
-		if(cfg.alpha_varies==1 || cfg.alpha_varies == 2){
-			//Determine alpha
-			alpha_lag1=detAlphaLag(bss2,cfg.alpha_varies,t);
-			
-			//Determine distribute function
-			distribute=detDistributeFunc(alpha_lag1,dx);
-		} //end of calculation for alpha and distribution
-		int Npsl = distribute.size();
-		//END OLAV 2014 01 30
-	
-		for(int i=0;i<Npx;i++){
-			depositot = flux[i];    //to keep track of the running total of deposited material
-			tobedepositot = depositot; //the goal value of the total deposited material
-			
-			while(depositot>0){
-				for(int j=0;j<Npsl;j++){
-					tobedeposi=distribute[j]*tobedepositot; //was tobedeposi=distribute[j]*dx*tobedepositot; OLAV 2014 03 17
-					
-					// if(i+j>Npx-1){
-					// depopoint=i+j-Npx;}
-					// }
-					// else{depopoint=i+j;}
-					
-					if(i+j>Npx-1){
-						depopoint=i+j;
-						while (depopoint > Npx-1){
-							depopoint=depopoint-Npx;
+		else if (cfg.transport_eq == 2) {
+
+			//START OLAV 2014 01 30
+			//Determine alpha and prepare distribution function if needed
+			if (cfg.alpha_varies == 1 || cfg.alpha_varies == 2) {
+				//Determine alpha
+				auto alpha_lag1 = detAlphaLag(bss2, cfg.alpha_varies, t);
+				//Determine distribute function
+				distribute = detDistributeFunc(alpha_lag1, dx);
+			} //end of calculation for alpha and distribution
+			int Npsl = distribute.size();
+			//END OLAV 2014 01 30
+
+			for (auto i = 0; i < Npx; i++) {
+				auto depositot = flux[i];    //to keep track of the running total of deposited material
+				auto tobedepositot = depositot; //the goal value of the total deposited material
+
+				while (depositot > 0) {
+					for (auto j = 0; j < Npsl; j++) {
+						auto tobedeposi = distribute[j] * tobedepositot; //was tobedeposi=distribute[j]*dx*tobedepositot; OLAV 2014 03 17
+
+						// if(i+j>Npx-1){
+						// depopoint=i+j-Npx;}
+						// }
+						// else{depopoint=i+j;}
+
+						int depopoint = i + j;
+						while (depopoint > Npx - 1) {
+							depopoint = depopoint - Npx;
 						}
+
+						if (tobedeposi < depositot) {
+							depositot = depositot - tobedeposi;
+						} else {
+							tobedeposi = depositot;
+							depositot=0;
+						}
+
+						deposi[depopoint] += tobedeposi; //correct with i+j and o3/o2?
 					}
-					else{depopoint=i+j;}
-					
-					if(tobedeposi < depositot){depositot=depositot-tobedeposi;}
-					else{tobedeposi=depositot;depositot=0;}
-					
-					deposi[depopoint] += tobedeposi; //correct with i+j and o3/o2? 
+				} // closes while
+			} //closes loop over x
+
+			///*
+			// if (DebugOutput==1 && tijd > 2108){
+
+			// ofstream outdebug;
+			// outdebug.open ("out_debug1.txt", ofstream::out | ofstream::app);
+			// outdebug.precision(6);
+
+			// outdebug << tijd << " ";
+			// for(int i=0;i<Npx;i++){outdebug << S*bss2[i] << " ";}
+			// outdebug << endl;
+			// outdebug << tijd << " ";
+			// for(int i=0;i<Npx;i++){outdebug << flux[i] << " ";}
+			// outdebug << endl;
+			// outdebug << tijd << " ";
+			// for(int i=0;i<Npx;i++){outdebug << deposi[i] << " ";}
+			// outdebug << endl;
+
+			// }//*/
+
+			int depocorrection = 0;
+			int n_depocorrection = 0;
+			int smooth1st = 0;
+			int smoothlast = 0;
+			for (auto i = 0; i < Npx; i++) {
+				//if(flux[i]==0 && deposi[i] > 0){
+				if (flux[i] == 0) {
+
+					if (flux[o2(i - 1)] > 0) {
+						smooth1st = i;
+					} else if (flux[o2(i + 1)] > 0) {
+						smoothlast = i;
+					}
+
+					depocorrection += deposi[i];
+					n_depocorrection++;
 				}
-			} // closes while
-		} //closes loop over x 
-		
-		///*
-		// if (DebugOutput==1 && tijd > 2108){
-	
-		// ofstream outdebug;
-		// outdebug.open ("out_debug1.txt", ofstream::out | ofstream::app);
-		// outdebug.precision(6);
-		
-		// outdebug << tijd << " ";
-		// for(int i=0;i<Npx;i++){outdebug << S*bss2[i] << " ";} 
-		// outdebug << endl;
-		// outdebug << tijd << " ";
-		// for(int i=0;i<Npx;i++){outdebug << flux[i] << " ";}
-		// outdebug << endl;
-		// outdebug << tijd << " ";
-		// for(int i=0;i<Npx;i++){outdebug << deposi[i] << " ";} 
-		// outdebug << endl;
-	
-		// }//*/
-		
-		depocorrection = 0;
-		n_depocorrection = 0;
-		smooth1st =0;
-		smoothlast =0;
-		for(int i=0;i<Npx;i++){
-			//if(flux[i]==0 && deposi[i] > 0){
-			if(flux[i]==0 ){
-			
-				if( flux[o2(i-1)] > 0) {smooth1st=i;}
-				else if( flux[o2(i+1)] > 0){smoothlast=i;}
-								
-				depocorrection += deposi[i];
-				n_depocorrection +=1;
 			}
-		} 
-		
-		/*
+
+			/*
 		for(int i=0;i<Npx;i++){
 			//if(flux[i]==0 && deposi[i] > 0){
 			if(flux[i]==0 ){
 				deposi[i]=depocorrection/n_depocorrection;
 			}
 		} 
-		*/
-		
-		for(int i=0;i<Npx;i++){
-			b[i]-=ep*dt/cfg.tt*cfg.D50*(flux[i]-deposi[i]);
-			//fluxtot[i]+=flux[i]/cfg.tt*ep; //not the real flux! Is pick-up only!
-			deposi[i]=0; 
-		} //closes loop over x	
-		
-		if (cfg.DebugOutput==1 && tijd > 2079){
-			ofstream outdebugbed;
-			outdebugbed.open ("out_debugbed.txt", ofstream::out | ofstream::app);
-			outdebugbed.precision(6);
-		
-			outdebugbed << tijd << " " << smooth1st << " " << smoothlast << " ";
-			for(int i=0;i<Npx;i++){outdebugbed << b[i] << " ";}
-			outdebugbed << endl;
-		}
-		
-		// smoothing protocol
-		/*
+			 */
+
+			for (auto i = 0; i < Npx; i++) {
+				b[i] -= ep * dt / cfg.tt * cfg.D50 * (flux[i] - deposi[i]);
+				//fluxtot[i]+=flux[i]/cfg.tt*ep; //not the real flux! Is pick-up only!
+				deposi[i] = 0;
+			} //closes loop over x
+
+			if (cfg.DebugOutput == 1 && tijd > 2079) {
+				ofstream outdebugbed;
+				outdebugbed.open ("out_debugbed.txt", ofstream::out | ofstream::app);
+				outdebugbed.precision(6);
+
+				outdebugbed << tijd << " " << smooth1st << " " << smoothlast << " ";
+				for (auto i = 0; i < Npx; i++) {
+					outdebugbed << b[i] << " ";
+				}
+				outdebugbed << endl;
+			}
+
+			// smoothing protocol
+			/*
 		smooth_param(5,1); // smooth at xsi
 		smooth_param(5,2); // smooth at xri */
-		
-		/*
+
+			/*
 		int np = 5;
 		int num = 1;
-		
+
 		vec oldbed=bp;
 		int nfsz=fsz[nf-1];
 		int xi;
@@ -1799,8 +1864,8 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 				bp[ii]=sum/double(np);
 			}
 		} */
-		
-		/*
+
+			/*
 		smoothdiff = (1./2.)*(b[smooth1st]-b[o2(smooth1st-1)]);
 		b[o2(smooth1st-6)] += (1./4.)*smoothdiff;
 		b[o2(smooth1st-5)] += (1./4.)*smoothdiff;
@@ -1812,40 +1877,44 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 		b[o2(smooth1st+1)] -= (1./4.)*smoothdiff;
 		b[o2(smooth1st+2)] -= (1./4.)*smoothdiff;
 		b[o2(smooth1st+3)] -= (1./4.)*smoothdiff; */
-		
-		/*
+
+			/*
 		b[o2(smooth1st-2)] += (1./4.)*smoothdiff;
 		b[o2(smooth1st-1)] += (3./4.)*smoothdiff;
 		b[smooth1st]       -= (3./4.)*smoothdiff;
 		b[o2(smooth1st+1)] -= (1./4.)*smoothdiff; */
-		//b[o2(smooth1st+2)] -= (1./2.)*smoothdiff;
-		
-		smoothdiff = (1./2.)*(b[smoothlast]-b[o2(smoothlast+1)]);
-		//b[o2(smoothlast-2)] -= (1./4.)*smoothdiff;
-		b[o2(smoothlast-1)] -= (1./4.)*smoothdiff;
-		b[smoothlast]       -= (3./4.)*smoothdiff;
-		b[o2(smoothlast+1)] += (3./4.)*smoothdiff;
-		b[o2(smoothlast+2)] += (1./4.)*smoothdiff; //*/
-		
-		
-		if (cfg.DebugOutput==1 && tijd > 2108){
-			ofstream outdebugbed;
-			outdebugbed.open ("out_debugbed.txt", ofstream::out | ofstream::app);
-			outdebugbed.precision(6);
-		
-			outdebugbed << tijd << " " << smooth1st << " " << smoothlast << " ";
-			for(int i=0;i<Npx;i++){outdebugbed << b[i] << " ";}
-			outdebugbed << endl;
-		}
-		
-	} //closes else if(transport_eq == 2){
+			//b[o2(smooth1st+2)] -= (1./2.)*smoothdiff;
+
+			auto smoothdiff = 0.5 * (b[smoothlast] - b[o2(smoothlast + 1)]);
+			//b[o2(smoothlast-2)] -= (1./4.)*smoothdiff;
+			b[o2(smoothlast - 1)] -= 0.25 * smoothdiff;
+			b[smoothlast]         -= 0.75 * smoothdiff;
+			b[o2(smoothlast + 1)] += 0.75 * smoothdiff;
+			b[o2(smoothlast + 2)] += 0.75 * smoothdiff; //*/
+
+
+			if (cfg.DebugOutput == 1 && tijd > 2108) {
+				ofstream outdebugbed;
+				outdebugbed.open ("out_debugbed.txt", ofstream::out | ofstream::app);
+				outdebugbed.precision(6);
+
+				outdebugbed << tijd << " " << smooth1st << " " << smoothlast << " ";
+				for (auto i = 0; i < Npx; i++) {
+					outdebugbed << b[i] << " ";
+				}
+				outdebugbed << endl;
+			}
+
+		} //closes else if(transport_eq == 2){
 	} // ends for(int t=0;t<int(cfg.tt);t++)
 
-	for(int i=0;i<Npx;i++){bss2[i]*=S;}
+	for (auto i = 0; i < Npx; i++) {
+		bss2[i] *= S; // JW weer terugzetten
+	}
 	
 	/* uitvoeren migratie van de lij-zijde */
 	if (cfg.transport_eq == 1 || cfg.transport_eq == 3){
-		sep_migr_lee(fluxtot,oldb);
+		sep_migr_lee(fluxtot, oldb);
 	}
 	
 	//avalanching protocol
@@ -1882,15 +1951,13 @@ vec bottom::update_flowsep(vec ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_sp
 		// cerr << "Avalanched in " << npasses << " pass(es) along the bed, adjusting " << npoints << " point(s)." << endl;
 	// }
 
-	newb=b;
-	b=oldb;
+	vec newb(b);
+	b = oldb;
 
 	// rearrangement of fsz array based on xdi for next time step
 	sep_sort_fsz(4);
 
-	
 	write_flowsep();
-	
 
 	return newb;
 }
@@ -1913,36 +1980,39 @@ NB!! still a buggy routine!!
 
 vec bottom::sep_tau_distr(vec tb) {
 
-	int nfsz=fsz[nf-1];
+	const auto nfsz = fsz[nf - 1];
 	
 	cout << endl << endl << "Block VI: bed shear stress" << endl << endl; //OLAV
 
 	/* we gaan eerst xcin opnieuw bepalen, zijnde de maximale downstream bodemschuifspanning */
 	/* NB this is a buggy piece of code!! */
-	for (int j=0;j<nfsz;j++) {
-		int xsi=fsz[j*7+0];
-		int xri=fsz[j*7+1];
-		int xti=fsz[j*7+3];
+	for (auto j = 0; j < nfsz; j++) {
+		const auto xsi = fsz[j * 7 + 0];
+		auto xri = fsz[j * 7 + 1];
+		auto xti = fsz[j * 7 + 3];
 		//dit doen vanaf de volgende trough, rekening houden met periodieke randvoorwaarden:
-		if (xri<xsi) xri+=Npx;
-		if (xti<xsi) xti+=Npx;
+		if (xri < xsi)
+			xri += Npx;
+		if (xti < xsi)
+			xti += Npx;
 		int xcin = 0;
-		int xs=xri;
+		int xs = o3(xri);
 		//int nfp=1;
-		vec ftau(Npx,0.0);
+		vec ftau(tb);
 		//ftau=filter(nfp,tb);
-		ftau=tb;
+		//ftau=tb;
 		//ftau=b;
 		//cerr<<"xs: "<<xs;
-		xs=o3(xs);
+		//xs = o3(xs);
 		//cerr<<" - "<<xs;
-		if (ftau[xs]>ftau[o2(xs+1)]) xs=findTrough(xs,ftau);
+		if (ftau[xs] > ftau[o2(xs+1)])
+			xs = findTrough(xs, ftau);
 		//cerr<<"xri: "<<xri<<"; xs: "<<xs<<";fbed: "<<fbed[o2(o2(xs-1)-1)]<<fbed[o2(xs-1)]<<fbed[xs]<<fbed[o2(xs+1)]<<fbed[o2(o2(xs+1)+1)]<<fbed[3]<<fbed[4]<<endl;
 		//cerr<<" - "<<xs;
-		for(int aa=xs;aa<xs+Npx;aa++){
-			int m = o3(aa);
-			if(ftau[m]>max(ftau[o2(m-1)],ftau[o2(m+1)])){
-				xcin=m;
+		for (auto aa = xs; aa < xs + Npx; aa++){
+			auto m = o3(aa);
+			if(ftau[m] > max(ftau[o2(m - 1)], ftau[o2(m + 1)])){
+				xcin = m;
 				//cerr<<j+1<<": xs: "<<xs<<"; xci_next: "<<xci_next<<endl;
 				//cerr<<"bed: "<<bp[16]<<" : "<<bp[17]<<" : "<<bp[18]<<" : "<<bp[19]<<" : "<<bp[20]<<" : "<<bp[21]<<" : "<<bp[22]<<endl;
 				//cerr<<"m: "<<m<<endl;
@@ -1959,16 +2029,16 @@ vec bottom::sep_tau_distr(vec tb) {
 		while ( bp[xcin] == bp[o2(xcin+1)] ) { xcin++; xcin=o3(xcin);}*/
 
 		//cerr<<"bed: "<<bp[xcin-2]<<" : "<<bp[xcin-1]<<" : "<<bp[xcin]<<" : "<<bp[xcin+1]<<" : "<<bp[xcin+2]<<" : "<<bp[xcin+3]<<" : "<<bp[xcin+4]<<" : "<<bp[xcin+5]<<" : "<<bp[xcin+6]<<endl;
-		fsz[j*7+5]=xcin;
+		fsz[j * 7 + 5] = xcin;
 	}
 
 	/* overige deel met polynoom */
-	for (int j=0;j<nfsz;j++) {
-		//int xsi=fsz[j*7+0];
-		int xri=fsz[j*7+1];
-		//int xci=fsz[j*7+2];
-		//int xti=fsz[j*7+3];
-		int xcin=fsz[j*7+5];
+	for (auto j = 0; j < nfsz; j++) {
+		//int xsi = fsz[j * 7 + 0];
+		auto xri = fsz[j * 7 + 1];
+		//int xci = fsz[j * 7 + 2];
+		//int xti = fsz[j * 7 + 3];
+		auto xcin = fsz[j * 7 + 5];
 
 		/* bepalen van polynoom om tau aan te passen om
 		   numerieke problemen te voorkomen
@@ -1976,18 +2046,19 @@ vec bottom::sep_tau_distr(vec tb) {
 
 //		cerr<<"xci_next: "<<xci_next<<endl;
 //		cerr<<"xti: "<<xti<<endl;
-		int npts;
-		int xendi = xcin;
-		if (xendi<xri){npts = Npx+xendi-(xri-1)+1;}
-		else {npts = xendi-(xri-1)+1;}
-		double Lt = (npts-1)*dx;
+		auto xendi = xcin;
+		auto npts = xendi - (xri - 1) + 1;
+		if (xendi < xri) {
+			npts += Npx;
+		}
+		auto Lt = (npts - 1) * dx;
 
-		double dhdx_x1=(b[o2(xri-1)]-b[o2(o2(xri-1)-1)])/dx;
-		double tauc_x1=cfg.thetacr*cfg.g*(2.65-1.)*cfg.D50*((1.+cfg.l2*dhdx_x1)/(pow(1.+dhdx_x1*dhdx_x1,(1./2.))));
-		double tau_x1 = tauc_x1;
-		double tau_x2 = tb[o2(xendi)];
-		double dtaudx_x1 = 2*(tau_x2-tau_x1)/(Lt);
-		double dtaudx_x2 = (tb[o2(xendi)]-tb[o2(xendi-1)])/(1.*dx);
+		auto dhdx_x1 = (b[o2(xri - 1)] - b[o2(o2(xri - 1) - 1)]) / dx;
+		auto tauc_x1 = cfg.thetacr * cfg.g * (2.65-1.) * cfg.D50 * ((1. + cfg.l2 * dhdx_x1) / (sqrt(1 + dhdx_x1 * dhdx_x1)));
+		auto tau_x1 = tauc_x1;
+		auto tau_x2 = tb[o2(xendi)];
+		auto dtaudx_x1 = 2 * (tau_x2 - tau_x1) / Lt;
+		auto dtaudx_x2 = (tb[o2(xendi)] - tb[o2(xendi - 1)]) / dx;
 		/*
 		cerr<<"xendi: "<<xendi<<endl;
 		cerr<<"x1: "<<x[o2(xri-1)]<<endl;
@@ -2002,20 +2073,21 @@ vec bottom::sep_tau_distr(vec tb) {
 		//cerr<<"tau_b ("<<j+1<<")"<<endl;
 		//cerr<<"tb[xcin-1]: "<<tb[xcin-1]<<"tb[xcin]: "<<tb[xcin]<<endl;
 		//cerr<<"dtaudx_x2: "<<dtaudx_x2<<endl;
-		double p0 = tau_x1;
-		double p1 = dtaudx_x1;
+		auto p0 = tau_x1;
+		auto p1 = dtaudx_x1;
 		//double p2 = (3.*tau_x2-L*(2.*dtaudx_x1+dtaudx_x2))/pow((L),2);
 		//double p3 = -(-L*(dtaudx_x1+dtaudx_x2)+2.*tau_x2)/pow((L),3);
-		double p2 = 3.*(tau_x2-tau_x1)/(Lt*Lt) - (dtaudx_x2 + 2.*dtaudx_x1)/Lt;
-		double p3 = (dtaudx_x2 - 2.*p2*Lt - dtaudx_x1)/(3.*Lt*Lt);
-		vec p(npts,0.0);
-		int k,i;
-		double xx=0.0;
-		int is = xri-1;
-		if (xri==0) is = Npx;
-		for(k=0, i=is; k<npts; k++, i++){
-			p[k]=p3*pow((xx),3)+p2*pow((xx),2)+p1*(xx)+p0;
-			tb[o3(i)]=p[k];
+		auto p2 = 3 * (tau_x2 - tau_x1) / (Lt * Lt) - (dtaudx_x2 + 2 * dtaudx_x1) / Lt;
+		auto p3 = (dtaudx_x2 - 2 * p2 * Lt - dtaudx_x1) / (3 * Lt * Lt);
+		vec p(npts, 0.0);
+		//int k, i;
+		double xx = 0.0;
+		auto is = xri - 1;
+		if (xri == 0)
+			is = Npx;
+		for (auto k = 0, i = is; k < npts; k++, i++) {
+			p[k] = p3 * pow(xx, 3) + p2 * pow(xx, 2) + p1 * xx + p0;
+			tb[o3(i)] = p[k];
 			xx+=dx;
 		}
 		//cerr<<"p ("<<j+1<<")"<<endl;
@@ -2027,15 +2099,18 @@ vec bottom::sep_tau_distr(vec tb) {
 
 
 	/* naar nul zetten */
-	for (int j=0;j<nfsz;j++) {
-		int xsi=fsz[j*7+0];
-		int xri=fsz[j*7+1];
-		int end=xri-1;
-		if (xri<xsi) end+=Npx;
-		for(int i=xsi+1;i<=end;i++)	tb[o3(i)]=0.0;
+	for (auto j = 0; j < nfsz; j++) {
+		const auto xsi = fsz[j * 7 + 0];
+		const auto xri = fsz[j * 7 + 1];
+		auto end = xri - 1;
+		if (xri < xsi)
+			end += Npx;
+		for (auto i = xsi + 1; i <= end; i++)
+			tb[o3(i)] = 0.0;
 	}
 
-	for(int i=0;i<Npx;i++) tb[i]=max(tb[i],0.0);
+	for (auto i = 0; i < Npx; i++)
+		tb[i] = max(tb[i], 0.0);
 
 	return tb;
 }
@@ -2062,8 +2137,8 @@ void bottom::sep_migr_lee(const vec& fluxtot, const vec& oldb) {
 	/* migration of the lee-side */
 
 	//int sepflag=fsz[nf-2];
-	int nfsz=fsz[nf-1];
-	int ntolreset=1;
+	const auto nfsz = fsz[nf - 1];
+	int ntolreset = 1;
 	
 //	//OLAV: added 2011/03/31
 //	ofstream outdebug;
@@ -2071,39 +2146,41 @@ void bottom::sep_migr_lee(const vec& fluxtot, const vec& oldb) {
 //    outdebug.precision(16);
 //    //OLAV: added 2011/03/31
 
-	for (int j=0;j<nfsz;j++) {
-		cerr<<j+1<<": bepaling migratie lij-zijde per loslaatzone"<<endl;
-		
+	for (auto j = 0; j < nfsz; j++) {
+		cerr << j + 1 << ": bepaling migratie lij-zijde per loslaatzone" << endl;
+
 		cout << endl << endl << "Block VII: migration lee side" << endl << endl;
-		
-		int	xsi=fsz[j*7+0];
-		int	xti=fsz[j*7+3];
-		double DH=b[xsi]-b[xti];
-		cerr<<j+1<<": DH="<<DH<<endl;
+
+		const auto xsi = fsz[j * 7 + 0];
+		const auto xti = fsz[j * 7 + 3];
+		double DH =b[xsi] - b[xti];
+		cerr << j + 1 << ": DH=" << DH << endl;
 		//double Ss=fluxtot[xsi]*dt-dt/dx*(fluxtot[xsi]-fluxtot[o2(xsi-1)]);
-		double Ss=dt*(fluxtot[o2(xsi+1)]);
-		Ss-=Sr[j];
-		cerr<<"fluxtot[xsi="<<o2(xsi+1)<<"]: "<<fluxtot[o2(xsi+1)]*dt<<"; fluxtot[xsi+1="<<o2(o2(xsi+1)+1)<<"]: "<<fluxtot[o2(o2(xsi+1)+1)]*dt<<"; Sround_prev"<<Sr[j]<<endl;
+		auto Ss = dt * (fluxtot[o2(xsi + 1)]);
+		Ss -= Sr[j];
+		cerr << "fluxtot[xsi=" << o2(xsi + 1) << "]: " << fluxtot[o2(xsi + 1)] * dt
+				<<  "; fluxtot[xsi+1=" << o2(o2(xsi + 1) + 1) << "]: " << fluxtot[o2(o2(xsi + 1) + 1)] * dt
+				<< "; Sround_prev" << Sr[j] << endl;
 
-		vec rp(2,0.0);
-		double xsep=x[xsi];
-		double ysep=b[xsi];
-		double Npxcorr=pow(2.,round(log(double(Npx)/120.)/log(2.)));
+		vec rp(2, 0.0);
+		auto xsep = x[xsi];
+		auto ysep = b[xsi];
+		auto Npxcorr = pow(2., round(log(double(Npx) / 120.) / log(2.)));
 
-		double step=pow(2.,-2.)*Npxcorr*dx;  // has to be multiple of dx!! ,e.g. dx/(2^3). or dx*2.
-		double xdown=xsep;
-		double itol=1e-6;
-		double tol=itol;
+		auto step = pow(2.,-2.) * Npxcorr * dx;  // has to be multiple of dx!! ,e.g. dx/(2^3). or dx*2.
+		auto xdown = xsep;
+		auto itol = 1e-6;
+		auto tol = itol;
 		// double repose=-30.;
 		// recalculate to r.c.'s
-		double repose1=tan(cfg.repose);
-		double b1 = repose1;
-		double b2 = ysep;
+		auto repose1 = tan(cfg.repose);
+		auto b1 = repose1;
+		auto b2 = ysep;
 		int dir = 1;  // 1 = left2right; 2 = right2left
-		int max_it  = 100;
+		int max_it = 100;
 		int teller = 0;
 		float area;
-		double Sdif=100.;
+		double Sdif = 100.;
 
 		/*
 		ofstream outpolyarea;
@@ -2116,111 +2193,119 @@ void bottom::sep_migr_lee(const vec& fluxtot, const vec& oldb) {
 
 		vec b_prev = b;
 		b[xsi] = oldb[xsi];
-		double xrr=DH/-repose1;
+		auto xrr = DH / -repose1;
 
-		if (fluxtot[o2(xsi+1)]>0. && Ss>0.) {
+		if (fluxtot[o2(xsi + 1)] > 0. && Ss > 0.) {
 
-			while(fabs(Sdif)>tol && teller<max_it){
-				xdown+=step;
+			while (fabs(Sdif) > tol && teller < max_it) {
+				xdown += step;
 				teller++;
-				
-				rp=crossPoint_migrlee(xdown,xdown+1.2*xrr,max_it,dir,b1,b2,tol,xsi,j+1);
-				
+
+				rp = crossPoint_migrlee(xdown, xdown + 1.2 * xrr, max_it, dir, b1, b2, tol, xsi, j + 1);
+
 				cout << endl << "Block VII: crosspoint migrlee exited" << endl << endl; //OLAV
-				
+
 				//cerr << 1 << " " ;// OLAV 2011-03-30
-				
-				int npts=(int(ceil((rp[0]-xsep)/step)+1.)*2-2)*2;
-				vec xarr(npts,0.0);
-				vec yarr(npts,0.0);
-				vec nb(4,0.0);
-				xarr[0]=xsep; yarr[0]=ysep;
-				xarr[npts-1]=xsep;
-				if (oldb[xsi]<ysep) {yarr[npts-1]=oldb[xsi];} // dit is dus de bodem uit de vorige tijdstap
-				else {yarr[npts-1]=ysep;}
+
+				auto npts= (int(ceil((rp[0] - xsep) / step) + 1) * 2 - 2) * 2;
+				vec xarr(npts, 0.0);
+				vec yarr(npts, 0.0);
+				xarr[0] = xsep;
+				yarr[0] = ysep;
+				xarr[npts - 1] = xsep;
+				if (oldb[xsi] < ysep) {
+					yarr[npts - 1] = oldb[xsi]; // dit is dus de bodem uit de vorige tijdstap
+				} else {
+					yarr[npts-1] = ysep;
+				}
 				double xval;
 				double xloc=xsep;
-				
-				//cerr << 2 << " " ;// OLAV 2011-03-30
-				
-				
-//				if (tijd >= tend){
-//                         outdebug << endl << tijd << " Volume blabla "; //OLAV: added 2011/03/31
-//                         cerr << 4 << " " ;// OLAV 2011-03-30
-//                         }
 
-				for(int i=1;i<npts-2;i=i+2){
+				//cerr << 2 << " " ;// OLAV 2011-03-30
+
+
+				//				if (tijd >= tend){
+				//                         outdebug << endl << tijd << " Volume blabla "; //OLAV: added 2011/03/31
+				//                         cerr << 4 << " " ;// OLAV 2011-03-30
+				//                         }
+
+				for (auto i = 1; i < npts - 2; i += 2) {
 
 					/* setup arrays for determination of volume */
-					if (i<npts/2-2){
-						xloc+=step;}
-					else if (i==npts/2-1){
-						xloc=rp[0];}
-					else if (i==npts/2+1){
-						xloc=xarr[i-3];}
-					else if (i>npts/2+1){
-						xloc-=step;
+					if (i < npts / 2 - 2) {
+						xloc += step;
+					} else if (i == npts / 2 -1) {
+						xloc = rp[0];
+					} else if (i == npts / 2 + 1){
+						xloc = xarr[i - 3];
+					} else if (i > npts / 2 + 1) {
+						xloc -= step;
 					} // if
 
-					xarr[i]=xloc;
-					xarr[i+1]=xloc;
+					xarr[i] = xloc;
+					xarr[i+1] = xloc;
 
-					if (i<npts/2){
-						if (xloc<=xdown) {
-							yarr[i]=ysep;}
-						else {
-							yarr[i]=(xloc-xdown)*b1+b2;
+					if (i < npts / 2){
+						if (xloc <= xdown) {
+							yarr[i] = ysep;
+						} else {
+							yarr[i] = (xloc - xdown) * b1 + b2;
 						} // if
-						xval=xarr[i+1];
-   					    nb=paramFindNeighbors(xval,xsi);
-						if (nb[1]<xval) {
-							nb[0]+=Npx*dx;
-							nb[1]+=Npx*dx;
+						xval = xarr[i + 1];
+						auto nb = paramFindNeighbors(xval, xsi);
+						if (nb[1] < xval) {
+							nb[0] += Npx * dx;
+							nb[1] += Npx * dx;
 						} // if
-						yarr[i+1] = ((nb[1]-xval)*nb[2]+(xval-nb[0])*nb[3])/(nb[1]-nb[0]);
+						yarr[i + 1] = ((nb[1] - xval) * nb[2] + (xval - nb[0]) * nb[3]) / (nb[1] - nb[0]);
 					} // if (i<npts/2)
 
-					if (yarr[i]<yarr[i+1]) yarr[i]=yarr[i+1];
-					else{
-						if (xloc<=xdown) {
-							yarr[i+1]=ysep;}
+					if (yarr[i] < yarr[i + 1])
+						yarr[i] = yarr[i + 1];
+					else {
+						if (xloc <= xdown) {
+							yarr[i + 1]=ysep;}
 						else {
-							yarr[i+1]=(xloc-xdown)*b1+b2;
+							yarr[i + 1] = (xloc - xdown) * b1 + b2;
 						} // if
-						xval=xarr[i];
-   					nb=paramFindNeighbors(xval,xsi);
-						if (nb[1]<xval) {
-							nb[0]+=Npx*dx;
-							nb[1]+=Npx*dx;
-							}
-						yarr[i] = ((nb[1]-xval)*nb[2]+(xval-nb[0])*nb[3])/(nb[1]-nb[0]);
+						xval = xarr[i];
+						auto nb = paramFindNeighbors(xval, xsi);
+						if (nb[1] < xval) {
+							nb[0] += Npx * dx;
+							nb[1] += Npx * dx;
+						}
+						yarr[i] = ((nb[1] - xval) * nb[2] + (xval - nb[0]) * nb[3]) / (nb[1] - nb[0]);
 					}
-					if (yarr[i+1]<yarr[i]) yarr[i+1]=yarr[i];
+					if (yarr[i + 1] < yarr[i])
+						yarr[i + 1] = yarr[i];
 				} // for
-				
+
 				//cerr << 3 << " " ;// OLAV 2011-03-30
-				
+
 				cout << endl << "Block VII: migrlee for finished--" << endl << endl; //OLAV
 
-               /* determination of volume */
-				area = area2D_Polygon( npts, xarr, yarr );
-				
+				/* determination of volume */
+				area = area2D_Polygon( npts, xarr, yarr);
+
 				cout << endl << "Block VII: migrlee area finished" << endl << endl; //OLAV
-				
-				Sdif=(area-Ss);
+
+				Sdif = area - Ss;
 				//cerr<<"teller: "<<teller<<"; xdown = "<<xdown<<"; rp = "<<rp<<endl;
 				cout << endl << "Block VII: migrlee Sdif finished" << endl << endl; //OLAV
 
-				if (teller>max_it) {
+				if (teller > max_it) {
 					/* no appropriate volume found */
-					tol=itol+ntolreset*itol;
-					cerr<<"   WARNING: [j="<<j+1<<"] tolerance reset to "<<tol<<" (area="<<area<<")"<<endl;
-					outlog<<"T="<<tijd<<" - WARNING: [j="<<j+1<<"] tolerance reset to "<<tol<<" (area="<<area<<")"<<endl;
-					ntolreset+=1;
-					xdown=xsep; step=dx; teller=1; Sdif=100.;
+					tol = itol + ntolreset * itol;
+					cerr << "   WARNING: [j=" << j + 1 << "] tolerance reset to " << tol << " (area=" << area << ")" << endl;
+					outlog << "T=" << tijd << " - WARNING: [j=" << j + 1 << "] tolerance reset to " << tol << " (area=" << area << ")" << endl;
+					ntolreset++;
+					xdown = xsep;
+					step = dx;
+					teller = 1;
+					Sdif = 100.;
 				}
 
-				if (fabs(Sdif)<tol || teller==max_it){
+				if (fabs(Sdif) < tol || teller == max_it) {
 					/* solution (appropriate volume) found */
 					/*
 					outpolyarea<<tijd<<" "<<npts<<" ";
@@ -2228,15 +2313,14 @@ void bottom::sep_migr_lee(const vec& fluxtot, const vec& oldb) {
 					for(int i=0;i<yarr.size();i++) outpolyarea<<yarr[i]<<" ";
 					outpolyarea<<endl;
 					outproglee<<tijd<<" "<<sepflag<<" "<<nfsz<<" "<<j<<" "<<teller<<" "<<Ss<<" "<<area<<" "<<Sdif<<" ";//endl;
-					*/
-				}
-				else if (area>Ss){
+					 */
+				} else if (area > Ss) {
 					/* sediment volume to large, go step back, making "step" smaller */
-					xdown=xdown-step;
-					step/=2;
+					xdown -= step;
+					step /= 2;
 				}
 
-                cout << endl << "Block VII: migrlee ifs are done" << endl << endl; //OLAV
+				cout << endl << "Block VII: migrlee ifs are done" << endl << endl; //OLAV
 
 				//if (tijd==690. && j+1==1){
 				//	cerr<<"Ss = "<<Ss<<"; area = "<<area<<"; Sdif = "<<Sdif<<"; step="<<step<<"; npts="<<npts<<endl;
@@ -2249,63 +2333,62 @@ void bottom::sep_migr_lee(const vec& fluxtot, const vec& oldb) {
 
 			/* when we come here, the distance to migrate the lee-side is found */
 
-			cerr<<"teller = "<<teller<<"; Ss = "<<Ss<<"; area = "<<area<<"; Sdif = "<<Sdif;
+			cerr << "teller = " << teller << "; Ss = " << Ss << "; area = " << area << "; Sdif = " << Sdif;
 			b = b_prev;
 
 			/* eerst worden er een aantal karakteristieken van xdown bepaald */
 			int xdi = 0;
-			vec nb(4,0.0);
-			double xdown_grid;
-			nb = paramFindNeighbors(xdown,xsi);
-			xdown_grid = nb[0];
-			for (int i=0;i<Npx;i++){
-				if ( x[i]==xdown_grid ) {
-					xdi = i;}
+			auto nb = paramFindNeighbors(xdown, xsi);
+			auto xdown_grid = nb[0];
+			for (auto i = 0; i < Npx; i++) {
+				if (x[i] == xdown_grid) {
+					xdi = i;
+				}
 			}
 
 			/* en vervolgens van het punt waar lij-zijde bodem raakt */
 			int leerpi = 0;
-			double leerp_grid;
-			double leerp = rp[0];
-			if (leerp>Npx*dx) leerp-=Npx*dx;
-			nb = paramFindNeighbors(leerp,xdi);
-			leerp_grid = nb[0];//dit moet altijd de linker buurman zijn
-			for (int i=0;i<Npx;i++){
-				if ( x[i]==leerp_grid ) {
-					leerpi = i;}
+			auto leerp = rp[0];
+			if (leerp > Npx * dx)
+				leerp -= Npx * dx;
+			nb = paramFindNeighbors(leerp, xdi);
+			auto leerp_grid = nb[0];//dit moet altijd de linker buurman zijn
+			for (auto i = 0; i < Npx; i++) {
+				if (x[i] == leerp_grid) {
+					leerpi = i;
+				}
 			}
 
 			/* setting of the lee-side, interpolated to grid */
-			double xx=xsep;
-			if (leerpi<xsi) leerpi+=Npx;
-			for (int i=xsi;i<=leerpi;i++){
-				if (xx<=xdown) {b[o3(i)]=ysep;}
-				else {
-					double val = (xx-xdown)*b1+b2;
-					b[o3(i)]=val;}
-					//cerr<<leerpi<<" "<<i<<" "<<xx<<" "<<xdown<<" "<<(xx-xdown)<<" "<<b[o3(i)]<<endl;
-				xx+=dx;
+			auto xx = xsep;
+			if (leerpi < xsi)
+				leerpi += Npx;
+			for (auto i = xsi; i <= leerpi; i++) {
+				if (xx <= xdown) {
+					b[o3(i)] = ysep;
+				} else {
+					b[o3(i)] = (xx - xdown) * b1 + b2;
+				}
+				//cerr<<leerpi<<" "<<i<<" "<<xx<<" "<<xdown<<" "<<(xx-xdown)<<" "<<b[o3(i)]<<endl;
+				xx += dx;
 			}
 
 			/* due to numerical grid, rounding errors are made, which can explicitely be computed
 			   these are separated in 3 areas: A,B&C. See notes on this
 			   errors are corrected for in the next time step */
-			double Sround = 0.0;
-			//double chiA = 0.0;
-			double chiB = 0.0;
-			double chiC = 0.0;
-			double A = 0.0;
-			double B = 0.0;
-			double C = 0.0;
-			double xd = xdown; if (xdown>=L) xd-=L;
-			double rp0 = rp[0]; if (rp[0]>=L) rp0-=L;
-			A -= (1./2.)*(dx+xd-(x[o3(xdi)]+dx))*(ysep-b[o2(o3(xdi+1))]);
-			chiB = (b[o3(leerpi)]-b[o3(leerpi+1)])*(x[o3(leerpi)]+dx-rp0)/dx - (rp[1]-b[o3(leerpi+1)]);
-			B = (1./2.)*chiB*dx;
-			double xtemp = x[o3(leerpi)];
-			chiC = rp[1]- ( (xtemp+dx-rp0)*oldb[o3(leerpi)] + (rp0-xtemp)*oldb[o3(leerpi+1)] )/dx;
-			C = (1./2.)*chiC*dx;
-			Sround=B+A+C;
+			auto xd = xdown;
+			if (xdown >= L)
+				xd -= L;
+			auto rp0 = rp[0];
+			if (rp[0] >= L)
+				rp0 -= L;
+			auto A = -0.5 * (dx + xd - (x[o3(xdi)] + dx)) * (ysep - b[o2(o3(xdi + 1))]);
+			auto chiB = (b[o3(leerpi)] - b[o3(leerpi + 1)]) * (x[o3(leerpi)] + dx - rp0) / dx - (rp[1] - b[o3(leerpi + 1)]);
+			auto B = 0.5 * chiB * dx;
+			auto xtemp = x[o3(leerpi)];
+			auto chiC = rp[1] - ( (xtemp + dx - rp0) * oldb[o3(leerpi)] + (rp0 - xtemp) * oldb[o3(leerpi + 1)]) / dx;
+			auto C = 0.5 * chiC * dx;
+			auto Sround = B + A + C;
 
 			/*
 	 		xtemp = x[o3(xdi)];
@@ -2318,26 +2401,25 @@ void bottom::sep_migr_lee(const vec& fluxtot, const vec& oldb) {
 			outproglee<<xtemp<<" "<<rp0<<" "<<xtemp+dx<<" "<<xtemp<<" "<<ytemp<<" "<<rp[1]<<" "<<b[o3(leerpi+1)]<<" "<<ytemp<<" "<<C<<" ";
 			*/
 
-			cerr<<"; Sround + Sdif = "<<Sround+Sdif<<endl;
+			cerr << "; Sround + Sdif = " << Sround + Sdif << endl;
 
 			/* store some parameters */
 			//outproglee<<Sround<<endl;	outproglee.close();
-			fsz[j*7+4]=xdi;
-			Sr[j]=Sround+Sdif;
+			fsz[j * 7 + 4] = xdi;
+			Sr[j] = Sround + Sdif;
 
 		} //if (fluxtot[o2(xsi+1)]>0.)
 
 		else {
 			/* this is the case when tau is below critical over entire stoss-side */
-			fsz[j*7+4]=fsz[j*7+0]; // op xsi zetten, niets doen
-			fsz[j*7+6]=5; // case 5 identifier
-			if (fluxtot[o2(xsi+1)]<=0.) {
-				cerr<<"   WARNING: [j="<<j+1<<"] tau below critical over entire stoss-side; nothing done."<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: [j="<<j+1<<"] tau below critical over entire stoss-side; nothing done."<<endl;
-			}
-			else if (Ss < 0.) {
-				cerr<<"   WARNING: [j="<<j+1<<"] Ss < 0 due to low sediment transport; nothing done."<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: [j="<<j+1<<"] Ss < 0 due to low sediment transport; nothing done."<<endl;
+			fsz[j * 7 + 4] = fsz[j * 7 + 0]; // op xsi zetten, niets doen
+			fsz[j * 7 + 6] = 5; // case 5 identifier
+			if (fluxtot[o2(xsi + 1)] <= 0) {
+				cerr << "   WARNING: [j=" << j + 1 << "] tau below critical over entire stoss-side; nothing done." << endl;
+				outlog << "T=" << tijd << " - WARNING: [j=" << j + 1 << "] tau below critical over entire stoss-side; nothing done." << endl;
+			} else if (Ss < 0) {
+				cerr << "   WARNING: [j=" << j + 1 << "] Ss < 0 due to low sediment transport; nothing done." << endl;
+				outlog << "T=" << tijd << " - WARNING: [j=" << j + 1 << "] Ss < 0 due to low sediment transport; nothing done." << endl;
 			}
 		}
 
@@ -2356,85 +2438,85 @@ void bottom::sep_migr_lee(const vec& fluxtot, const vec& oldb) {
 }
 
 vec bottom::crossPoint_migrlee(double xl_in, double xr_in, int max_it, int dir, double b1, double b2, double tol, int xi, int j) const {
-  vec rp(2,0.0);
-	vec nb(4,0.0);
-	dir=1; max_it=150;
+	vec rp(2,0.0);
+	//vec nb(4,0.0);
+	dir = 1; // JW raar , input parameters worden overschreven
+	max_it = 150;
 	double x_p = 0.0;
-	double xl=xl_in;
-	double xr=xr_in;
+	auto xl = xl_in;
+	auto xr = xr_in;
 	double x_p_bed;
-	double fac=1;
-	int pr_dir=dir;
+	double fac = 1;
+	auto pr_dir = dir;
 
 	//cout << endl << endl << "Block VII: crosspoint migrlee start" << endl << endl; //OLAV
 
 
-  for(int k=1;k<=max_it;k++){
+	for (auto k = 1; k <= max_it; k++) {
 		// 1 = left2right; 2 = right2left
 
 		/* toegevoegd op 23/4/2007 */
-    if (k>1 && x_p<=xl_in) {
-				//cerr<<"aap"<<endl;
-				x_p=xr_in;
-				dir=1;
-				pr_dir=dir;
-				fac*=2;
-				}
+		if (k > 1 && x_p <= xl_in) {
+			//cerr<<"aap"<<endl;
+			x_p = xr_in;
+			dir = 1;
+			pr_dir = dir;
+			fac *= 2;
+		}
 
-		if (dir==2){
-     	x_p = xr - dx/fac;}
-		else{
-     	x_p = xl + dx/fac;
-    } // if
-    // find neighboring points of the bed
-    nb=paramFindNeighbors(x_p,xi);
+		if (dir == 2) {
+			x_p = xr - dx / fac;}
+		else {
+			x_p = xl + dx / fac;
+		} // if
+		// find neighboring points of the bed
+		auto nb = paramFindNeighbors(x_p,xi);
 		x_p_bed = x_p;
-		if (x_p>=Npx*dx || x_p==L) x_p_bed = x_p-Npx*dx;
-		double y1 = ((nb[1]-x_p_bed)*nb[2]+(x_p_bed-nb[0])*nb[3])/(nb[1]-nb[0]);
-    double xx=x_p-xl_in;
-    double y2 = b1*xx + b2; // height of -30 degrees line
+		if (x_p >= Npx * dx || x_p == L)
+			x_p_bed = x_p - Npx * dx;
+		double y1 = ((nb[1] - x_p_bed) * nb[2] +(x_p_bed - nb[0]) * nb[3]) / (nb[1] - nb[0]);
+		double xx = x_p - xl_in;
+		double y2 = b1 * xx + b2; // height of -30 degrees line
 
-		if (nb[2]==0 && nb[3]==0) {
-			cerr<<"   WARNING: [j="<<j<<"] neighbor points not found correctly!:"<<endl;
-			outlog<<"T="<<tijd<<" - WARNING: [j="<<j<<"] neighbor points not found correctly!:"<<endl;
-			cerr<<"x_p="<<x_p<<"; xi="<<xi<<endl;
-			cerr<<"Npx*dx="<<Npx*dx<<endl;
-			cerr<<nb[0]<<" "<<nb[1]<<" "<<nb[2]<<" "<<nb[3]<<endl;
-			cerr<<k<<" "<<dir<<" "<<xl_in<<" "<<x_p<<" "<<y1<<" "<<y2<<" "<<xx<<" "<<abs(y2-y1)<<endl;
+		if (nb[2] == 0 && nb[3] == 0) {
+			cerr << "   WARNING: [j=" << j << "] neighbor points not found correctly!:" << endl;
+			outlog << "T=" << tijd << " - WARNING: [j=" << j << "] neighbor points not found correctly!:" << endl;
+			cerr << "x_p=" << x_p << "; xi=" << xi << endl;
+			cerr << "Npx*dx=" << Npx * dx << endl;
+			cerr << nb[0] << " " << nb[1] << " " << nb[2] << " " << nb[3] << endl;
+			cerr << k << " " << dir << " " << xl_in << " " << x_p << " " << y1 << " " << y2 << " " << xx << " " << abs(y2 - y1) << endl;
 		}
 
 
-   	if (abs(y2-y1) <= tol || abs(y2-y1) == 0 || k==max_it){
+		if (abs(y2 - y1) <= tol || abs(y2 - y1) == 0 || k == max_it) {
 
-     	rp[0]=x_p;
-     	rp[1]=y2;
+			rp[0] = x_p;
+			rp[1] = y2;
 
-     	if (k==max_it) {
+			if (k == max_it) {
 				/* no point found */
-				cerr<<"   WARNING: [j="<<j<<"] no cross-point found to determine migration lee-side! restarting by exiting with xl...!"<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: [j="<<j<<"] no cross-point found to determine migration lee-side! restarting by exiting with xl...!"<<endl;
-				rp[0]=xl_in;
-				rp[1]=-999.;
-				cerr<<"xl_in: "<<xl_in<<"xr_in: "<<xr_in<<endl;
-				cerr<<nb[0]<<" "<<nb[1]<<" "<<nb[2]<<" "<<nb[3]<<endl;
-				cerr<<k<<" "<<dir<<" "<<xl_in<<" "<<x_p<<" "<<y1<<" "<<y2<<" "<<xx<<" "<<abs(y2-y1)<<endl;
-				break;
-      }
-     	else {
-				break;
+				cerr << "   WARNING: [j=" << j << "] no cross-point found to determine migration lee-side! restarting by exiting with xl...!" << endl;
+				outlog << "T=" << tijd << " - WARNING: [j=" << j << "] no cross-point found to determine migration lee-side! restarting by exiting with xl...!" << endl;
+				rp[0] = xl_in;
+				rp[1] = -999.;
+				cerr << "xl_in: " << xl_in << "xr_in: " << xr_in << endl;
+				cerr << nb[0] << " " << nb[1] << " " << nb[2] << " " << nb[3] << endl;
+				cerr << k << " " << dir << " " << xl_in << " " << x_p << " " << y1 << " " << y2 << " " << xx << " " << abs(y2 - y1) << endl;
 			}
+			break;
 
-		}
-   	else{
+		} else {
 			/* next iteration */
-      if (y2 > y1){
-       	dir     = 1;  // left2right
-       	xl  = x_p;}
-      else{
-       	dir     = 2;  // right2left
-       	xr = x_p;}
-      if (dir!=pr_dir) fac*=2; // for interation to solution
-			pr_dir=dir;
+			if (y2 > y1) {
+				dir = 1;  // left2right
+				xl = x_p;
+			} else {
+				dir = 2;  // right2left
+				xr = x_p;
+			}
+			if (dir != pr_dir)
+				fac *= 2; // for interation to solution
+			pr_dir = dir;
 		}
 		//if ((tijd==690. && j==1)){
 		//		cerr<<k<<" "<<dir<<" "<<xl_in<<" "<<x_p<<" "<<y1<<" "<<y2<<" "<<xx<<" "<<abs(y2-y1)<<" "<<nb[0]<<" "<<nb[1]<<" "<<nb[2]<<" "<<nb[3]<<endl;
@@ -2447,18 +2529,18 @@ vec bottom::crossPoint_migrlee(double xl_in, double xr_in, int max_it, int dir, 
 }
 
 double bottom::area2D_Polygon(int n, const vec& xarr, const vec& yarr) const {
-// area2D_Polygon(): computes the area of a 2D polygon
-// see: http://softsurfer.com/Archive/algorithm_0101/algorithm_0101.htm#area2D_polygon()
-    double area = 0;
-    //int   i, j, k;     // indices
+	// area2D_Polygon(): computes the area of a 2D polygon
+	// see: http://softsurfer.com/Archive/algorithm_0101/algorithm_0101.htm#area2D_polygon()
+	double area = 0;
 
-    cout << endl << "Block VII: area started" << endl << endl; //OLAV
+	cout << endl << "Block VII: area started" << endl << endl; //OLAV
 
-    for (int i=1, j=2, k=0; i<n; i=i+2, j=j+2, k=k+2) {
-		if (j==n) j=0;
-        area += fabs(xarr[i]-xarr[k]) * fabs(yarr[j] - yarr[i]);
-    }
-    return area / 2.0;
+	for (auto i = 1, j = 2, k = 0; i < n; i += 2, j += 2, k += 2) {
+		if (j == n)
+			j=0;
+		area += fabs(xarr[i] - xarr[k]) * fabs(yarr[j] - yarr[i]);
+	}
+	return area / 2.0;
 }
 
 /*
@@ -2477,12 +2559,10 @@ NB both don't work correctly yet.
 vec bottom::detNd(const vec& bot) const {
 	/* without fast fourier transform */
 
-	vec Dc(3,0.0);
 	// create temporary arrays to store positions
-	vector<int> tpos_temp(Npx/2,0); //NB: Npx moet even zijn
-	vector<int> cpos_temp(Npx/2,0); //NB: Npx moet even zijn
-	vec botf(Npx,0.0);
-	botf=filter(9,bot);
+	vector<int> tpos_temp(Npx/2, 0); //NB: Npx moet even zijn
+	vector<int> cpos_temp(Npx/2, 0); //NB: Npx moet even zijn
+	auto botf = filter(9, bot);
 
 	//ofstream outtemp("out_temp.txt");
 	//outtemp.precision(10);
@@ -2490,77 +2570,99 @@ vec bottom::detNd(const vec& bot) const {
 	
 	cout << endl << endl << "Block VIII: dune char" << endl << endl; //OLAV
 
-	int Nd = 0; int stop=0; int pos=Npx-1;
+	int Nd = 0;
+	auto pos = Npx - 1;
 	int pos_t1 = 0; // position of first trough from right.
-	for (int m=Npx-1; m>=0; m--){
-		if (botf[m]<min(botf[o2(m-1)],botf[o2(m+1)])) {pos_t1=m; break;}
+	for (auto m = Npx - 1; m >= 0; m--) {
+		if (botf[m] < min(botf[o2(m - 1)], botf[o2(m + 1)])) {
+			pos_t1 = m;
+			break;
+		}
 	}
 	//cerr<<"pos first trough: "<<pos_t1<<" - "<<endl;
-	while(stop==0) {
+	int stop = 0;
+	while (stop == 0) {
 		//find Trough
-		for (int i=pos; i>pos-Npx; i--){
-			int m=i; if (i<0) m=i+Npx;
+		for (auto i = pos; i > pos - Npx; i--) {
+			auto m = i;
+			if (i < 0)
+				m = i + Npx;
 			//if (botf[m]<min(botf[o2(m-1)],botf[o2(m+1)])) {pos=m;
-			if (botf[m]<min(botf[o2(m-1)],botf[o2(m+1)]) && botf[m]!=botf[o2(m-1)]) {
-				pos=m;
+			if (botf[m] < min(botf[o2(m - 1)], botf[o2(m + 1)]) && botf[m] != botf[o2(m - 1)]) {
+				pos = m;
 				break;
 			}
 		}
 		//cerr<<"pos trough: "<<pos;
-		tpos_temp[Nd]=pos;
-		if (pos==pos_t1 && Nd>0) {stop = 1; break; cerr<<endl;}
+		tpos_temp[Nd] = pos;
+		if (pos == pos_t1 && Nd > 0) {
+			stop = 1;
+			break;
+			cerr << endl;
+		}
 		//find crest
-		for (int i=pos; i>pos-Npx; i--){
-			int m=i; if (i<0) m=i+Npx;
+		for (auto i = pos; i > pos - Npx; i--) {
+			auto m = i;
+			if (i < 0)
+				m = i + Npx;
 			//if (botf[m]>max(botf[o2(m-1)],botf[o2(m+1)]) | (botf[m]==botf[o2(m-1)] && botf[m]==botf[o2(m+1)]) ) {
-			if (botf[m]>max(botf[o2(m-1)],botf[o2(m+1)]) && botf[m]!=botf[o2(m-1)] ) {
-				pos=m;
+			if (botf[m] > max(botf[o2(m - 1)], botf[o2(m + 1)]) && botf[m] != botf[o2(m - 1)]) {
+				pos = m;
 				break;
 			}
 		}
 		//cerr<<"pos crest: "<<pos<<endl;
-		cpos_temp[Nd]=pos;
+		cpos_temp[Nd] = pos;
 		Nd++;
-		if (Nd>Npx) {
-			cerr<<"   WARNING: detNd gaat nog niet helemaal ok"<<endl; Nd=Npx;
-			outlog<<"T="<<tijd<<" - WARNING: detNd gaat nog niet helemaal ok"<<endl; Nd=Npx;
+		if (Nd > Npx) {
+			cerr << "   WARNING: detNd gaat nog niet helemaal ok" << endl;
+			outlog << "T=" << tijd << " - WARNING: detNd gaat nog niet helemaal ok" << endl;
+			Nd = Npx;
 			break;
 		}
 	}
 
 	// store real positions in array of correct dimension
-	vector<int> tpos(Nd,0);
-	vector<int> cpos(Nd,0);
-	for (int i=0; i<Nd; i++){
-		tpos[i]=tpos_temp[i];
-		cpos[i]=cpos_temp[i];
+	vector<int> tpos(Nd, 0);
+	vector<int> cpos(Nd, 0);
+	for (auto i = 0; i < Nd; i++) {
+		tpos[i] = tpos_temp[i];
+		cpos[i] = cpos_temp[i];
 	}
 	//cerr<<"troughs: "; for (int i=0; i<Nd; i++){cerr<<tpos[i]<<" ";} cerr<<endl;
 	//cerr<<"crests:  "; for (int i=0; i<Nd; i++){cerr<<cpos[i]<<" ";} cerr<<endl;
 
 	//store La and Ha arrays
-	vec Ha(Nd,0.0);
-	vec La(Nd,0.0);
-	for (int i=0; i<Nd; i++){
-		int tposi=tpos[i];
-		int cposi=cpos[i];
-		Ha[i]=b[cposi]-b[tposi];
-		int il=i+1; if(i==Nd-1) il=0;
-		int tposil=tpos[il];
-		if (tposi<tposil) tposi+=Npx;
+	vec Ha(Nd, 0.0);
+	vec La(Nd, 0.0);
+	for (auto i = 0; i < Nd; i++) {
+		auto tposi = tpos[i];
+		auto cposi = cpos[i];
+		Ha[i] = b[cposi] - b[tposi];
+		int il = i + 1;
+		if (i == Nd - 1)
+			il = 0;
+		auto tposil = tpos[il];
+		if (tposi < tposil)
+			tposi += Npx;
 		//cerr<<tposil<<" "<<tposi<<endl;
-		double val=double(tposi-tposil)*dx;
-		if (val>0) {La[i]=val;} else {La[i]=L;}
+		auto val = (tposi - tposil) * dx;
+		if (val > 0) {
+			La[i] = val;
+		} else {
+			La[i] = L;
+		}
 	}
 	//cerr<<"La: "; for (int i=0; i<Nd; i++){cerr<<La[i]<<" ";} cerr<<endl;
 	//cerr<<"Ha: "; for (int i=0; i<Nd; i++){cerr<<Ha[i]<<" ";} cerr<<endl;
-	double Lav=meanval(La,Nd);
-	double Hav=meanval(Ha,Nd);
+	auto Lav = meanval(La, Nd);
+	auto Hav = meanval(Ha, Nd);
 	//cerr<<"Lav: "<<Lav<<endl;
 	//cerr<<"detNd Hav: "<<Hav<<endl; // OLAV 2014 03 31
-	Dc[0]=Nd; Dc[1]=Lav; Dc[2]=Hav;
+	//vec Dc(3,0.0);
+	//Dc[0]=Nd; Dc[1]=Lav; Dc[2]=Hav;
 
-	return Dc;
+	return (vec) {(double)Nd, Lav, Hav};
 }
 
 vec bottom::detNd_fft(const vec& bot, int fftnum __attribute__((unused))) const {
