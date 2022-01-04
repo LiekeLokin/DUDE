@@ -129,7 +129,7 @@ Config::Config(const std::string& path) {
 			ASSIGNDOUBLE(SimpleLengthFactor);
 			ASSIGNINT(numStab);
 			ASSIGNINT(Hifactor);
-			ASSIGNDOUBLE(Minfactor);
+			ASSIGNINT(Minfactor);
 			ASSIGNDOUBLE(Hcrit_global);
 			ASSIGNINT(transport_eq);
 			ASSIGNINT(alpha_varies);
