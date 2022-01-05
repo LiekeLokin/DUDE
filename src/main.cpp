@@ -534,8 +534,8 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 		//L=Hi/10+Lstep*(p+1);  //2013 1 31: OLAV (was L=Hi/10+Lstep*(p);)
 		//L=Hi/numStab+Lstep*(p); //2012 09 17: OLAV (was with /10., now with numStab)
 		//L=Hi*5+Lstep*(p); //2012 09 17: OLAV test
-//		L=H*minfactor+Lstep*(p);  //OLAV: changed 2014 01 31 was L=Hi*5+Lstep*(p);
-		L=Lmin+Lstep*(p);
+		L=H*cfg.Minfactor+Lstep*(p);  //OLAV: changed 2014 01 31 was L=Hi*5+Lstep*(p);
+//		L=Lmin+Lstep*(p);
 		dx=L/cfg.Npx;
 
 		cerr<<p<<" "<<L<<" "<<H<<" "<<dx<<endl;
