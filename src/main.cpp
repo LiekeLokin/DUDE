@@ -12,6 +12,7 @@
 #include "FlowConfig.h"
 #include <ctime>
 #include <cstring>
+#include <cassert>
 
 using namespace std;
 
@@ -252,6 +253,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	std::strftime(buf, sizeof(buf), "%a %Y-%b-%d %H:%M:%S", &ts);
   	outlog<<"Simulation started at "<<buf<<endl;
 
+	auto myH = cfg.H0;
 	for(int i=iinit1;i<=cfg.tend/dt;i++){ // 40 minutes
 		
 		if (!cfg.readfw.empty()) {
@@ -261,7 +263,8 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
         //Hdiff=(H-H0)/H0;
 
 		// TODO: Hdiff moet eigenlijk het verschil in waterdiepte met de laatste keer dat stabanalysis is gedaan zijn, en niet de vergelijkin met de beginwaarde
-		const auto Hdiff=abs((H-cfg.H0)/cfg.H0); //equals 0 when exactly the same, 1 when the difference is 100%
+
+		const auto Hdiff=abs((H-myH)/myH); //equals 0 when exactly the same, 1 when the difference is 100%
 		const auto Hcrit = cfg.Hcrit_global;
 		cerr<<"Hdiff = " <<Hdiff <<" (Hcrit = "<<Hcrit<<")"<<endl;
 
@@ -275,6 +278,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		   if ( (i==iinit1&&cfg.readbed.empty()) || doStab==1) {
 			  outlog<<"T="<<tijd<<" - WARNING: Stability Analysis. (Hdiff="<<Hdiff<<")"<<endl;
 			  doStabAnalysis(stabWrite, H2O, sand, q_in, cfg);
+			  myH = H;
 			  dt=cfg.dtr; // reset, stab analysis uses dt=dts
 			  stabWrite=0;
 //			  const auto Hstab = H;
@@ -295,6 +299,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	        dt=cfg.dtr;
 			doStab=0;
         }
+		assert(doStab==0);
 
 		//q_in=qa[i];
 	  	
@@ -460,8 +465,10 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	  	write_teller+=1;
 
 	  	if(Hav<2.*ampbeds) {
-	  		sand.setSin(ampbeds,1);
-	  		cerr<<"Hav very low, bed set to initial disturbance."<<endl<<endl;
+	  		cerr<<"Dune height very low: " << Hav <<" , bailing out."<<endl<<endl;
+	  		break;
+	  		//sand.setSin(ampbeds,1);
+	  		//cerr<<"Hav very low, bed set to initial disturbance."<<endl<<endl;
 	  	}
 	}
 	
