@@ -463,12 +463,14 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	  	cerr<<"bodem ge update met (L2) : "<<norm<<" tot (L2) : "<<L2(next)<<endl<<endl;
 
 	  	write_teller+=1;
-
 	  	if(Hav<2.*ampbeds) {
+#if 0
 	  		cerr<<"Dune height very low: " << Hav <<" , bailing out."<<endl<<endl;
 	  		break;
-	  		//sand.setSin(ampbeds,1);
-	  		//cerr<<"Hav very low, bed set to initial disturbance."<<endl<<endl;
+#else
+	  		sand.setSin(ampbeds,1);
+	  		cerr<<"Hav very low, bed set to initial disturbance."<<endl<<endl;
+#endif
 	  	}
 	}
 	
@@ -554,12 +556,19 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 			cerr<<"H = "<<H<<"m"<<endl;
 		}
 		H2O.u_b(ubed);
-		newbed=sand.update(ubed,dump1,dump2,dump3);
+#if 1
+		auto& mySand = sand;
+#else
+		const BedConfig bcfg(cfg);
+		bottom mySand(bcfg);
+		mySand.setSin(ampbeds, 1);
+#endif
+		newbed=mySand.update(ubed,dump1,dump2,dump3);
 		//TODO LL: Kijken welke modus groeit (fourier analyse)
 		double gri=(1/dt)*log(maxval(newbed)/ampbeds);
 		//TODO LL: double gri = sand.detGrow()
 		cerr<<"gri: "<<gri<<endl;
-		double mig=sand.detMigr(bedstab,newbed);
+		double mig=mySand.detMigr(bedstab,newbed);
 		cerr<<"mig: "<<mig<<endl<<endl;
 		
 		//cerr<<"ik kom hier p= " << p << endl;  //OLAV 2011 2 22 TEST
