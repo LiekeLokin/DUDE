@@ -374,7 +374,7 @@ void bottom::checkFlowsep(){
 //    outdebug.close();
 
 
-	cout << endl << endl << "Block II: check for flow sep" << endl << endl; //OLAV
+	//cout << endl << endl << "Block II: check for flow sep" << endl << endl; //OLAV
 	
 	/* determination of bed gradients dhdx */
 	vec dhdx(Npx,0.0);
@@ -429,7 +429,7 @@ void bottom::checkFlowsep(){
 			col+=7;
 			//col=col+skipped*7;
 			
-			cerr << nfsz << " " << xsi << " " << col << " " << nfsz1 << endl;
+			//cerr << nfsz << " " << xsi << " " << col << " " << nfsz1 << endl;
 			
 			cerr<<"checkFlowsep case 1 met i_in: "<<i<<endl;
 			cerr<<"checkFlowsep case 1 met xsi_in: "<<xsi<<" - nfsz_in: "<<nfsz<< " - wavelet_in: " << wavelet<<endl;
@@ -860,7 +860,7 @@ int bottom::paramSepline(int xsi, int xti, int xci, int nfsz){
 	int pt=xsi;
 	while ((*b)[pt]==(*b)[o2(pt-1)]){// && (*b)[o2(xsi-1)]!=(*b)[o2(o2(xsi-1)-1)]){
 		pt=o2(pt-1);
-		cerr<<"pt-- voor param. sepline dhdx bepaling"<<endl;
+		//cerr<<"pt-- voor param. sepline dhdx bepaling"<<endl;
 	}
 
 	// 11-08-2006: TODO: dit kan ook meer dan 1 punt moeten zijn!! (dus een while)
@@ -2126,7 +2126,7 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 				
 				rp=crossPoint_migrlee(xdown,xdown+1.2*xrr,max_it,dir,b1,b2,tol,xsi,j+1);
 				
-				cout << endl << "Block VII: crosspoint migrlee exited" << endl << endl; //OLAV
+				//cout << endl << "Block VII: crosspoint migrlee exited" << endl << endl; //OLAV
 				
 				//cerr << 1 << " " ;// OLAV 2011-03-30
 				
@@ -2200,16 +2200,16 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 				
 				//cerr << 3 << " " ;// OLAV 2011-03-30
 				
-				cout << endl << "Block VII: migrlee for finished--" << endl << endl; //OLAV
+				//cout << endl << "Block VII: migrlee for finished--" << endl << endl; //OLAV
 
                /* determination of volume */
 				area = area2D_Polygon( npts, xarr, yarr );
 				
-				cout << endl << "Block VII: migrlee area finished" << endl << endl; //OLAV
+				//cout << endl << "Block VII: migrlee area finished" << endl << endl; //OLAV
 				
 				Sdif=(area-Ss);
 				//cerr<<"teller: "<<teller<<"; xdown = "<<xdown<<"; rp = "<<rp<<endl;
-				cout << endl << "Block VII: migrlee Sdif finished" << endl << endl; //OLAV
+				//cout << endl << "Block VII: migrlee Sdif finished" << endl << endl; //OLAV
 
 				if (teller>max_it) {
 					/* no appropriate volume found */
@@ -2236,7 +2236,7 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 					step/=2;
 				}
 
-                cout << endl << "Block VII: migrlee ifs are done" << endl << endl; //OLAV
+                //cout << endl << "Block VII: migrlee ifs are done" << endl << endl; //OLAV
 
 				//if (tijd==690. && j+1==1){
 				//	cerr<<"Ss = "<<Ss<<"; area = "<<area<<"; Sdif = "<<Sdif<<"; step="<<step<<"; npts="<<npts<<endl;
@@ -2245,11 +2245,11 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 				/* sediment volume does not fit yet... continue */
 			}   //while(fabs(Sdif)>tol)
 			
-			cout << endl << "Block VII: migrlee while is done" << endl << endl; //OLAV
+			//cout << endl << "Block VII: migrlee while is done" << endl << endl; //OLAV
 
 			/* when we come here, the distance to migrate the lee-side is found */
 
-			cerr<<"teller = "<<teller<<"; Ss = "<<Ss<<"; area = "<<area<<"; Sdif = "<<Sdif;
+			cerr<<"INFO: teller = "<<teller<<"; Ss = "<<Ss<<"; area = "<<area<<"; Sdif = "<<Sdif;
 			(*b) = b_prev;
 
 			/* eerst worden er een aantal karakteristieken van xdown bepaald */
@@ -2435,7 +2435,7 @@ vec bottom::crossPoint_migrlee(double xl_in, double xr_in, int max_it, int dir, 
 		//}
 	} // for
 
-  	cout << endl << "Block VII: crosspoint migrlee end" << endl << endl; //OLAV
+  	//cout << endl << "Block VII: crosspoint migrlee end" << endl << endl; //OLAV
 
 	return rp;
 }
@@ -2446,7 +2446,7 @@ double bottom::area2D_Polygon(int n, vec xarr, vec yarr ){
     double area = 0;
     int   i, j, k;     // indices
 
-    cout << endl << "Block VII: area started" << endl << endl; //OLAV
+    //cout << endl << "Block VII: area started" << endl << endl; //OLAV
 
     for (int i=1, j=2, k=0; i<n; i=i+2, j=j+2, k=k+2) {
 		if (j==n) j=0;
@@ -2482,7 +2482,7 @@ vec bottom::detNd(vec bot){
 	//outtemp.precision(10);
 	//outtemp<<botf<<endl;
 	
-	cout << endl << endl << "Block VIII: dune char" << endl << endl; //OLAV
+	//cout << endl << endl << "Block VIII: dune char" << endl << endl; //OLAV
 
 	int Nd = 0; int stop=0; int pos=Npx-1;
 	int pos_t1 = 0; // position of first trough from right.
@@ -2566,7 +2566,7 @@ vec bottom::detNd_fft(vec bot, int fftnum){
 	vector<int> tpos_temp(Npx/2,0); //NB: Npx moet even zijn
 	vector<int> cpos_temp(Npx/2,0); //NB: Npx moet even zijn
 	
-	cout << endl << endl << "Block VIII: dune char FFT" << endl << endl; //OLAV
+	//cout << endl << endl << "Block VIII: dune char FFT" << endl << endl; //OLAV
 
 	botf=fftBed(bot,2);
 	//botf=filter(31,botf);
@@ -2732,7 +2732,7 @@ vec bottom::fftBed(vec bed, int fftnum) {
 	fft dft(Npx);
 
 
-cout << endl << endl << "Block VIII: dune char fft bed" << endl << endl; //OLAV
+	//cout << endl << endl << "Block VIII: dune char fft bed" << endl << endl; //OLAV
 
 	//for(int i=0;i<Npx;i++) outlog<<bed[i]<<" "; outlog<<endl;
 

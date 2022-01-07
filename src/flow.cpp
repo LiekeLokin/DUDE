@@ -314,7 +314,7 @@ int flow::solve_gm(vec bottom_state,int gmn){
 		residu=gmres(x0,rhs,crA,*prLU,gmn);
 		gmrestel++;
 	}
-	if(gmrestel>0) cerr<<"part 1, gmres restarted "<<gmrestel<<" times"<<endl;
+	//if(gmrestel>0) cerr<<"part 1, gmres restarted "<<gmrestel<<" times"<<endl;
 	if(gmrestel>2){
 		cerr<<"  WARNING: solve_gm, part 1, gmrestel="<<gmrestel<<endl;
 		cerr<<"  now routine SOLVE called"<<endl;
@@ -345,7 +345,7 @@ int flow::solve_gm(vec bottom_state,int gmn){
 			residu=gmres(x0,rhs,crA,*prLU,gmn);
 			gmrestel++;
 		}
-		if(gmrestel>0) cerr<<"part 2, gmres restarted "<<gmrestel<<" times"<<endl;
+		//if(gmrestel>0) cerr<<"part 2, gmres restarted "<<gmrestel<<" times"<<endl;
 		if(gmrestel>2){
 			cerr<<"  WARNING.. solve_gm, part 2, gmrestel="<<gmrestel<<endl;
 			cerr<<"  now routine SOLVE called"<<endl;
@@ -387,7 +387,7 @@ int flow::solve(vec bottom_state){
 	//lu.bf(*b);
 	vulu();
 	teller++;
-	cerr<<"Newton "<<teller<<", L2: "<<L2(*b)<<endl;
+	//cerr<<"Newton "<<teller<<", L2: "<<L2(*b)<<endl;
 	while(L2(*b)>cfg.tresh&&teller<cfg.max_it){
 		det_AvS(bottom_state);
 		vulb();
@@ -397,8 +397,10 @@ int flow::solve(vec bottom_state){
 		//lu.bf(*b);
 		vulu();
 		teller++;
-		cerr<<"Newton "<<teller<<", L2: "<<L2(*b)<<endl;
+		//cerr<<"Newton "<<teller<<", L2: "<<L2(*b)<<endl;
 	}
+	if (teller == cfg.max_it)
+		cerr << "WARNING: Newton: teller=" << teller << ", L2=" << L2(*b) << "(> " << cfg.tresh << ")" << endl;
 	return teller;
 }
 

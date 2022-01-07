@@ -1,6 +1,7 @@
 // main.cpp
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <vector>
 #include "bottom.h"
@@ -27,7 +28,7 @@ double tijd;
 double Av;
 double S;
 
-void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, const Config& cfg);
+void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& cfg);
 void doCheckQsp(vec bedflow, flow& H2O, const double& q_in, const Config& cfg);
 void setS_Av(const Config& cfg);
 
@@ -221,7 +222,6 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 
 	int write_teller = int(cfg.dt_write/dt);
 	int cor=1; if (cfg.dt_write==dt) cor=0;
-	int stabWrite=1; // this is set to zero if initial results is written to file
 	/* OLD STUFF, WRITTEN BEFORE OLAV AND SULEYMAN
 	// THIS PIECE FOR FLOODWAVE SIMULATION
 	// read floodwave
@@ -272,15 +272,15 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		if (Hdiff>=Hcrit ) doStab=1; //OLAV: 2011 02 21 changed from 
         //if (Hdiff>=1.+Hcrit) doStab=1;
         
+		auto updateMyH = false;
 		/* start with initial stability analysis, or if H is sufficiently changed */
 		//if ( (i==iinit1&&readbed1==0) | doStab==1 | i==1000) { // OLAV TEST 2011 2 23
 		if (cfg.SimpleLength==0) { // OLAV 2012 09 06: added simple length implementation
 		   if ( (i==iinit1&&cfg.readbed.empty()) || doStab==1) {
 			  outlog<<"T="<<tijd<<" - WARNING: Stability Analysis. (Hdiff="<<Hdiff<<")"<<endl;
-			  doStabAnalysis(stabWrite, H2O, sand, q_in, cfg);
-			  myH = H;
+			  doStabAnalysis(H2O, sand, q_in, cfg);
+			  updateMyH = true;
 			  dt=cfg.dtr; // reset, stab analysis uses dt=dts
-			  stabWrite=0;
 //			  const auto Hstab = H;
 			  //OLAV: 2013 02 06 added doStab=0;
 			  doStab=0; 
@@ -357,6 +357,8 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		doCheckQsp(bedflow, H2O, q_in, cfg);
 		vec u0_b(cfg.Npx);
 		H2O.u_b(u0_b);
+		if (updateMyH)
+			myH = H;
 		
 		//cerr << "current: " << current[0] << " bedflow: " << bedflow[0] << endl; //OLAV 2014 03 31
 
@@ -517,7 +519,7 @@ double maxval(const vec& vinp) {
 	return nm;
 }
 
-void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, const Config& cfg){
+void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& cfg){
 	int num=cfg.numStab; int cols=4;
 	// JW vector<vector<double> > dta(num+1,cols);
 	vector<vector<double> > dta(num+1,vector<double>(cols));
@@ -547,7 +549,7 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 //		L=Lmin+Lstep*(p);
 		dx=L/cfg.Npx;
 
-		cerr<<p<<" "<<L<<" "<<H<<" "<<dx<<endl;
+		//cerr<<p<<" "<<L<<" "<<H<<" "<<dx<<endl;
 		setS_Av(cfg);
 		H2O.resetIu();
 		H2O.solve(bedstab);
@@ -556,7 +558,7 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 			cerr<<"H = "<<H<<"m"<<endl;
 		}
 		H2O.u_b(ubed);
-#if 1
+#if 0
 		auto& mySand = sand;
 #else
 		const BedConfig bcfg(cfg);
@@ -567,33 +569,14 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 		//TODO LL: Kijken welke modus groeit (fourier analyse)
 		double gri=(1/dt)*log(maxval(newbed)/ampbeds);
 		//TODO LL: double gri = sand.detGrow()
-		cerr<<"gri: "<<gri<<endl;
+		//cerr<<"gri: "<<gri<<endl;
 		double mig=mySand.detMigr(bedstab,newbed);
-		cerr<<"mig: "<<mig<<endl<<endl;
+		//cerr<<"mig: "<<mig<<endl<<endl;
 		
 		//cerr<<"ik kom hier p= " << p << endl;  //OLAV 2011 2 22 TEST
+		cerr<<p<<" "<<L<<" "<<gri<<endl;
 		dta[p][0]=L; dta[p][1]=H; dta[p][2]=gri; dta[p][3]=mig;
 	}
-	
-	//cerr<<"ik kom hier 1" << endl;  //OLAV 2011 2 22 TEST
-	
-	if (stabWrite == 1) {
-		ofstream outstab("out_stab.out");
-		outstab.precision(16);
-		for (int j = 0; j <= num; j++)
-			outstab << dta[j][0] << " " << dta[j][1] << " " << dta[j][2] << " "
-					<< dta[j][3] << endl;
-		outstab.close();
-	} else {
-		ofstream outstab("out_stab_during.out");
-		outstab.precision(16);
-		for (int j = 0; j <= num; j++)
-			outstab << dta[j][0] << " " << dta[j][1] << " " << dta[j][2] << " "
-					<< dta[j][3] << endl;
-		outstab.close();
-	}
-	
-    //cerr<<"ik kom hier 2" << endl;  //OLAV 2011 2 22 TEST
 	
 	double gr = -999;
 	int row = 0;
@@ -627,6 +610,23 @@ void doStabAnalysis(int stabWrite, flow& H2O, bottom& sand, const double& q_in, 
 	cerr<<"Finished the stability analysis"<<endl<<endl;
 	cerr<<"L = "<<L<<endl;
 	cerr<<"H = "<<H<<endl;
+
+	static int seq;
+	seq++;
+	ostringstream oss;
+	oss << "out_stab" << seq << ".out";
+	ofstream outstab(oss.str());
+	//outstab.precision(16);
+	const auto w = 15;
+	if (row == 0 || row > num)
+		outstab << "# !! WARNING no real maximum";
+	outstab << endl;
+	outstab << "# t=" << tijd << " row=" << row << " L=" << L << " grow=" << gr << endl << endl;
+	outstab << "#" << setw(w-1) << "L" << setw(w) << "H" << setw(w) << "grow" << setw(w) << "migr" << endl;
+	for (int j = 0; j <= num; j++)
+		outstab << setw(w) << dta[j][0] << setw(w) << dta[j][1]
+				<< setw(w) << dta[j][2] << setw(w) << dta[j][3] << endl;
+	outstab.close();
 }
 
 void doCheckQsp(vec bedflow, flow& H2O, const double& q_in, const Config& cfg){
@@ -637,7 +637,7 @@ void doCheckQsp(vec bedflow, flow& H2O, const double& q_in, const Config& cfg){
 	//double q_tol=1e-3;//1e-3; HIER KUN JE DE WATEROPPLAATSING UITZETTEN!!!!!!!!
 	double q_dif=q_sp-q_in;
 	int q_tel=0;
-	cerr<<"q_dif = " <<q_dif<<" (q_in = "<<q_in<<")"<<endl;
+	//cerr<<"q_dif = " <<q_dif<<" (q_in = "<<q_in<<")"<<endl;
 	while (fabs(q_dif)>q_tol){
 		if (q_tel==0) {
 			outlog<<"T="<<tijd<<" - WARNING: water depth changed to ensure constant discharge."<<endl;
@@ -654,9 +654,10 @@ void doCheckQsp(vec bedflow, flow& H2O, const double& q_in, const Config& cfg){
 		if (n_it_fl==-1) H2O.solve(bedflow);
 		q_sp=H2O.check_qsp();
 		q_dif=q_sp-q_in;
-		cerr<<"q_dif = " <<q_dif<<" (q_in = "<<q_in<<")"<<endl;
-		cerr<<"recheck of specific discharge: "<<q_sp<<endl;
+		//cerr<<"q_dif = " <<q_dif<<" (q_in = "<<q_in<<")"<<endl;
 	}
+	if (qtel > 0)
+		cerr<<q_tel<<" rechecks of specific discharge: q_dif="<<q_dif<<endl;
 }
 
 void setS_Av(const Config& cfg){
