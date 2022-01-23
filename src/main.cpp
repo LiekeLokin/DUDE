@@ -254,6 +254,8 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
   	outlog<<"Simulation started at "<<buf<<endl;
 
 	auto myH = cfg.H0;
+	auto oldL = L;
+	auto Lstab = L;
 	for(int i=iinit1;i<=cfg.tend/dt;i++){ // 40 minutes
 		
 		if (!cfg.readfw.empty()) {
@@ -278,13 +280,21 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		if (cfg.SimpleLength==0) { // OLAV 2012 09 06: added simple length implementation
 		   if ( (i==iinit1&&cfg.readbed.empty()) || doStab==1) {
 			  outlog<<"T="<<tijd<<" - WARNING: Stability Analysis. (Hdiff="<<Hdiff<<")"<<endl;
+			  oldL = L;
 			  doStabAnalysis(H2O, sand, q_in, cfg);
+			  Lstab = L;
 			  updateMyH = true;
 			  dt=cfg.dtr; // reset, stab analysis uses dt=dts
 //			  const auto Hstab = H;
 			  //OLAV: 2013 02 06 added doStab=0;
 			  doStab=0; 
-			  }
+		   }
+		   if (i == iinit1 && cfg.readbed.empty()) {
+			   L = Lstab;
+		   } else if (std::abs(oldL / Lstab - 1) > 0.01) {
+			   L = oldL + 0.01 * (Lstab - oldL);
+		   }
+		   dx = L / cfg.Npx;
          }
         else if (cfg.SimpleLength==1) {
 			//L=1.6;
@@ -656,7 +666,7 @@ void doCheckQsp(vec bedflow, flow& H2O, const double& q_in, const Config& cfg){
 		q_dif=q_sp-q_in;
 		//cerr<<"q_dif = " <<q_dif<<" (q_in = "<<q_in<<")"<<endl;
 	}
-	if (qtel > 0)
+	if (q_tel > 0)
 		cerr<<q_tel<<" rechecks of specific discharge: q_dif="<<q_dif<<endl;
 }
 
