@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
 	REPORT(theta_min_S);
 	REPORT(theta_max_S);
 	REPORT(H_ref);
-	REPORT(keepsgrowing);
+//	REPORT(keepsgrowing);
 
 }
 

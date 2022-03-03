@@ -2,6 +2,7 @@
 
 #include "flow.h"
 #include "admin.h"
+#include "Logging.h"
 #include <fstream>
 #include <cstdlib>
 
@@ -65,20 +66,24 @@ void flow::reprec(){
 int flow::o(int j_ex,int i_ex,int v) const {
 	/*geeft het adres van component a, van var. v bij x is i en z is j*/
 	int j,i = 0;
-	if(v==1)cerr<<"w staat niet op de kaart !!!"<<endl;
+	//if(v==1)cerr<<"w staat niet op de kaart !!!"<<endl;
+	if(v==1)DUDE_LOG(error)<<"w staat niet op de kaart !!!";
 	if(v==2){
-		if(j_ex!=0)cout<<"zeta te hoog gegrepen"<<endl;
+		//if(j_ex!=0)cout<<"zeta te hoog gegrepen"<<endl;
+		if(j_ex!=0)DUDE_LOG(error)<<"zeta te hoog gegrepen";
 		j=0;
 		v=1;
 	}
 	else j=j_ex;
-	if(j<0||j>=Npz)cout<<"j mag natuurlijk geen "<<j<<"zijn"<<endl;
+	//if(j<0||j>=Npz)cout<<"j mag natuurlijk geen "<<j<<"zijn"<<endl;
+	if(j<0||j>=Npz)DUDE_LOG(error)<<"j mag natuurlijk geen "<<j<<"zijn";
 	if(i_ex>=0&&i_ex<Npx)i=i_ex;
 	else{
 		if(i_ex==-1)i=Npx-1;
 		else{
 			if(i_ex==Npx)i=0;
-			else cout<<"Te groot "<<i_ex<<" , "<<j<<endl;
+			//else cout<<"Te groot "<<i_ex<<" , "<<j<<endl;
+			else DUDE_LOG(error)<<"Te groot "<<i_ex<<" , "<<j;
 		}
 	}
 	return int(i*(Npz+1)+j+v*Npz);
@@ -316,9 +321,10 @@ int flow::solve_gm(vec bottom_state,int gmn){
 	}
 	//if(gmrestel>0) cerr<<"part 1, gmres restarted "<<gmrestel<<" times"<<endl;
 	if(gmrestel>2){
-		cerr<<"  WARNING: solve_gm, part 1, gmrestel="<<gmrestel<<endl;
-		cerr<<"  now routine SOLVE called"<<endl;
-		outlog<<"T="<<tijd<<" - WARNING: gmrestel="<<gmrestel<<" in solve_gm, part 1; routine solve is called!"<<endl;
+		DUDE_LOG(warning) << "solve_gm, part 1, " << SHOW_VAR(gmrestel) << "calling SOLVE";
+		//cerr<<"  WARNING: solve_gm, part 1, gmrestel="<<gmrestel<<endl;
+		//cerr<<"  now routine SOLVE called"<<endl;
+		//outlog<<"T="<<tijd<<" - WARNING: gmrestel="<<gmrestel<<" in solve_gm, part 1; routine solve is called!"<<endl;
 		delete prLU;
 		//prLU=new crLU(A->LU());
 		//prLU->bf(*b);
@@ -347,9 +353,10 @@ int flow::solve_gm(vec bottom_state,int gmn){
 		}
 		//if(gmrestel>0) cerr<<"part 2, gmres restarted "<<gmrestel<<" times"<<endl;
 		if(gmrestel>2){
-			cerr<<"  WARNING.. solve_gm, part 2, gmrestel="<<gmrestel<<endl;
-			cerr<<"  now routine SOLVE called"<<endl;
-			outlog<<"T="<<tijd<<" - WARNING: gmrestel="<<gmrestel<<" in solve_gm, part 2; routine solve is called!"<<endl;
+			DUDE_LOG(warning) << "solve_gm, part 2, " << SHOW_VAR(gmrestel) << "calling SOLVE";
+			//cerr<<"  WARNING.. solve_gm, part 2, gmrestel="<<gmrestel<<endl;
+			//cerr<<"  now routine SOLVE called"<<endl;
+			//outlog<<"T="<<tijd<<" - WARNING: gmrestel="<<gmrestel<<" in solve_gm, part 2; routine solve is called!"<<endl;
 			delete prLU;
 			//prLU=new crLU(A->LU());
 			//prLU->bf(*b);
@@ -365,9 +372,10 @@ int flow::solve_gm(vec bottom_state,int gmn){
 		teller++;
 	}
 	if (resid>gmtresh){
-		cerr<<"  WARNING: solve_gm residu > threshold, residu="<<resid<<endl;
-		cerr<<"  now routine SOLVE called"<<endl;
-		outlog<<"T="<<tijd<<" - WARNING: solve_gm residu > threshold, residu="<<resid<<endl;
+		DUDE_LOG(warning) << "solve_gm, " << SHOW_VAR(resid) << "> " << SHOW_VAR(gmtresh) << "calling SOLVE";
+		//cerr<<"  WARNING: solve_gm residu > threshold, residu="<<resid<<endl;
+		//cerr<<"  now routine SOLVE called"<<endl;
+		//outlog<<"T="<<tijd<<" - WARNING: solve_gm residu > threshold, residu="<<resid<<endl;
 		teller=-1;
 	}
 	return teller;
@@ -400,7 +408,8 @@ int flow::solve(vec bottom_state){
 		//cerr<<"Newton "<<teller<<", L2: "<<L2(*b)<<endl;
 	}
 	if (teller == cfg.max_it)
-		cerr << "WARNING: Newton: teller=" << teller << ", L2=" << L2(*b) << "(> " << cfg.tresh << ")" << endl;
+		DUDE_LOG(warning) << "Newton: teller=" << teller << ", L2=" << L2(*b) << "(> " << cfg.tresh << ")";
+		//cerr << "WARNING: Newton: teller=" << teller << ", L2=" << L2(*b) << "(> " << cfg.tresh << ")" << endl;
 	return teller;
 }
 

@@ -3,8 +3,10 @@
 #include "bottom.h"
 #include "admin.h"
 #include "fft.h"
+#include "Logging.h"
 #include <iomanip>
 #include <fstream>
+#include <iostream> //JW: should go
 
 using namespace std;
 using namespace admin;
@@ -41,9 +43,10 @@ int bottom::o3(int i_in) const {
 	 	{return i_uit;} // alleen dan return (want dan 0<=i<Npx)
 	 					// zoniet print error
 	else {
-		cerr<<"  ERROR: o3() buffer overflow (i_in="<<i_in<<"; i_uit="<<i_uit<<")"<<endl;
-		cout<<"T="<<tijd<<" - ERROR: o3() buffer overflow (i_in="<<i_in<<"; i_uit="<<i_uit<<")"<<endl;
-        return i_uit;
+		DUDE_LOG(error) << "o3() buffer overflow (i_in="<<i_in<<"; i_uit="<<i_uit<<")";
+		//cerr<<"  ERROR: o3() buffer overflow (i_in="<<i_in<<"; i_uit="<<i_uit<<")"<<endl;
+		//cout<<"T="<<tijd<<" - ERROR: o3() buffer overflow (i_in="<<i_in<<"; i_uit="<<i_uit<<")"<<endl;
+		return i_uit;
 	}
 }
 
@@ -124,14 +127,14 @@ void bottom::setWave(int xwi, int xcin){
 	double H2 = x_trough*tanalpha;
 
 	//for(int i=0;i<x_wave.size();i++)cerr<<x_wave[i]<<" "; cerr<<endl<<endl;
-	cerr<<"Npx_wave="<<Npx_wave<<endl;
+	DUDE_LOG(info)<<"Npx_wave="<<Npx_wave;
 	/*
 	cerr<<"xtrough="<<x_trough;
 	cerr<<"xcrest="<<x_crest;
 	cerr<<"H2="<<H2<<endl;
 	*/
 
-	outlog<<"T="<<tijd<<" -          Npx_wave: "<<Npx_wave<<endl;
+	//outlog<<"T="<<tijd<<" -          Npx_wave: "<<Npx_wave<<endl;
 
 	//slope of leeside
 	double slope_lee = tanalpha;
@@ -244,7 +247,8 @@ vec bottom::readBottomInp(const std::string& readbed){
 	double dump; int sep;	double tijd; double wd; double Lin;
 	ifstream in1(readbed);
 	if (!in1) {
-		std::cerr << "ERROR: Can't open bed file: " << readbed << std::endl;
+		DUDE_LOG(fatal) << "Can't open bed file: " << readbed;
+		//std::cerr << "ERROR: Can't open bed file: " << readbed << std::endl;
 		std::exit(1);
 	}
 	
@@ -273,7 +277,7 @@ vec bottom::readBottomInp(const std::string& readbed){
 	//wd=0.5;
 	//Lin=4.;
     	
-	cerr<<tijd<<" "<<sep<<" "<<wd<<endl;
+	DUDE_LOG(info)<<SHOW_VAR(sep)<<SHOW_VAR(wd);
 	for(int i=0;i<Npx;i++)in1>>(*b)[i];
 	if (wd==0.) {
 		tijd=0.;
@@ -389,7 +393,7 @@ void bottom::checkFlowsep(){
 		int xri_prev=fsz_prev[(nfsz1-1)*7+1];
 		int xdi_prev=fsz_prev[(nfsz1-1)*7+4];
 		if (xdi_prev>=xsi_prev && xri_prev<xsi_prev){ //Olav: opens if (xdi_prev>=xsi_prev && xri_prev<xsi_prev) "checkFlowsep: case 0"
-			cerr<<"checkFlowsep: case 0"<<endl;
+			DUDE_LOG(info)<<"checkFlowsep: case 0";
 	 		iinit=xri_prev;
 			/* iinit kan ook binnen een statische fsz vallen
 			 * die aan het begin van het domein zit: dan moet iinit
@@ -399,9 +403,9 @@ void bottom::checkFlowsep(){
 			int xdi_prev_next=fsz_prev[4];
 			if (iinit>=xsi_prev_next && iinit<=xri_prev_next){ //OLAV: opens
 				iinit=xdi_prev_next;
-				cerr<<"iinit reset since iinit is in between a static fsz"<<endl;
+				DUDE_LOG(warning)<<"iinit reset since iinit is in between a static fsz";
                 } // closes if (iinit>=xsi_prev_next && iinit<=xri_prev_next)
-				cerr<<"iinit set to: "<<iinit<<endl;
+				DUDE_LOG(info)<<"iinit set to: "<<iinit;
 	 		} // closes if (xdi_prev>=xsi_prev && xri_prev<xsi_prev)
 	} // closes if (sepflag1==1)
 
@@ -431,13 +435,13 @@ void bottom::checkFlowsep(){
 			
 			//cerr << nfsz << " " << xsi << " " << col << " " << nfsz1 << endl;
 			
-			cerr<<"checkFlowsep case 1 met i_in: "<<i<<endl;
-			cerr<<"checkFlowsep case 1 met xsi_in: "<<xsi<<" - nfsz_in: "<<nfsz<< " - wavelet_in: " << wavelet<<endl;
+			DUDE_LOG(info)<<"checkFlowsep case 1 met i_in: "<<i;
+			DUDE_LOG(info)<<"checkFlowsep case 1 met xsi_in: "<<xsi<<" - nfsz_in: "<<nfsz<< " - wavelet_in: " << wavelet;
 			
 			dta=setFSZ(xsi,nfsz,wavelet);  // het zetten van sepzone karakteristieken
 			i=dta[0];
 
-			cerr<<"checkFlowsep case 1 met xsi: "<<xsi<<" - xri(temp): "<<i<<endl;
+			DUDE_LOG(info)<<"checkFlowsep case 1 met xsi: "<<xsi<<" - xri(temp): "<<i;
 
 			if (i!=-1) { // else fsz too small
 
@@ -455,8 +459,9 @@ void bottom::checkFlowsep(){
 				int xri_dif=xrin-xrip;
 				if (xri_dif>3) {
 					solve_method++;
-					cerr<<"   WARNING: [j="<<nfsz<<"] solve_method set to "<<solve_method<<" (xri_dif="<<xri_dif<<")"<<endl;
-					outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] solve_method set to "<<solve_method<<" (xri_dif="<<xri_dif<<")"<<endl;
+					DUDE_LOG(warning) << SHOW_VAR(nfsz) ", solve_method set to " << solve_method << ";" <<SHOW_VAR(xri_dif);
+					//cerr<<"   WARNING: [j="<<nfsz<<"] solve_method set to "<<solve_method<<" (xri_dif="<<xri_dif<<")"<<endl;
+					//outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] solve_method set to "<<solve_method<<" (xri_dif="<<xri_dif<<")"<<endl;
 					//cerr<<"   Parameters for xri_dif: "<<xsip<<" "<<xrip<<" "<<xsin<<" "<<xrin<<endl;
 				}
 
@@ -510,8 +515,9 @@ void bottom::checkFlowsep(){
 									i=xri;}
 							//i=xri;
 							//write_flowsep();
-							cerr<<"   WARNING: [j="<<nfsz<<"] overlapping fsz's: "<<nfsz<<" -> ("<<mfsz+1<<"-"<<kk+1<<")"<<"; i set to: "<<i<<"; col: "<<(col-4)/7<<endl;
-							outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] overlapping fsz's: "<<nfsz<<" -> ("<<mfsz+1<<"-"<<kk+1<<")"<<"; i set to: "<<i<<"; col: "<<(col-4)/7<<endl;
+							DUDE_LOG(warning) << "overlapping fsz's: "<<nfsz<<" -> ("<<mfsz+1<<"-"<<kk+1<<")"<<"; i set to: "<<i<<"; col: "<<(col-4)/7;
+							//cerr<<"   WARNING: [j="<<nfsz<<"] overlapping fsz's: "<<nfsz<<" -> ("<<mfsz+1<<"-"<<kk+1<<")"<<"; i set to: "<<i<<"; col: "<<(col-4)/7<<endl;
+							//outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] overlapping fsz's: "<<nfsz<<" -> ("<<mfsz+1<<"-"<<kk+1<<")"<<"; i set to: "<<i<<"; col: "<<(col-4)/7<<endl;
 				 			break;
 				 		}
 						else if (xri>=xsi1 && xri<xri1){ // xri==xsi
@@ -524,8 +530,9 @@ void bottom::checkFlowsep(){
 					if (merge==1) {
 						//int mm;
 						for (int mm=mfsz+nmerge-newwave+skipped;mm<=kk;mm++) {
-							cerr<<"mm: "<<mm<<endl;
-							cerr<<"mfsz: "<<mfsz<<endl;
+							DUDE_LOG(info) << SHOW_VAR(mm) << SHOW_VAR(mfsz);
+							//cerr<<"mm: "<<mm<<endl;
+							//cerr<<"mfsz: "<<mfsz<<endl;
  							int cnum=4; // case number
 							if (fsz_prev[mm*7+6]==5) cnum=5;
 							int mmfsz=mfsz-skipped;
@@ -571,11 +578,13 @@ void bottom::checkFlowsep(){
 								if (xri1<xsii) xri1+=Npx;
 								if (col2/7>=nfsz1) col2=0-nfsz*7; // dan domein gehad
 							}
-							cerr<<"   WARNING: static fsz's ("<<nfsz+1<<"-"<<col2/7<<") merge with fsz ("<<nfsz<<") (no need for removal, goes automatically)"<<endl;
-							outlog<<"T="<<tijd<<" - WARNING: static fsz's ("<<nfsz+1<<"-"<<col2/7<<") merge with fsz ("<<nfsz<<") (no need for removal, goes automatically)"<<endl;
+							DUDE_LOG(warning) << "static fsz's ("<<nfsz+1<<"-"<<col2/7<<") merge with fsz ("<<nfsz<<") (no need for removal, goes automatically)";
+							//cerr<<"   WARNING: static fsz's ("<<nfsz+1<<"-"<<col2/7<<") merge with fsz ("<<nfsz<<") (no need for removal, goes automatically)"<<endl;
+							//outlog<<"T="<<tijd<<" - WARNING: static fsz's ("<<nfsz+1<<"-"<<col2/7<<") merge with fsz ("<<nfsz<<") (no need for removal, goes automatically)"<<endl;
 							solve_method++;
-							cerr<<"   WARNING: solve_method set to "<<solve_method<<endl;
-							outlog<<"T="<<tijd<<" - WARNING: solve_method set to "<<solve_method<<endl;
+							DUDE_LOG(warning) << "solve_method set to "<<solve_method;
+							//cerr<<"   WARNING: solve_method set to "<<solve_method<<endl;
+							//outlog<<"T="<<tijd<<" - WARNING: solve_method set to "<<solve_method<<endl;
 							/* Als het goed is wordt hier doorgelinkt naar "check for abandonned fsz's */
 						} // if (merge==1)
 						//else: do nothing
@@ -591,8 +600,9 @@ void bottom::checkFlowsep(){
 				if (i<xsi) i=Npx;
 				nfsz--;
 				skipped++;
-				cerr<<"   WARNING: fsz too small: (xsi="<<xsi<<", i set to "<<i<<")"<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: fsz too small: i set to "<<i<<endl;
+				DUDE_LOG(warning) << "fsz too small: (xsi="<<xsi<<", i set to "<<i<<")";
+				//cerr<<"   WARNING: fsz too small: (xsi="<<xsi<<", i set to "<<i<<")"<<endl;
+				//outlog<<"T="<<tijd<<" - WARNING: fsz too small: i set to "<<i<<endl;
 			} // else
 		} //end case 1
 
@@ -604,15 +614,17 @@ void bottom::checkFlowsep(){
 			nfsz++;
 			xsi = i-1;
 
-			cerr<<"checkFlowsep case 2 met xsi: "<<xsi<<endl;
+			DUDE_LOG(info)<<"checkFlowsep case 2 met xsi: "<<xsi;
 
 			if (dhdx[o2(xsi+1)]<-0.50) { //dan wavelet
 				// dit stuk: initieel steil (dus opgelegde bodem)
 				wavelet=1;
-				cerr<<"ik kom hier"<<endl;
-				cerr<<"xsi: "<<xsi<<endl;
-				cerr<<"nfsz: "<<nfsz<<endl;
-				cerr<<dhdx[o2(xsi)]<<" "<<dhdx[o2(xsi+1)]<<" "<<dhdx[o2(xsi+2)]<<endl;
+				//cerr<<"ik kom hier"<<endl;
+				//cerr<<"xsi: "<<xsi<<endl;
+				//cerr<<"nfsz: "<<nfsz<<endl;
+				//cerr<<dhdx[o2(xsi)]<<" "<<dhdx[o2(xsi+1)]<<" "<<dhdx[o2(xsi+2)]<<endl;
+				DUDE_LOG(debug) << SHOW_VAR(xsi) << SHOW_VAR(nfsz)
+						<< SHOW_VAR(dhdx[o2(xsi)]) << SHOW_VAR(dhdx[o2(xsi+1)]) << SHOW_VAR(dhdx[o2(xsi+2)]);
 				dta=setFSZ(o2(xsi),nfsz,wavelet);
 				i=dta[0];
 				nfsz=dta[1];
@@ -623,11 +635,13 @@ void bottom::checkFlowsep(){
 						//return 0;
 				}
 				solve_method++;
-				cerr<<"   WARNING: [j="<<nfsz<<"] fsz behind a newly formed wavelet (newwave="<<newwave<<" & solve_method="<<solve_method<<")"<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] fsz behind a newly formed wavelet (newwave="<<newwave<<" & solve_method="<<solve_method<<")"<<endl;
+				DUDE_LOG(warning) << "[j="<<nfsz<<"] fsz behind a newly formed wavelet (newwave="<<newwave<<" & solve_method="<<solve_method<<")";
+				//cerr<<"   WARNING: [j="<<nfsz<<"] fsz behind a newly formed wavelet (newwave="<<newwave<<" & solve_method="<<solve_method<<")"<<endl;
+				//outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] fsz behind a newly formed wavelet (newwave="<<newwave<<" & solve_method="<<solve_method<<")"<<endl;
 				//dit stuk: initieel steil
-				cerr<<"nfsz: "<<nfsz<<endl;
-				cerr<<"i: "<<i<<endl;
+				DUDE_LOG(debug) << SHOW_VAR(nfsz) << SHOW_VAR(i);
+				//cerr<<"nfsz: "<<nfsz<<endl;
+				//cerr<<"i: "<<i<<endl;
 				//write_flowsep();
 				wavelet=0;
 			}
@@ -637,7 +651,7 @@ void bottom::checkFlowsep(){
 			xti=findTrough(xsi,filter(3,(*b)));
 			// check if fsz needs to be skipped
 			// reattachment point of small dune on lee, so double flow sep point found
-			cerr<<"ik kom hierrr"<<endl;
+			//cerr<<"ik kom hierrr"<<endl;
 			int skip=0;
 			int xsii=xsi+1;
 			int xcii=o2(xci-1);
@@ -646,26 +660,31 @@ void bottom::checkFlowsep(){
 				int xdip=fsz_prev[j*7+4];
 				int xsip=fsz_prev[j*7+0];
 				int xrip=fsz_prev[j*7+1];
-				cerr<<"j: "<<j+1<<" - xdip: "<<xdip<<" - xsii: "<<xsii<<" - xci: "<<xci<<endl;
+				//cerr<<"j: "<<j+1<<" - xdip: "<<xdip<<" - xsii: "<<xsii<<" - xci: "<<xci<<endl;
+				DUDE_LOG(debug) << SHOW_VAR(j) << SHOW_VAR(xdip) << SHOW_VAR(xsii) << SHOW_VAR(xci);
 				if (xdip==xsii || xdip==xcii) {
-					cerr<<endl<<endl<<endl<<endl<<endl<<"         ------ PUNT WAAR HET MIS GING!! -------"<<endl<<endl<<endl<<endl<<endl;
-					cerr<<"   WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
-					cerr<<"j: "<<j+1<<" - xdip: "<<xdip<<" - xsii: "<<xsii<<" - xcii: "<<xcii<<endl;
-					outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
+					//cerr<<endl<<endl<<endl<<endl<<endl<<"         ------ PUNT WAAR HET MIS GING!! -------"<<endl<<endl<<endl<<endl<<endl;
+					//cerr<<"   WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
+					//cerr<<"j: "<<j+1<<" - xdip: "<<xdip<<" - xsii: "<<xsii<<" - xcii: "<<xcii<<endl;
+					//outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
+					DUDE_LOG(warning) << "[j="<<nfsz<<"] sep point is equal to previous, and has to be skipped";
+					DUDE_LOG(debug) << SHOW_VAR(xdip) << SHOW_VAR(xsii) << SHOW_VAR(xcii);
 					skip=1;
 				}
 			}
 			xsi=xci;
 			if ((nfsz>1 && xsi==(*fsz)[(nfsz-2)*7+2]) || skip==1){
 				//than sep point is equal to previous, and has to be skipped
-				cerr<<"   WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
+				//cerr<<"   WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
+				//outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] sep point is equal to previous, and has to be skipped"<<endl;
+				DUDE_LOG(warning) << "[j="<<nfsz<<"] sep point is equal to previous, and has to be skipped";
 				nfsz--;
 			}
 			else {
 				xri=xti;
-				cerr<<"   WARNING: [j="<<nfsz<<"] xri set to xti since first time flowsep case 2"<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] xri set to xti since first time flowsep case 2"<<endl;
+				//cerr<<"   WARNING: [j="<<nfsz<<"] xri set to xti since first time flowsep case 2"<<endl;
+				//outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] xri set to xti since first time flowsep case 2"<<endl;
+				DUDE_LOG(warning) << "[j="<<nfsz<<"] xri set to xti since first time flowsep case 2";
 				(*fsz)[(nfsz-1)*7+2]=xci;
 				(*fsz)[(nfsz-1)*7+3]=xti;
 				(*fsz)[(nfsz-1)*7+0]=xsi;
@@ -675,7 +694,8 @@ void bottom::checkFlowsep(){
 				if (xti>i) i=xti;
 				else if (xti<i) i=Npx;
 
-				cerr<<"   xri: "<<xri<<" (i: "<<i<<")"<<endl;
+				//cerr<<"   xri: "<<xri<<" (i: "<<i<<")"<<endl;
+				DUDE_LOG(debug) << SHOW_VAR(xri) << SHOW_VAR(i);
 			}
 			}
 		} // end case 2
@@ -686,8 +706,9 @@ void bottom::checkFlowsep(){
 	 * volgens mij komen we hier niet meer.
 	 * checken door weg te schrijven naar het log-bestand */
 	if (fsz_prev[col]==0 && fsz_prev[col-4]>0){ //Olav: opens if (fsz_prev[col]==0 && fsz_prev[col-4]>0)
-			cerr<<"   WARNING: checkFlowsep: case 1 extra"<<endl;
-			outlog<<"T="<<tijd<<" - WARNING: checkFlowsep: case 1 extra"<<endl;
+			//cerr<<"   WARNING: checkFlowsep: case 1 extra"<<endl;
+			//outlog<<"T="<<tijd<<" - WARNING: checkFlowsep: case 1 extra"<<endl;
+			DUDE_LOG(warning) << "checkFlowsep: case 1 extra";
     	    sepflag=1;
 			nfsz++;
 			xsi = fsz_prev[col];
@@ -707,8 +728,9 @@ void bottom::checkFlowsep(){
 		int xri2=(*fsz)[(nfsz-1)*7+1]; if(xsi2>xri2){xsi2-=Npx;}
 		//cerr<<"xsi1 "<<xsi1<<"; xri1: "<<xri1<<"xsi2: "<<xsi2<<"; xri2: "<<xri2<<endl;
 		if (xri2>=xri1 && xsi2<=xsi1) {
-			cerr<<"   WARNING: static flow separation zone is merged and removed from array"<<endl;
-			outlog<<"T="<<tijd<<" - WARNING: static flow separation zone is merged and removed from array"<<endl;
+			//cerr<<"   WARNING: static flow separation zone is merged and removed from array"<<endl;
+			//outlog<<"T="<<tijd<<" - WARNING: static flow separation zone is merged and removed from array"<<endl;
+			DUDE_LOG(warning) << "static flow separation zone is merged and removed from array";
 			for (int i=0;i<7;i++){
 				(*fsz)[i]=(*fsz)[(nfsz-1)*7+i];
 				(*Sr)[0]=(*Sr)[(nfsz-1)];
@@ -745,7 +767,8 @@ void bottom::checkFlowsep(){
 	smooth_param(5,1); // smooth at xsi
 	smooth_param(5,2); // smooth at xri
 
-	if (sepflag==0) cerr<<"Minimum dhdx: "<<atan(minval(dhdx,Npx))*grad_2_deg<<" degrees"<<endl;
+	if (sepflag==0)
+		DUDE_LOG(info) << "Minimum dhdx: " << atan(minval(dhdx, Npx)) * grad_2_deg << " degrees";
 } 
 
 /*
@@ -804,9 +827,11 @@ vector<int> bottom::setFSZ(int xsi, int nfsz, int wavelet){
 	if (xri!=-1 && xrin<xsi) xrin+=Npx; // periodic bcs
 	if (xrin==-1 || xrin-xsi<=1){
 		// xri -1 from paramSepline | too small FSZ: then neglect
-		cerr<<"   WARNING: [j="<<nfsz<<"] xri set to -1 in paramSepline(...), since FSZ too small"<<endl;
-		cerr<<"xsi: "<<xsi<<"; xri: "<<xri<<endl;
-		outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] xri set to -1 in paramSepline(...), since FSZ too small"<<endl;
+		//cerr<<"   WARNING: [j="<<nfsz<<"] xri set to -1 in paramSepline(...), since FSZ too small"<<endl;
+		//cerr<<"xsi: "<<xsi<<"; xri: "<<xri<<endl;
+		//outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] xri set to -1 in paramSepline(...), since FSZ too small"<<endl;
+		DUDE_LOG(warning) << "[j="<<nfsz<<"] xri set to -1 in paramSepline(...), since FSZ too small";
+		DUDE_LOG(debug) << SHOW_VAR(xsi) << SHOW_VAR(xri);
 		nfsz--;
 		dta[0]=-1; dta[1]=nfsz;
 	}
@@ -823,7 +848,7 @@ vector<int> bottom::setFSZ(int xsi, int nfsz, int wavelet){
 		*/
 		//if ( ( xri<xsi | xti<xsi ) && wavelet==0 ){  // dan domein gehad!
 		if ( xri<xsi ) {
-			cerr<<"ik kom hierr"<<endl;
+			//cerr<<"ik kom hierr"<<endl;
 			m=Npx;}
 		else
 			{m=xri;}
@@ -925,18 +950,25 @@ int bottom::paramSepline(int xsi, int xti, int xci, int nfsz){
 		y2=y2*Hfsz+Ht;
 
 		if (nb[2]==0 && nb[3]==0) {
-			cerr<<"   WARNING: [j="<<nfsz<<"] neighbor points not found correctly!:"<<endl;
-			outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] neighbor points not found correctly!:"<<endl;
-			cerr<<"x_p="<<x_p<<"; xsi="<<xsi<<endl;
-			cerr<<"Npx*dx="<<Npx*dx<<"; xr_in="<<xs+Hfsz*tLs<<endl;
-			cerr<<nb[0]<<" "<<nb[1]<<" "<<nb[2]<<" "<<nb[3]<<endl;
-			cerr<<k<<" "<<dir<<" "<<xs+dx<<" "<<x_p<<" "<<y1<<" "<<y2<<" "<<xx<<" "<<abs(y2-y1)<<endl;
+			//cerr<<"   WARNING: [j="<<nfsz<<"] neighbor points not found correctly!:"<<endl;
+			//outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] neighbor points not found correctly!:"<<endl;
+			//cerr<<"x_p="<<x_p<<"; xsi="<<xsi<<endl;
+			//cerr<<"Npx*dx="<<Npx*dx<<"; xr_in="<<xs+Hfsz*tLs<<endl;
+			//cerr<<nb[0]<<" "<<nb[1]<<" "<<nb[2]<<" "<<nb[3]<<endl;
+			//cerr<<k<<" "<<dir<<" "<<xs+dx<<" "<<x_p<<" "<<y1<<" "<<y2<<" "<<xx<<" "<<abs(y2-y1)<<endl;
+			DUDE_LOG(warning) << "j="<<nfsz<<"] neighbor points not found correctly!:";
+			DUDE_LOG(debug) << SHOW_VAR(x_p) << SHOW_VAR(xsi) << SHOW_VAR(Npx*dx);
+			DUDE_LOG(debug) << SHOW_VAR(nb[0]) << SHOW_VAR(nb[1]) << SHOW_VAR(nb[2]);
+			DUDE_LOG(debug) << SHOW_VAR(k) << SHOW_VAR(dir) << SHOW_VAR(xs+dx);
+			DUDE_LOG(debug) << SHOW_VAR(y1) << SHOW_VAR(y2) << SHOW_VAR(xx) << SHOW_VAR(abs(y2-y1));
 		}
 
 		if (k==max_it) {
-			cerr<<"maximum number of iterations reached"<<endl;
-			outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] maximum number of iterations reached to determine reattachment point!:"<<endl;
-			cerr<<x_p<<endl;
+			//cerr<<"maximum number of iterations reached"<<endl;
+			//outlog<<"T="<<tijd<<" - WARNING: [j="<<nfsz<<"] maximum number of iterations reached to determine reattachment point!:"<<endl;
+			//cerr<<x_p<<endl;
+			DUDE_LOG(warning) << "[j="<<nfsz<<"] maximum number of iterations reached to determine reattachment point!:";
+			DUDE_LOG(debug) << SHOW_VAR(x_p);
 		}
 
 		if (abs(y2-y1) <= tol || abs(y2-y1) == 0){
@@ -1293,7 +1325,8 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 		Npsl = distribute.size();
 		
 		if(t==0){
-			cerr << "NPSL: " << Npsl << " dx:" << dx << endl;
+			DUDE_LOG(info) << SHOW_VAR(Npsl) << SHOW_VAR(dx);
+			//cerr << "NPSL: " << Npsl << " dx:" << dx << endl;
 		} 
 		
 		GhostProtocol=0;
@@ -1311,8 +1344,10 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 			fluxtemp.resize(ghostNpx);
 			
 			if(t==0){
-				cerr << "Npsl_min: " << cfg.Npsl_min << " ghostNpsl:" << ghostNpsl << " dxGhost:" << dxGhost << endl;
-				cerr << "Npx: " << Npx << " ghostNpx: "<< ghostNpx << endl;
+				DUDE_LOG(info) << SHOW_VAR(cfg.Npsl_min) << SHOW_VAR(ghostNpsl)
+						<< SHOW_VAR(dxGhost) << SHOW_VAR(Npx) << SHOW_VAR(ghostNpx);
+				//cerr << "Npsl_min: " << cfg.Npsl_min << " ghostNpsl:" << ghostNpsl << " dxGhost:" << dxGhost << endl;
+				//cerr << "Npx: " << Npx << " ghostNpx: "<< ghostNpx << endl;
 			}
 			
 			for(int i=0;i<Npx-1;i++){ //for i = 1:length(testflux)
@@ -1461,7 +1496,8 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 				}
 			}
 			
-			cerr << poscr << " " << postr << endl;
+			//cerr << poscr << " " << postr << endl;
+			DUDE_LOG(debug) << SHOW_2VARS(poscr, postr);
 			if (postr<poscr){postr=postr+Npx;}
 			
 			double deposmooth=0.;
@@ -1475,12 +1511,12 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 				if (i>Npx-1){pos=i-Npx;}
 				else{pos=i;}
 				
-				cerr << pos << " " ;
-				
+				//cerr << pos << " " ;
+				//JW: logging needed?
 				deposmooth+=deposi[pos];
 				fluxsmooth+=(*flux)[pos];
 			}
-			cerr << endl; 
+			//cerr << endl;
 			
 			//int nsmooth=postr-poscr+1;
 			for(int i=poscr;i<postr+1;i++){
@@ -1488,12 +1524,12 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 				if (i>Npx-1){pos=i-Npx;}
 				else{pos=i;}
 				
-				cerr << pos << " " ;
-				
+				//cerr << pos << " " ;
+				//JW: logging needed?
 				deposi[pos]=deposmooth/nsmooth;
 				(*flux)[pos]=fluxsmooth/nsmooth;
 			}
-			cerr << endl; 
+			//cerr << endl;
 		}
 		
 		fluxtemp.resize(Npx);
@@ -1546,8 +1582,8 @@ vec bottom::update(vec ub, vec &bss1, vec &fluxtot, vec &dhdx){
 						if (i>Npx-1){pos=i-Npx;}
 						else{pos=i;}
 					
-						cerr << pos << " " ;
-					
+						//cerr << pos << " " ;
+						//JW: logging needed?
 						(*b)[pos]+=sandvault/nsandvault;
 					}	
 				}
@@ -1915,7 +1951,8 @@ vec bottom::sep_tau_distr(vec tb){
 
 	int nfsz=(*fsz)[nf-1];
 	
-	cout << endl << endl << "Block VI: bed shear stress" << endl << endl; //OLAV
+	//cout << endl << endl << "Block VI: bed shear stress" << endl << endl; //OLAV
+	DUDE_LOG(info) << "Block VI: bed shear stress"; //OLAV
 
 	/* we gaan eerst xcin opnieuw bepalen, zijnde de maximale downstream bodemschuifspanning */
 	/* NB this is a buggy piece of code!! */
@@ -2072,19 +2109,18 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 //    //OLAV: added 2011/03/31
 
 	for (int j=0;j<nfsz;j++) {
-		cerr<<j+1<<": bepaling migratie lij-zijde per loslaatzone"<<endl;
 		
-		cout << endl << endl << "Block VII: migration lee side" << endl << endl;
+		DUDE_LOG(info) << "Block VII: migration lee side, " << SHOW_VAR(j);
 		
 		int	xsi=(*fsz)[j*7+0];
 		int	xti=(*fsz)[j*7+3];
 		double DH=(*b)[xsi]-(*b)[xti];
-		cerr<<j+1<<": DH="<<DH<<endl;
+		DUDE_LOG(debug)<<"DH="<<DH;
 		//double Ss=fluxtot[xsi]*dt-dt/dx*(fluxtot[xsi]-fluxtot[o2(xsi-1)]);
 		double Ss=dt*(fluxtot[o2(xsi+1)]);
 		Ss-=(*Sr)[j];
-		cerr<<"fluxtot[xsi="<<o2(xsi+1)<<"]: "<<fluxtot[o2(xsi+1)]*dt<<"; fluxtot[xsi+1="<<o2(o2(xsi+1)+1)<<"]: "<<fluxtot[o2(o2(xsi+1)+1)]*dt<<"; Sround_prev"<<(*Sr)[j]<<endl;
-
+		//cerr<<"fluxtot[xsi="<<o2(xsi+1)<<"]: "<<fluxtot[o2(xsi+1)]*dt<<"; fluxtot[xsi+1="<<o2(o2(xsi+1)+1)<<"]: "<<fluxtot[o2(o2(xsi+1)+1)]*dt<<"; Sround_prev"<<(*Sr)[j]<<endl;
+		DUDE_LOG(info) << SHOW_3VARS(fluxtot[o2(xsi+1)]*dt, fluxtot[o2(o2(xsi+1)+1)]*dt, (*Sr)[j]);
 		vec rp(2,0.0);
 		double xsep=(*x)[xsi];
 		double ysep=(*b)[xsi];
@@ -2214,8 +2250,9 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 				if (teller>max_it) {
 					/* no appropriate volume found */
 					tol=itol+ntolreset*itol;
-					cerr<<"   WARNING: [j="<<j+1<<"] tolerance reset to "<<tol<<" (area="<<area<<")"<<endl;
-					outlog<<"T="<<tijd<<" - WARNING: [j="<<j+1<<"] tolerance reset to "<<tol<<" (area="<<area<<")"<<endl;
+					//cerr<<"   WARNING: [j="<<j+1<<"] tolerance reset to "<<tol<<" (area="<<area<<")"<<endl;
+					//outlog<<"T="<<tijd<<" - WARNING: [j="<<j+1<<"] tolerance reset to "<<tol<<" (area="<<area<<")"<<endl;
+					DUDE_LOG(warning) << "[j="<<j+1<<"] tolerance reset to "<<tol<<" (area="<<area<<")";
 					ntolreset+=1;
 					xdown=xsep; step=dx; teller=1; Sdif=100.;
 				}
@@ -2249,7 +2286,8 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 
 			/* when we come here, the distance to migrate the lee-side is found */
 
-			cerr<<"INFO: teller = "<<teller<<"; Ss = "<<Ss<<"; area = "<<area<<"; Sdif = "<<Sdif;
+			//cerr<<"INFO: teller = "<<teller<<"; Ss = "<<Ss<<"; area = "<<area<<"; Sdif = "<<Sdif;
+			DUDE_LOG(info) << SHOW_4VARS(teller, Ss, area, Sdif);
 			(*b) = b_prev;
 
 			/* eerst worden er een aantal karakteristieken van xdown bepaald */
@@ -2312,7 +2350,8 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 			outproglee<<xtemp<<" "<<rp0<<" "<<xtemp+dx<<" "<<xtemp<<" "<<ytemp<<" "<<rp[1]<<" "<<(*b)[o3(leerpi+1)]<<" "<<ytemp<<" "<<C<<" ";
 			*/
 
-			cerr<<"; Sround + Sdif = "<<Sround+Sdif<<endl;
+			//cerr<<"; Sround + Sdif = "<<Sround+Sdif<<endl;
+			DUDE_LOG(info) << SHOW_VAR(Sround+Sdif);
 
 			/* store some parameters */
 			//outproglee<<Sround<<endl;	outproglee.close();
@@ -2326,12 +2365,14 @@ void bottom::sep_migr_lee(vec fluxtot, vec oldb){
 			(*fsz)[j*7+4]=(*fsz)[j*7+0]; // op xsi zetten, niets doen
 			(*fsz)[j*7+6]=5; // case 5 identifier
 			if (fluxtot[o2(xsi+1)]<=0.) {
-				cerr<<"   WARNING: [j="<<j+1<<"] tau below critical over entire stoss-side; nothing done."<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: [j="<<j+1<<"] tau below critical over entire stoss-side; nothing done."<<endl;
+				//cerr<<"   WARNING: [j="<<j+1<<"] tau below critical over entire stoss-side; nothing done."<<endl;
+				//outlog<<"T="<<tijd<<" - WARNING: [j="<<j+1<<"] tau below critical over entire stoss-side; nothing done."<<endl;
+				DUDE_LOG(warning) << "[j=" << j+1 << "] tau below critical over entire stoss-side; nothing done.";
 			}
 			else if (Ss < 0.) {
-				cerr<<"   WARNING: [j="<<j+1<<"] Ss < 0 due to low sediment transport; nothing done."<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: [j="<<j+1<<"] Ss < 0 due to low sediment transport; nothing done."<<endl;
+				//cerr<<"   WARNING: [j="<<j+1<<"] Ss < 0 due to low sediment transport; nothing done."<<endl;
+				//outlog<<"T="<<tijd<<" - WARNING: [j="<<j+1<<"] Ss < 0 due to low sediment transport; nothing done."<<endl;
+				DUDE_LOG(warning) << "[j=" << j+1 << "] Ss < 0 due to low sediment transport; nothing done.";
 			}
 		}
 
@@ -2389,12 +2430,17 @@ vec bottom::crossPoint_migrlee(double xl_in, double xr_in, int max_it, int dir, 
     double y2 = b1*xx + b2; // height of -30 degrees line
 
 		if (nb[2]==0 && nb[3]==0) {
-			cerr<<"   WARNING: [j="<<j<<"] neighbor points not found correctly!:"<<endl;
-			outlog<<"T="<<tijd<<" - WARNING: [j="<<j<<"] neighbor points not found correctly!:"<<endl;
-			cerr<<"x_p="<<x_p<<"; xi="<<xi<<endl;
-			cerr<<"Npx*dx="<<Npx*dx<<endl;
-			cerr<<nb[0]<<" "<<nb[1]<<" "<<nb[2]<<" "<<nb[3]<<endl;
-			cerr<<k<<" "<<dir<<" "<<xl_in<<" "<<x_p<<" "<<y1<<" "<<y2<<" "<<xx<<" "<<abs(y2-y1)<<endl;
+			//cerr<<"   WARNING: [j="<<j<<"] neighbor points not found correctly!:"<<endl;
+			//outlog<<"T="<<tijd<<" - WARNING: [j="<<j<<"] neighbor points not found correctly!:"<<endl;
+			DUDE_LOG(warning) << "[j="<<j<<"] neighbor points not found correctly!:";
+			//cerr<<"x_p="<<x_p<<"; xi="<<xi<<endl;
+			DUDE_LOG(debug) << SHOW_VAR(x_p) << SHOW_VAR(xi) << SHOW_VAR(Npx*dx);
+			//cerr<<"Npx*dx="<<Npx*dx<<endl;
+			DUDE_LOG(debug) << SHOW_VAR(nb[0]) << SHOW_VAR(nb[1]) << SHOW_VAR(nb[2]) << SHOW_VAR(nb[3]);
+			//cerr<<nb[0]<<" "<<nb[1]<<" "<<nb[2]<<" "<<nb[3]<<endl;
+			//cerr<<k<<" "<<dir<<" "<<xl_in<<" "<<x_p<<" "<<y1<<" "<<y2<<" "<<xx<<" "<<abs(y2-y1)<<endl;
+			DUDE_LOG(debug) << SHOW_VAR(k) << SHOW_VAR(dir) << SHOW_VAR(xl_in) << SHOW_VAR(y1);
+			DUDE_LOG(debug) << SHOW_VAR(y2) << SHOW_VAR(xx) << SHOW_VAR(abs(y2-y1));
 		}
 
 
@@ -2405,13 +2451,18 @@ vec bottom::crossPoint_migrlee(double xl_in, double xr_in, int max_it, int dir, 
 
      	if (k==max_it) {
 				/* no point found */
-				cerr<<"   WARNING: [j="<<j<<"] no cross-point found to determine migration lee-side! restarting by exiting with xl...!"<<endl;
-				outlog<<"T="<<tijd<<" - WARNING: [j="<<j<<"] no cross-point found to determine migration lee-side! restarting by exiting with xl...!"<<endl;
+				//cerr<<"   WARNING: [j="<<j<<"] no cross-point found to determine migration lee-side! restarting by exiting with xl...!"<<endl;
+				//outlog<<"T="<<tijd<<" - WARNING: [j="<<j<<"] no cross-point found to determine migration lee-side! restarting by exiting with xl...!"<<endl;
+				DUDE_LOG(warning) << "[j="<<j<<"] no cross-point found to determine migration lee-side! restarting by exiting with xl...!";
 				rp[0]=xl_in;
 				rp[1]=-999.;
-				cerr<<"xl_in: "<<xl_in<<"xr_in: "<<xr_in<<endl;
-				cerr<<nb[0]<<" "<<nb[1]<<" "<<nb[2]<<" "<<nb[3]<<endl;
-				cerr<<k<<" "<<dir<<" "<<xl_in<<" "<<x_p<<" "<<y1<<" "<<y2<<" "<<xx<<" "<<abs(y2-y1)<<endl;
+				//cerr<<"xl_in: "<<xl_in<<"xr_in: "<<xr_in<<endl;
+				DUDE_LOG(debug) << SHOW_VAR(xl_in) << SHOW_VAR(xr_in);
+				//cerr<<nb[0]<<" "<<nb[1]<<" "<<nb[2]<<" "<<nb[3]<<endl;
+				DUDE_LOG(debug) << SHOW_VAR(nb[0]) << SHOW_VAR(nb[1]) << SHOW_VAR(nb[2]) << SHOW_VAR(nb[3]);
+				//cerr<<k<<" "<<dir<<" "<<xl_in<<" "<<x_p<<" "<<y1<<" "<<y2<<" "<<xx<<" "<<abs(y2-y1)<<endl;
+				DUDE_LOG(debug) << SHOW_VAR(k) << SHOW_VAR(dir) << SHOW_VAR(x_p) << SHOW_VAR(y1);
+				DUDE_LOG(debug) << SHOW_VAR(y2) << SHOW_VAR(xx) << SHOW_VAR(abs(y2-y1));
 				break;
       }
      	else {
@@ -2502,7 +2553,7 @@ vec bottom::detNd(vec bot){
 		}
 		//cerr<<"pos trough: "<<pos;
 		tpos_temp[Nd]=pos;
-		if (pos==pos_t1 && Nd>0) {stop = 1; break; cerr<<endl;}
+		if (pos==pos_t1 && Nd>0) {stop = 1; break;}
 		//find crest
 		for (int i=pos; i>pos-Npx; i--){
 			int m=i; if (i<0) m=i+Npx;
@@ -2516,8 +2567,10 @@ vec bottom::detNd(vec bot){
 		cpos_temp[Nd]=pos;
 		Nd++;
 		if (Nd>Npx) {
-			cerr<<"   WARNING: detNd gaat nog niet helemaal ok"<<endl; Nd=Npx;
-			outlog<<"T="<<tijd<<" - WARNING: detNd gaat nog niet helemaal ok"<<endl; Nd=Npx;
+			//cerr<<"   WARNING: detNd gaat nog niet helemaal ok"<<endl; Nd=Npx;
+			//outlog<<"T="<<tijd<<" - WARNING: detNd gaat nog niet helemaal ok"<<endl;
+			DUDE_LOG(warning) << "detNd gaat nog niet helemaal ok";
+			Nd=Npx;
 			break;
 		}
 	}
@@ -2610,7 +2663,7 @@ vec bottom::detNd_fft(vec bot, int fftnum){
 		if (cfg.nd==1){ //OLAV 2014 03 31
 			stop =1;
 			tpos_temp[Nd]=pos_t1;
-			cerr<<endl;
+			//cerr<<endl;
 			
 			testval=-1.e99;
 			testm=-1;
@@ -2636,7 +2689,7 @@ vec bottom::detNd_fft(vec bot, int fftnum){
 			}
 			//cerr<<"pos trough: "<<pos;
 			tpos_temp[Nd]=pos;
-			if (pos==pos_t1 && Nd>0) {stop = 1; break; cerr<<endl;}
+			if (pos==pos_t1 && Nd>0) {stop = 1; break;}
 			//find crest
 			for (int i=pos; i>pos-Npx; i--){
 				int m=i; if (i<0) m=i+Npx;
@@ -2651,8 +2704,10 @@ vec bottom::detNd_fft(vec bot, int fftnum){
 		cpos_temp[Nd]=pos;
 		Nd++;
 		if (Nd>Npx) {
-			cerr<<"   WARNING: detNd gaat nog niet helemaal ok"<<endl; Nd=Npx;
-			outlog<<"T="<<tijd<<" - WARNING: detNd gaat nog niet helemaal ok"<<endl; Nd=Npx;
+			//cerr<<"   WARNING: detNd gaat nog niet helemaal ok"<<endl; Nd=Npx;
+			//outlog<<"T="<<tijd<<" - WARNING: detNd gaat nog niet helemaal ok"<<endl;
+			DUDE_LOG(warning) << "detNd_fft gaat nog niet helemaal ok";
+			Nd=Npx;
 			break;
 		}
 	}
@@ -2913,9 +2968,10 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 		alpha_lag1 = max(alpha_lag1,cfg.alpha_min_SK);
 		alpha_lag1 = min(alpha_lag1,cfg.alpha_max_SK);
 		
-		if(suppressoutput==0){
-			cerr << "alpha_lag1=" << alpha_lag1<< " D_star=" << cfg.D_star<< " u_star=" << u_star << " u_star_cr=" << cfg.u_star_cr << " w_s=" << cfg.w_s << endl;
-		}
+		//if(suppressoutput==0){
+		//	cerr << "alpha_lag1=" << alpha_lag1<< " D_star=" << cfg.D_star<< " u_star=" << u_star << " u_star_cr=" << cfg.u_star_cr << " w_s=" << cfg.w_s << endl;
+		//}
+		DUDE_LOG(debug) << SHOW_VAR(alpha_lag1) << SHOW_VAR(cfg.D_star) << SHOW_VAR(u_star) << SHOW_VAR(cfg.u_star_cr) << SHOW_VAR(cfg.w_s);
 	}			
 	else if(method == 2){ // Shimizu et al. original model
 		for(int i=0;i<Npx;i++) {
@@ -2948,17 +3004,18 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 			alpha_lag1=cfg.alpha_min_S+(theta-cfg.theta_min_S)*(cfg.alpha_max_S-cfg.alpha_min_S)/(cfg.theta_max_S-cfg.theta_min_S);
 		} 	 
 		
-		if(suppressoutput==0){cerr << "alpha IS ADJUSTED from " << alpha_lag1 << endl;} //Change Olav 2015 02 28 
+		DUDE_LOG(debug) << SHOW_VAR(alpha_lag1);
+		//if(suppressoutput==0){cerr << "alpha IS ADJUSTED from " << alpha_lag1 << endl;} //Change Olav 2015 02 28
+
+		//		alpha_lag1 = alpha_lag1 / cfg.H_ref * H; //not in orignial Shimizu model only in changed model Change Olav 2015 02 28
 		
-//		alpha_lag1 = alpha_lag1 / cfg.H_ref * H; //not in orignial Shimizu model only in changed model Change Olav 2015 02 28
+		//if(suppressoutput==0){cerr << "alpha IS ADJUSTED to " << alpha_lag1 << endl;} //Change Olav 2015 02 28
 		
-		if(suppressoutput==0){cerr << "alpha IS ADJUSTED to " << alpha_lag1 << endl;} //Change Olav 2015 02 28 
-		
-		if(suppressoutput==0){
-			//cerr << "THETA IS ADJUSTED from " << theta_temp << " --> " << theta << endl; //Change Olav 2015 02 28 
-			cerr << "alpha_lag1=" << alpha_lag1<< " theta=" << theta << endl;
-		}
-		
+		DUDE_LOG(debug) << SHOW_VAR(theta);
+		//if(suppressoutput==0){
+		//	//cerr << "THETA IS ADJUSTED from " << theta_temp << " --> " << theta << endl; //Change Olav 2015 02 28
+		//	cerr << "alpha_lag1=" << alpha_lag1<< " theta=" << theta << endl;
+		//}
 	}
 	
 	else if(method == 3){ // Shimizu et al. adjusted to van Duin 2021
@@ -2982,15 +3039,18 @@ double bottom::detAlphaLag(vec ub, int method,int suppressoutput){
 			alpha_lag1=cfg.alpha_min_S+(theta-cfg.theta_min_S)*(cfg.alpha_max_S-cfg.alpha_min_S)/(cfg.theta_max_S-cfg.theta_min_S);
 		}
 
-		if(suppressoutput==0){cerr << "alpha IS ADJUSTED from " << alpha_lag1 << endl;} //Change Olav 2015 02 28
+		DUDE_LOG(debug) << SHOW_VAR(alpha_lag1);
+		//if(suppressoutput==0){cerr << "alpha IS ADJUSTED from " << alpha_lag1 << endl;} //Change Olav 2015 02 28
 
 		alpha_lag1 = alpha_lag1 / cfg.H_ref * H; //Change Olav 2015 02 28
 
-		if(suppressoutput==0){cerr << "alpha IS ADJUSTED to " << alpha_lag1 << endl;} //Change Olav 2015 02 28
+		DUDE_LOG(debug) << "ADJUSTED: " << SHOW_VAR(alpha_lag1);
+		//if(suppressoutput==0){cerr << "alpha IS ADJUSTED to " << alpha_lag1 << endl;} //Change Olav 2015 02 28
 
-		if(suppressoutput==0){
-			cerr << "alpha_lag1=" << alpha_lag1<< " theta=" << theta << endl;
-		}
+		DUDE_LOG(debug) << SHOW_VAR(theta);
+		//if(suppressoutput==0){
+		//	cerr << "alpha_lag1=" << alpha_lag1<< " theta=" << theta << endl;
+		//}
 	}
 
 	// double reductionfactor = 0.99;
@@ -3069,7 +3129,7 @@ void bottom::avalanche(){
 				}
 		}
 	}
-	cerr << "Avalanched in " << npasses << " pass(es) along the bed, adjusting " << npoints << " point(s)." << endl;
+	DUDE_LOG(info) << "Avalanched in " << npasses << " pass(es) along the bed, adjusting " << npoints << " point(s).";
 
 }
 
@@ -3270,6 +3330,7 @@ vector<double> bottom::getSr(){
 }
 
 void bottom::write_flowsep(){
+	//JW: figure out to do this better
 	// Write flow separation zone characteristics to screen
 	cerr<<"Flowsep characteristics:"<<endl;
 	cerr<<setw(7)<<"xsi"<<setw(5)<<"xri"<<setw(5)<<"xci"<<setw(5)<<"xti"<<setw(5)<<"xdi"<<setw(6)<<"xcin"<<setw(6)<<"case"<<endl;

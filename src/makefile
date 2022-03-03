@@ -8,9 +8,11 @@ CXXFLAGS += -O3
 # -flto gains about 2% speed, but triggers a spurious warning
 #CXXFLAGS += -flto
 
-LDLIBS = -lfftw3
+LDLIBS := -lfftw3 -lboost_log -lboost_system -lboost_log_setup -lboost_thread
 
-OBJS := main.o admin.o flow.o bottom.o linalg.o fft.o Config.o FlowConfig.o BedConfig.o
+SRCS := $(filter-out test_Config.cpp,$(wildcard *.cpp))
+OBJS := $(SRCS:%.cpp=%.o)
+
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
