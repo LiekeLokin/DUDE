@@ -18,6 +18,7 @@ class Config {
 	void warn(const std::string& message) const;
 public:
 	bool DebugOutput;
+	std::string FileName;
 	std::string FileLevel;
 	std::string ConsoleLevel;
 

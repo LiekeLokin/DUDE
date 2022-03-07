@@ -29,7 +29,7 @@ ValueType set_get_attrib(const char* name, ValueType value) {
 // Convert file path to only the filename
 std::string path_to_filename(const std::string& path);
 
-void init(const std::string& file_sev, const std::string& console_sev);
+void init(const std::string& file_name, const std::string& file_sev, const std::string& console_sev);
 
 extern logging::sources::severity_logger<logging::trivial::severity_level> lg;
 

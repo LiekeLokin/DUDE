@@ -39,7 +39,7 @@ logging::trivial::severity_level string_to_severity(const std::string& str) {
 	// some warning here...
 	return logging::trivial::debug;
 }
-void init(const std::string& file_sev, const std::string& console_sev) {
+void init(const std::string& file_name, const std::string& file_sev, const std::string& console_sev) {
 	// Attributes that hold filename and line number
 	logging::core::get()->add_thread_attribute("File", attrs::mutable_constant<std::string>(""));
 	logging::core::get()->add_thread_attribute("Line", attrs::mutable_constant<int>(0));
@@ -59,18 +59,20 @@ void init(const std::string& file_sev, const std::string& console_sev) {
 			)
 	);
 #endif
-	logging::add_file_log(
-			keywords::file_name = "sample.log",
-			keywords::filter = expr::attr< logging::trivial::severity_level >("Severity") >= string_to_severity(file_sev),
-			keywords::format = (
-					expr::stream
-					<< "t=" << std::left << std::setw(5) << expr::attr<double>("Tijd")
-					<< " <" << std::left << std::setw(7) << logging::trivial::severity << "> "
-					<< expr::attr<std::string>("File")
-					<< ':' << expr::attr<int>("Line") << " "
-					<< expr::smessage
-			)
-	);
+	if (! file_name.empty()) {
+		logging::add_file_log(
+				keywords::file_name = file_name,
+				keywords::filter = expr::attr< logging::trivial::severity_level >("Severity") >= string_to_severity(file_sev),
+				keywords::format = (
+						expr::stream
+						<< "t=" << std::left << std::setw(5) << expr::attr<double>("Tijd")
+						<< " <" << std::left << std::setw(7) << logging::trivial::severity << "> "
+						<< expr::attr<std::string>("File")
+						<< ':' << expr::attr<int>("Line") << " "
+						<< expr::smessage
+				)
+		);
+	}
 }
 
 logging::sources::severity_logger<logging::trivial::severity_level> lg;

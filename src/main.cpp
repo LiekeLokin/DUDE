@@ -43,7 +43,7 @@ const Config cfg(filename);
 const BedConfig bedConfig(cfg);
 const FlowConfig flowConfig(cfg);
 
-dude_log::init(cfg.FileLevel, cfg.ConsoleLevel);
+dude_log::init(cfg.FileName, cfg.FileLevel, cfg.ConsoleLevel);
 
 admin::Npx = cfg.Npx; // still necessary for admin::o2()
 

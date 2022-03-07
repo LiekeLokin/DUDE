@@ -185,6 +185,7 @@ Config::Config(const std::string& path) {
 			warn("Unknown number parameter");
 			continue;
 		} else if (std::regex_search(line, what, string_param_expr)) {
+			ASSIGNSTRING(FileName);
 			ASSIGNSTRING(FileLevel);
 			ASSIGNSTRING(ConsoleLevel);
 			ASSIGNSTRING(readbed);
