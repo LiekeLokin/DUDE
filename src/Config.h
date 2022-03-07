@@ -18,6 +18,8 @@ class Config {
 	void warn(const std::string& message) const;
 public:
 	bool DebugOutput;
+	std::string FileLevel;
+	std::string ConsoleLevel;
 
 	int Npx;
 	int Npz;

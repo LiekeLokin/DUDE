@@ -36,14 +36,14 @@ void setS_Av(const Config& cfg);
 
 int main (int argc, char * const argv[]) {
 
-dude_log::init();
-
 cerr.precision(16);
 
 std::string filename = (argc == 1) ? "config.cfg" : argv[1];
 const Config cfg(filename);
 const BedConfig bedConfig(cfg);
 const FlowConfig flowConfig(cfg);
+
+dude_log::init(cfg.FileLevel, cfg.ConsoleLevel);
 
 admin::Npx = cfg.Npx; // still necessary for admin::o2()
 
