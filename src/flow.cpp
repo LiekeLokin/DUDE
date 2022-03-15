@@ -155,15 +155,9 @@ void flow::u_b(vec &u0){
 }
 
 void flow::write_velocities(double tijd, vec bottom_state, vec u0_b){
-	ofstream outvelub;
-	ofstream outvelu;
-	ofstream outvelw;
-	outvelub.open ("out_velub.txt", ofstream::out | ofstream::app);
-	outvelu.open  ("out_velu.txt", ofstream::out | ofstream::app);
-	outvelw.open  ("out_velw.txt", ofstream::out | ofstream::app);
-	outvelub.precision(10);
-	outvelu.precision(10);
-	outvelw.precision(10);
+	static ofstream outvelub("out_velub.txt");
+	static ofstream outvelu("out_velu.txt");
+	static ofstream outvelw("out_velw.txt");
 
 	outvelub<<tijd<<" ";
 	outvelu<<tijd<<" ";
@@ -194,11 +188,6 @@ void flow::write_velocities(double tijd, vec bottom_state, vec u0_b){
 			}
 		}
 	}
-
-
-	outvelub.close();
-	outvelu.close();
-	outvelw.close();
 }
 
 /* replaced by writing via main
