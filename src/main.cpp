@@ -302,13 +302,17 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			  oldL = L;
 			  doStabAnalysis(H2O, sand, q_in, cfg);
 			  Lstab = L;
+			  if ((i==iinit1&&cfg.readbed.empty())){
+				  oldL =L;
+			  }
 			  updateMyH = true;
 			  dt=cfg.dtr; // reset, stab analysis uses dt=dts
 //			  const auto Hstab = H;
 			  //OLAV: 2013 02 06 added doStab=0;
 			  doStab=0; 
 		   }
-		   if (i == iinit1 && cfg.readbed.empty()) {
+		   auto doLag= false;
+		   if (!doLag ||(i == iinit1 && cfg.readbed.empty())) {
 			   L = Lstab;
 		   } else if (std::abs(oldL / Lstab - 1) > 0.01) {
 			   L = oldL + 0.01 * (Lstab - oldL);
