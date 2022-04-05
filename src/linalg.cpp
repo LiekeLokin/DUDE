@@ -1,6 +1,8 @@
 // linalg.cpp
 
 #include "linalg.h"
+#include <iostream>
+#include <cmath>
 
 using namespace std;
 
@@ -557,11 +559,11 @@ crLU spMat::LU(){
 	spMat lo(nrows,bw);
 	double *diag=new double[nrows];
 	for(int i=0;i<nrows;i++)diag[i]=0.0;
-	cerr<<"construct LU"<<endl;
+	//cerr<<"construct LU"<<endl;
 	for(int k=0;k<nm;k++){
 		double pivot=e(k,k);
 		diag[k]=pivot;
-		if(pivot==0.0)cerr<<"pivot zero on row "<<k<<endl;
+		if(pivot==0.0)cerr<<"ERROR: pivot zero on row "<<k<<endl;
 		for(int j=k+1;j<n;j++){
 			if(r[j].begin()->first*bw<=k && (r[j].begin()->second)[k%bw]!=0.0){
 				double f=(r[j].begin()->second)[k%bw]/pivot;
@@ -583,7 +585,7 @@ crLU spMat::LU(){
 			}
 		}
 	}
-	cerr<<"copy LU to friendly structure"<<endl;
+	//cerr<<"copy LU to friendly structure"<<endl;
 	diag[nm]=e(nm,nm);
 	double* Lval=new double[Llvc];
 	int* Lci=new int[Llvc];

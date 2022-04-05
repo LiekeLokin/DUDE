@@ -129,6 +129,7 @@ Config::Config(const std::string& path) {
 			ASSIGNDOUBLE(SimpleLengthFactor);
 			ASSIGNINT(numStab);
 			ASSIGNINT(Hifactor);
+			ASSIGNINT(Minfactor);
 			ASSIGNDOUBLE(Hcrit_global);
 			ASSIGNINT(transport_eq);
 			ASSIGNINT(alpha_varies);
@@ -178,12 +179,15 @@ Config::Config(const std::string& path) {
 			ASSIGNDOUBLE(theta_min_S);
 			ASSIGNDOUBLE(theta_max_S);
 			ASSIGNDOUBLE(H_ref);
-			ASSIGNBOOL(keepsgrowing);
+			//ASSIGNBOOL(keepsgrowing);
 
 			// Fall through
 			warn("Unknown number parameter");
 			continue;
 		} else if (std::regex_search(line, what, string_param_expr)) {
+			ASSIGNSTRING(FileName);
+			ASSIGNSTRING(FileLevel);
+			ASSIGNSTRING(ConsoleLevel);
 			ASSIGNSTRING(readbed);
 			ASSIGNSTRING(readfw);
 

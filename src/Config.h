@@ -18,6 +18,9 @@ class Config {
 	void warn(const std::string& message) const;
 public:
 	bool DebugOutput;
+	std::string FileName;
+	std::string FileLevel;
+	std::string ConsoleLevel;
 
 	int Npx;
 	int Npz;
@@ -31,6 +34,7 @@ public:
 	int SimpleLengthFactor;
 	int numStab;
 	int Hifactor;
+	int Minfactor;
 	double Hcrit_global;
 	int transport_eq;
 	int alpha_varies;
@@ -82,7 +86,7 @@ public:
 	double theta_min_S;
 	double theta_max_S;
 	double H_ref;
-	bool keepsgrowing;
+//	bool keepsgrowing;
 
 	Config(const std::string& path = "config.cfg");
 	virtual ~Config() {}

@@ -1,14 +1,16 @@
 // admin.cpp
 
 #include "admin.h"
-#include <iostream>
+#include "Logging.h"
+//#include <iostream>
 
 namespace admin {
 int Npx = 120;
 }
 
 void admin::o2_abort(int i_ex) {
-	std::cerr << "T=" << tijd << " - ERROR: o2() buffer overflow (i_in=" << i_ex << ")" << std::endl;
+	DUDE_LOG(fatal) << "o2() buffer overflow (i_in=" << i_ex << ")";
+	//std::cerr << "T=" << tijd << " - ERROR: o2() buffer overflow (i_in=" << i_ex << ")" << std::endl;
 	std::abort();
 }
 #ifndef INLINE_O2

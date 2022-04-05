@@ -3,7 +3,7 @@
 #ifndef _ADMIN_H
 #define _ADMIN_H
 
-#include <iosfwd>
+//#include <iosfwd>
 
 extern double tijd; // JW wordt eigenlijk alleen gebruikt voor logging (en q_in interpolatie)
 extern double dz; // JW per definitie H/Npz
@@ -13,7 +13,7 @@ extern double H;
 extern double L;
 extern double dx;
 extern double dt;
-extern std::ofstream outlog;
+//extern std::ofstream outlog;
 
 namespace admin{
 	extern int Npx;

@@ -1,5 +1,7 @@
 
 *.o
 *.exe
-test/out_*.*
+*.log
 trials/*
+/src2/
+out_*.*
