@@ -425,10 +425,10 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 
 		//cerr << "bint1: " << bint1 << " bint2: " << bint2 << endl; //OLAV 2014 03 31
 
-		auto bint1 = sand.detint1(current);
-		auto bint2 = sand.detint2(current);
-		auto zetaint1 = H2O.zetaint1();
-		auto zetaint2 = H2O.zetaint2();
+		auto bint1 = sand.detint1(current); // Integral of bed elevation (should be 0)
+		auto bint2 = sand.detint2(current); // Sand volume above the zb_min
+		auto zetaint1 = H2O.zetaint1(); // integral of the water level variation (should be 0)
+		auto zetaint2 = H2O.zetaint2(); // water volume above zeta_min
 		const auto& Dc = sand.detNd_fft(sand.getShape(0),2); // dune characteristics
 		auto Nd = int(Dc[0]);
 		double cr = Dc[1];
@@ -456,7 +456,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 				bss2=bss1;}
 			else if (sepflag==1){
 				next=sand.update_flowsep(u0_b,bss1,bss2,fluxtot,dhdx);}
-		}
+		} //TODO LL staat nier niet twee keer exact hetzelfde??
 		
 		//cerr << "next: " << next[1] << " bint2: " << bint2 << endl; //OLAV 2014 03 31
 		
@@ -673,7 +673,7 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 	if (row == 0 || row > num)
 		outstab << "# !! WARNING no real maximum";
 	outstab << endl;
-	outstab << "# t=" << tijd << " row=" << row << " L=" << L << " grow=" << gr << endl << endl;
+	outstab << "# t=" << tijd << " row=" << row << " L=" << L << " grow=" << gr <<  " Av=" << Av <<  " S=" << S << endl << endl;
 	outstab << "#" << setw(w-1) << "L" << setw(w) << "H" << setw(w) << "grow" << setw(w) << "migr" << endl;
 	for (int j = 0; j <= num; j++)
 		outstab << setw(w) << dta[j][0] << setw(w) << dta[j][1]
