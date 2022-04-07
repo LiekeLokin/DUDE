@@ -54,15 +54,11 @@ public:
 	void write_flowsep() const;
 	void setShape(const vec& b_in);
 	void setSin(double amp,int n);
-#if 0
 	void setRand(double amp);
 	void setRand(double amp,int seed);
-#endif
 	void setWave(int xwi, int xcin);
-#if 0
 	void setDist(double amp_dist);
 	void setDistSin (double ampdist,int n);
-#endif
 	void setMidSin(double amp, double length);
 	void setCustom(double amp, int n);
 	vec getShape(int sepflag) const;

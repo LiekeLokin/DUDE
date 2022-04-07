@@ -70,7 +70,6 @@ void bottom::setSin(double amp,int n) {
 	}
 }
 
-#if 0
 void bottom::setDistSin(double amp,int n){
 	/*vullen van vector met voor de bodemverstoring geschaalde dz*/
 	for(int i=0;i<Npx;i++){
@@ -85,7 +84,6 @@ void bottom::setRand(double amp){
 		b[i]=amp*2.0*(0.5-(double)rand()/(double)(RAND_MAX));
 	}
 }
-#endif
 
 void bottom::setWave(int xwi, int xcin) {
 
@@ -153,7 +151,6 @@ void bottom::setWave(int xwi, int xcin) {
 	}
 }
 
-#if 0
 void bottom::setDist(double amp_dist){
 
 		vec rand_dist(Npx,0.0);
@@ -191,7 +188,6 @@ void bottom::setRand(double amp,int seed){
 		b[i]=amp*2.0*(0.5-(double)rand()/(double)(RAND_MAX));
 	}
 }
-#endif
 
 void bottom::setMidSin(double amp, double length) {
 	/*fill bottom vector with a sine in the middle
@@ -2364,6 +2360,7 @@ void bottom::sep_migr_lee(const vec& fluxtot, const vec& oldb) {
 					/* sediment volume to large, go step back, making "step" smaller */
 					xdown -= step;
 					step /= 2;
+					DUDE_LOG(info) << SHOW_4VARS(area, Ss, xdown, step);
 				}
 
                 //cout << endl << "Block VII: migrlee ifs are done" << endl << endl; //OLAV
