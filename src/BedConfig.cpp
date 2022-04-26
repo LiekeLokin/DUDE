@@ -31,7 +31,7 @@ BedConfig::BedConfig(const Config& cfg) :
 	alpha(cfg.m / (delta * g)),
 	be(cfg.be),
 	//l2(1 / tan(-repose)),
-	l2(1.73),
+	l2(1.73),//TODO moet die oude zijn met de tan van de repose ering
 	F0_dim(cfg.correction_NT * cfg.F0 * sqrt(g * delta / D50)),
 	meanstle(alpha_lag * cfg.D50),
 	alpha_2(cfg.alpha_2),

@@ -71,8 +71,8 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	//cerr<<flowConfig.F<<endl;
 	DUDE_LOG(info) << SHOW_VAR(flowConfig.F);
 	const auto ampbeds = cfg.ampbeds_factor * cfg.D50;
-//	sand.setSin(ampbeds,1);
-	sand.setRand(ampbeds,28); //1.1*cfg.D50,(unsigned)time(0),
+	sand.setSin(ampbeds,1);
+//	sand.setRand(ampbeds,28); //1.1*cfg.D50,(unsigned)time(0),
 	//sand.setRand(1e-8,(unsigned)time(0));
 	//sand.setShape(current);
 	setS_Av(cfg);
