@@ -20,8 +20,6 @@ private:
 	vec beta;
 	vec alpha;
 	vec u0;
-	vec Avx;
-	vec Sx;
 	/*spMat *Am;*/
 	int o(int j_ex,int i_ex,int v) const;
 	void zl(int r,int i);
@@ -53,7 +51,6 @@ private:
 	void vulu();
 	void initIu();
 	void dzs_init(const vec& bottom_state);
-	void det_AvS(const vec& bottom_state);
 public:
 	flow() = delete;
 	flow(const FlowConfig& cfg);

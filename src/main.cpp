@@ -6,7 +6,7 @@
 #include <vector>
 #include "bottom.h"
 #include "flow.h"
-#include "linalg.h"
+#include "vecmat.h"
 #include "admin.h"
 #include "Config.h"
 #include "BedConfig.h"
@@ -26,12 +26,12 @@ double L;
 double dx;
 double dz;
 double tijd;
-double Av;
+vec Avx;
 double S;
 
 void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& cfg);
-void doCheckQsp(vec bedflow, flow& H2O, const double& q_in, const Config& cfg);
-void setS_Av(const Config& cfg);
+void doCheckQsp(vec bedflow, flow& H2O, const bottom& sand, const double& q_in, const Config& cfg);
+void setS_Av(const Config& cfg, const bottom& sand);
 
 
 int main (int argc, char * const argv[]) {
@@ -54,13 +54,13 @@ L = 1.0;
 dx = L / cfg.Npx;
 dz = H / cfg.Npz;
 tijd = 0.0;
-Av = 0.0;
 S = 0.0;
 
 double q_in = cfg.q_in1;
 
 flow H2O(flowConfig);
 bottom sand(bedConfig);
+Avx.resize(cfg.Npx);
 
 //if (cfg.dt_write==1.) {cerr<<endl<<endl<<endl<<endl<<endl<<"         ------ NOTE!! DT_WRITE==1!! -------"<<endl<<endl<<endl<<endl<<endl;}
 if (cfg.dt_write==1.)
@@ -71,11 +71,11 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	//cerr<<flowConfig.F<<endl;
 	DUDE_LOG(info) << SHOW_VAR(flowConfig.F);
 	const auto ampbeds = cfg.ampbeds_factor * cfg.D50;
-	//sand.setSin(ampbeds,1);
-	sand.setRand(0.1*cfg.D50,(unsigned)time(0));
+	sand.setSin(ampbeds,1);
+	//sand.setRand(0.1*cfg.D50,(unsigned)time(0));
 	//sand.setRand(1e-8,(unsigned)time(0));
 	//sand.setShape(current);
-	setS_Av(cfg);
+	setS_Av(cfg, sand);
 	H2O.resetIu();
 	int iinit1=0;
 	//vec inp(3,0.0); //is input if a bottom profile is read
@@ -122,7 +122,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		L=inp[2];
 						
 		dx=L/cfg.Npx;
-		setS_Av(cfg);
+		setS_Av(cfg, sand);
 		DUDE_LOG(info) <<"read check:";
 		DUDE_LOG(info) <<"Timeprevious: " <<tijd;
 		DUDE_LOG(info) <<"H: "<<H;
@@ -157,11 +157,6 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	tmpbot << "out_bottom"<< p << ".txt";
 	string ofname = tmpbot.str();
 	ofstream outbot(ofname.c_str(),ios_base::out);
-
-	ostringstream tmpbot1;
-	tmpbot1 << "out_general"<< p << ".txt";
-	string ofname1 = tmpbot1.str();
-	ofstream data(ofname1.c_str(),ios_base::out);
 
 	ostringstream tmpbot2;
 	tmpbot2 << "out_int"<< p << ".txt";
@@ -214,26 +209,6 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	//	outdebug.precision(10);
 	//	outdebug.close();
 	// end ADDED 2011 2 25 (OLAV)
-
-	data << H << endl
-			<< L << endl
-			<< cfg.Npx << endl
-			<< dx << endl
-			<< cfg.Npz << endl
-			<< dz << endl
-			<< dt << endl
-			<< cfg.dt_write << endl
-			<< Av << endl
-			<< S << endl
-			<< q_in << endl
-			<< flowConfig.F << endl
-			<< 1 << endl // ?? Huh ??
-			<< bedConfig.alpha << endl
-			<< bedConfig.be << endl
-			<< bedConfig.l2 << endl
-			<< bedConfig.nd << endl
-			<< cfg.readfw << endl;
-	data.close();
 
 	auto current=sand.getShape(0);
 
@@ -328,7 +303,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
             dz=H/cfg.Npz;
 	        dx=L/cfg.Npx;
 			//cerr << "dx: " << dx << endl;
-	        setS_Av(cfg);
+	        setS_Av(cfg, sand);
 	        dt=cfg.dtr;
 			doStab=0;
         }
@@ -393,7 +368,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			H2O.solve(bedflow);
 		}
 
-		doCheckQsp(bedflow, H2O, q_in, cfg);
+		doCheckQsp(bedflow, H2O, sand, q_in, cfg);
 		vec u0_b(cfg.Npx);
 		H2O.u_b(u0_b);
 		if (updateMyH)
@@ -457,7 +432,6 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			else if (sepflag==1){
 				next=sand.update_flowsep(u0_b,bss1,bss2,fluxtot,dhdx);}
 		}
-		
 		//cerr << "next: " << next[1] << " bint2: " << bint2 << endl; //OLAV 2014 03 31
 		
 		double flux_av=0.;
@@ -520,6 +494,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	  		//cerr<<"Hav very low, bed set to initial disturbance."<<endl<<endl;
 #endif
 	  	}
+		setS_Av(cfg, sand);
 	}
 	
     sand.writeBottom();
@@ -598,11 +573,11 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 		dx=L/cfg.Npx;
 
 		//cerr<<p<<" "<<L<<" "<<H<<" "<<dx<<endl;
-		setS_Av(cfg);
+		setS_Av(cfg, sand);
 		H2O.resetIu();
 		H2O.solve(bedstab);
 		if (p==0) {
-			doCheckQsp(bedstab, H2O, q_in, cfg);
+			doCheckQsp(bedstab, H2O, sand, q_in, cfg);
 			//cerr<<"H = "<<H<<"m"<<endl;
 			DUDE_LOG(info) << "Stab Analysys starts: " << SHOW_VAR(H);
 		}
@@ -656,7 +631,7 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 	H=dta[row][1];
 	dz=H/cfg.Npz;
 	dx=L/cfg.Npx;
-	setS_Av(cfg);
+	setS_Av(cfg, sand);
 	//cerr<<"Finished the stability analysis"<<endl<<endl;
 	//cerr<<"L = "<<L<<endl;
 	//cerr<<"H = "<<H<<endl;
@@ -681,7 +656,7 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 	outstab.close();
 }
 
-void doCheckQsp(vec bedflow, flow& H2O, const double& q_in, const Config& cfg){
+void doCheckQsp(vec bedflow, flow& H2O, const bottom& sand, const double& q_in, const Config& cfg){
 	//checken van de specifieke afvoer
 	double q_sp=H2O.check_qsp();
 	DUDE_LOG(info) << "check of specific discharge: " << SHOW_VAR(q_sp);
@@ -701,7 +676,7 @@ void doCheckQsp(vec bedflow, flow& H2O, const double& q_in, const Config& cfg){
 		if (q_dif<0.) H+=q_cor;
 		else if (q_dif>0.) H-=q_cor;
 		dz=H/double(cfg.Npz);
-		setS_Av(cfg);
+		setS_Av(cfg, sand);
 		//n_it_fl=H2O.solve_gm(sand.getShape(sepflag),20);
 		int n_it_fl=0;
 		n_it_fl=H2O.solve_gm(bedflow,20);
@@ -716,8 +691,16 @@ void doCheckQsp(vec bedflow, flow& H2O, const double& q_in, const Config& cfg){
 	}
 }
 
-void setS_Av(const Config& cfg){
+void setS_Av(const Config& cfg, const bottom& sand){
 	const auto ustar = sqrt(cfg.g * H * cfg.ii);
 	S = cfg.BETA1 * ustar;
-	Av = cfg.BETA2 * (1./6.) * cfg.kappa * H * ustar;
+	const auto Av = cfg.BETA2 * (1./6.) * cfg.kappa * H * ustar;
+
+	//DUDE_LOG(warning) << SHOW_VAR(Av);
+	auto dhdx = sand.get_dhdx();
+	for (auto i = 0 ; i < cfg.Npx; i++) {
+		Avx[i] = Av;// * (1 - dhdx[i]);
+		//std::cout << std::setprecision(4) << Avx[i] << " ";
+	}
+	//std::cout << std::endl;
 }

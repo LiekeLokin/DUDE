@@ -3,11 +3,11 @@
 #ifndef _ADMIN_H
 #define _ADMIN_H
 
-//#include <iosfwd>
+#include "vecmat.h"
 
 extern double tijd; // JW wordt eigenlijk alleen gebruikt voor logging (en q_in interpolatie)
 extern double dz; // JW per definitie H/Npz
-extern double Av;
+extern vec Avx;
 extern double S;
 extern double H;
 extern double L;

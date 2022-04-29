@@ -2,15 +2,9 @@
 
 #ifndef _LINALG_H
 #define _LINALG_H
-#include <vector>
 #include <map>
 #include <iosfwd>
-//#include <cmath>
-
-//#define mat std::vector<std::vector<double> >
-//#define vec std::vector<double>
-typedef std::vector<double> vec;
-typedef std::vector<vec> mat;
+#include "vecmat.h"
 
 std::ostream& operator<<(std::ostream&, const vec&);
 class crLU{

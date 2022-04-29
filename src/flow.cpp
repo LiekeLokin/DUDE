@@ -21,9 +21,7 @@ flow::flow(const FlowConfig& cfg) : cfg(cfg),
 		iu(vec(nt, 0.0)),
 		beta(vec(2 * Npx, 0.0)),
 		alpha(vec(Npx * Npz, 0.0)),
-		u0(vec(Npz, 0.0)),
-		Avx(vec(Npx, Av)),
-		Sx(vec(Npx, S)) {
+		u0(vec(Npz, 0.0)) {
 	/*
 	Am=new spMat(Npz,Npz);
 
@@ -82,15 +80,6 @@ int flow::o(int j_ex,int i_ex,int v) const {
 	}
 	return int(i*(Npz+1)+j+v*Npz);
 }
-void flow::det_AvS(const vec& bottom_state __attribute__((unused))){
-	//bsp = bottom_state with parameterization
-	for(int i=0;i<Npx;i++){
-		//double loc_wd=-bottom_state[i]+H+iu[o(0,i,2)]/beta[2*i+1];
-		Avx[i]=Av;
-		Sx[i]=S;
-		//cerr<<"loc_wd: "<<loc_wd<<"; ustar: "<<ustar<<"; Av: "<<Avx[i]<<"; S: "<<Sx[i]<<endl;
-	}
-}
 
 vec flow::getiu() const {
 	/*
@@ -143,7 +132,7 @@ void flow::initIu(){
 void flow::u_b(vec &u0) const {
 	for(int i=0;i<Npx;i++){
 		double a=2.*beta[2*i]*Avx[i];
-		double fac=a/(a+Sx[i]*dz);
+		double fac=a/(a+S*dz);
 		u0[i]=fac*iu[o(0,i,0)];
 	}
 }
@@ -279,7 +268,6 @@ int flow::solve_gm(const vec& bottom_state,int gmn) {
 	int teller=0;
 	double resid=0.;
 	dzs_init(bottom_state);
-	det_AvS(bottom_state);
 	//initIu(); //starten vanaf de vlakke bodem oplossing i.p.v. de vorige
 	vulb();
 	vulA();
@@ -320,7 +308,6 @@ int flow::solve_gm(const vec& bottom_state,int gmn) {
 	vulu();
 	teller++;
 	while(L2(b)>cfg.tresh&&teller<cfg.max_it){
-		det_AvS(bottom_state);
 		vulb();
 		vulA();
 		int gmrestel=0;
@@ -369,7 +356,6 @@ int flow::solve(const vec& bottom_state){
 	int teller=0;
 	//resetIu(); //*iu initialiseren op nul
 	dzs_init(bottom_state);
-	det_AvS(bottom_state);
 	//initIu(); //starten vanaf de vlakke bodem oplossing i.p.v de vorige
 	vulb();
 	vulA();
@@ -380,7 +366,6 @@ int flow::solve(const vec& bottom_state){
 	teller++;
 	//cerr<<"Newton "<<teller<<", L2: "<<L2(b)<<endl;
 	while(L2(b)>cfg.tresh&&teller<cfg.max_it){
-		det_AvS(bottom_state);
 		vulb();
 		vulA();
 		(A.LU()).bf(b);
@@ -561,7 +546,7 @@ void flow::vl_bodem(int r,int i){
 	/*viscositeit linkerlid u vgl, op bodem, partial slip*/
 	A.e(r,o(1,i,0))-=beta[2*i]*beta[2*i]*Avx[i]/(dz*dz);
 	double a2=Avx[i]*beta[2*i];
-	double b2=Sx[i]*dz;
+	double b2=S*dz;
 	A.e(r,o(0,i,0))-=beta[2*i]*beta[2*i]*((2.0*a2-b2)/(2.0*a2+b2)-2.0)*Avx[i]/(dz*dz);
 }
 
@@ -569,7 +554,7 @@ void flow::vr_bodem(int r,int i){
 	/*viscositeit rechterlid u vgl, op bodem, partial slip*/
 	b[r]+=beta[2*i]*beta[2*i]*Avx[i]*iu[o(1,i,0)]/(dz*dz);
 	double a2=Avx[i]*beta[2*i];
-	double b2=Sx[i]*dz;
+	double b2=S*dz;
 	b[r]+=beta[2*i]*beta[2*i]*Avx[i]*iu[o(0,i,0)]*((2.0*a2-b2)/(2.0*a2+b2)-2.0)/(dz*dz);
 }
 

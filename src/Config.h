@@ -9,13 +9,17 @@
 #define CONFIG_H_
 
 #include <string>
+#include <iosfwd>
 
 class Config {
+	std::ofstream* cfglog;
 	std::string line;
 	unsigned int lineno = 0u;
 	template <typename T>
 	T scale(T val, const std::string& what) const;
 	void warn(const std::string& message) const;
+	template <typename T>
+	T getValue(const std::string& name, const std::string& val);
 public:
 	bool DebugOutput;
 	std::string FileName;
