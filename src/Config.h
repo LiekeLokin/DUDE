@@ -91,6 +91,7 @@ public:
 	double theta_max_S;
 	double H_ref;
 //	bool keepsgrowing;
+	bool Lrangefix;
 
 	Config(const std::string& path = "config.cfg");
 	virtual ~Config() {}
