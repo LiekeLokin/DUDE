@@ -1112,6 +1112,14 @@ the volumetric stress at xsi (flux@xsi)
 //	}
 //}
 
+vec bottom::get_dhdx() const {
+	vec dhdx(Npx);
+	for (auto i = 0; i < Npx; i++) {
+		dhdx[i] = (b[i] - b[o2(i - 1)]) / dx;
+	}
+	return dhdx;
+}
+
 void bottom::detQcr(const vec& ub, vec &dhdx) {
 	/* determine fluxes in case of flowsep some extra code is used*/
 	auto sepflag = fsz[nf - 2];

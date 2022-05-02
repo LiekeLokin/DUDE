@@ -61,6 +61,7 @@ public:
 	void setDistSin (double ampdist,int n);
 	void setMidSin(double amp, double length);
 	void setCustom(double amp, int n);
+	vec get_dhdx() const;
 	vec getShape(int sepflag) const;
 	std::vector<int> getFsz() const;
 	std::vector<double> getSr()const;

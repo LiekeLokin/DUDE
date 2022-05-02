@@ -54,10 +54,10 @@ T Config::scale(T val, const std::string& what) const {
 }
 
 template <typename T>
-T getValue(const std::string& name, const std::string& val) {
+T Config::getValue(const std::string& name, const std::string& val) {
 	const char* env = getenv(name.c_str());
 	std::stringstream ss(env ? env : val.c_str());
-	std::cout << (env ? "ENV " : "    ");
+	*cfglog << (env ? "ENV " : "    ");
 	T value;
 	ss >> value;
 	return value;
@@ -67,21 +67,21 @@ T getValue(const std::string& name, const std::string& val) {
 	if (equal(what[1], #param)) { \
 		auto value = getValue<double>(what[1], what[2]); \
 		param = scale(value, what[5]); \
-		std::cout << what[1] << " = " << value << " [" << what[5] << "]" << std::endl; \
+		*cfglog << what[1] << " = " << value << " [" << what[5] << "]" << std::endl; \
 		continue; \
 	}
 
 #define ASSIGNINT(param) \
 	if (equal(what[1], #param)) { \
 		param = getValue<int>(what[1], what[2]); \
-		std::cout << what[1] << " = " << param << std::endl; \
+		*cfglog << what[1] << " = " << param << std::endl; \
 		continue; \
 	}
 
 #define ASSIGNSTRING(param) \
 	if (equal(what[1], #param)) { \
 		param = getValue<std::string>(what[1], what[2]); \
-		std::cout << what[1] << " = '" << param << "'" << std::endl; \
+		*cfglog << what[1] << " = '" << param << "'" << std::endl; \
 		continue; \
 	}
 
@@ -89,12 +89,12 @@ T getValue(const std::string& name, const std::string& val) {
 	if (equal(what[1], #param)) { \
 		auto value = getValue<char>(what[1], what[2]); \
 		param = std::string("1TtYy").find(value) != std::string::npos; \
-		std::cout << what[1] << " = " << std::boolalpha << param << std::endl; \
+		*cfglog << what[1] << " = " << std::boolalpha << param << std::endl; \
 		continue; \
 	}
 
 
-Config::Config(const std::string& path) {
+Config::Config(const std::string& path) : cfglog(new std::ofstream("out_config.txt")) {
 	std::ifstream in(path);
 	assert(in && "config file not found");
 	while (in) {
@@ -199,5 +199,7 @@ Config::Config(const std::string& path) {
 		// Fall through
 		warn("Can't parse");
 	}
+	delete cfglog;
+	cfglog = nullptr;
 }
 
