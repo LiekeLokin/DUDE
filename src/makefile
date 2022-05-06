@@ -8,7 +8,7 @@ CXXFLAGS += -O3 -march=native
 # -flto gains about 2% speed, but triggers a spurious warning
 #CXXFLAGS += -flto
 
-LDLIBS := -lfftw3 -lboost_log -lboost_system -lboost_log_setup -lboost_thread -lpthread
+LDLIBS := -lfftw3 -lboost_log -lboost_system -lboost_filesystem -lboost_log_setup -lboost_thread -lpthread
 
 SRCS := $(filter-out test_Config.cpp,$(wildcard *.cpp))
 OBJS := $(SRCS:%.cpp=%.o)

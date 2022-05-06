@@ -12,6 +12,7 @@
 #include <cassert>
 #include <cmath>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 #include <regex>
 
 namespace {
@@ -23,6 +24,16 @@ bool equal(std::string a, std::string b) {
 	std::transform(a.begin(), a.end(), a.begin(), ::tolower);
 	std::transform(b.begin(), b.end(), b.begin(), ::tolower);
 	return a == b;
+}
+
+std::string unquote(const std::string& in) {
+	const auto len = in.size();
+	if (len < 2)
+		return in;
+	const auto front = in.front();
+	if ((front == '\'' || front == '"') && in.back() == front)
+		return in.substr(1, len - 2);
+	return in;
 }
 } // anonymous
 
@@ -80,7 +91,7 @@ T Config::getValue(const std::string& name, const std::string& val) {
 
 #define ASSIGNSTRING(param) \
 	if (equal(what[1], #param)) { \
-		param = getValue<std::string>(what[1], what[2]); \
+		param = getValue<std::string>(what[1], unquote(what[2])); \
 		*cfglog << what[1] << " = '" << param << "'" << std::endl; \
 		continue; \
 	}
@@ -97,6 +108,7 @@ T Config::getValue(const std::string& name, const std::string& val) {
 Config::Config(const std::string& path) : cfglog(new std::ofstream("out_config.txt")) {
 	std::ifstream in(path);
 	assert(in && "config file not found");
+	*cfglog << "# original config file: " << boost::filesystem::canonical(path) << std::endl;
 	while (in) {
 		char s[255];
 		in.getline(s, sizeof s);
@@ -106,12 +118,19 @@ Config::Config(const std::string& path) : cfglog(new std::ofstream("out_config.t
 		if (line.empty() || line.find("#") == 0)
 			continue;
 
-		std::cout << line << std::endl;
+		//std::cout << line << std::endl;
+
+		if (line.substr(0, 3) == "ENV") {
+			warn("Ignoring 'ENV'");
+			line = line.substr(3);
+			boost::trim(line);
+		}
 
 		std::smatch what;
 		if (std::regex_search(line, what, group_expr)) {
-			std::cout << " ** Group " << what[1] << " found" << std::endl;
-			continue;
+			//std::cout << " ** Group " << what[1] << " found" << std::endl;
+			*cfglog << "[" << what[1] << "]" << std::endl;
+ 			continue;
 		}
 		if (std::regex_search(line, what, number_param_expr)) {
 			//std::cout << " ++ Param " << what[1] << " = " << what[2] << " [" << what[5] << "]" << std::endl;
@@ -185,6 +204,11 @@ Config::Config(const std::string& path) : cfglog(new std::ofstream("out_config.t
 			warn("Unknown number parameter");
 			continue;
 		} else if (std::regex_search(line, what, string_param_expr)) {
+			ASSIGNBOOL(DebugOutput);
+			ASSIGNBOOL(AllowFlowSep);
+			ASSIGNBOOL(AllowAvalanching);
+			ASSIGNBOOL(moeilijkdoen);
+			ASSIGNBOOL(write_velocities);
 			ASSIGNSTRING(FileName);
 			ASSIGNSTRING(FileLevel);
 			ASSIGNSTRING(ConsoleLevel);
