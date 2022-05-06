@@ -60,7 +60,6 @@ double q_in = cfg.q_in1;
 
 flow H2O(flowConfig);
 bottom sand(bedConfig);
-Avx.resize(cfg.Npx);
 
 //if (cfg.dt_write==1.) {cerr<<endl<<endl<<endl<<endl<<endl<<"         ------ NOTE!! DT_WRITE==1!! -------"<<endl<<endl<<endl<<endl<<endl;}
 if (cfg.dt_write==1.)
@@ -72,7 +71,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	DUDE_LOG(info) << SHOW_VAR(flowConfig.F);
 	const auto ampbeds = cfg.ampbeds_factor * cfg.D50;
 	sand.setSin(ampbeds,1);
-	//sand.setRand(0.1*cfg.D50,(unsigned)time(0));
+//	sand.setRand(ampbeds,28); //1.1*cfg.D50,(unsigned)time(0),
 	//sand.setRand(1e-8,(unsigned)time(0));
 	//sand.setShape(current);
 	setS_Av(cfg, sand);
@@ -209,6 +208,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	//	outdebug.precision(10);
 	//	outdebug.close();
 	// end ADDED 2011 2 25 (OLAV)
+
 
 	auto current=sand.getShape(0);
 
@@ -432,6 +432,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			else if (sepflag==1){
 				next=sand.update_flowsep(u0_b,bss1,bss2,fluxtot,dhdx);}
 		}
+		
 		//cerr << "next: " << next[1] << " bint2: " << bint2 << endl; //OLAV 2014 03 31
 		
 		double flux_av=0.;
@@ -494,7 +495,6 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	  		//cerr<<"Hav very low, bed set to initial disturbance."<<endl<<endl;
 #endif
 	  	}
-		setS_Av(cfg, sand);
 	}
 	
     sand.writeBottom();
@@ -546,14 +546,18 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 	int num=cfg.numStab; int cols=4;
 	// JW vector<vector<double> > dta(num+1,cols);
 	vector<vector<double> > dta(num+1,vector<double>(cols));
-	
-	//double Lmax=Hi*Hifactor; //OLAV: changed 2011 04 01 (was 10*Hi)
-//	double minfactor = 3.;
+//	double Lmin = 0;
+//	double Lmax = 0;
+//
+//	if (cfg.Lrangefix==1){
+//		Lmin=cfg.Minfactor;
+//		Lmax=cfg.Hifactor;
+//	}
+//	else {
 	double Lmin=H*cfg.Minfactor;
-	double Lmax=H*cfg.Hifactor; //OLAV: changed 2014 01 31
-//	double Lstep=(Lmax-H*minfactor)/num; //was double Lstep=Lmax/num-H*3;
-	double Lstep= (Lmax-Lmin)/num;
-	//OLAV: 2012 09 17: shouldnt this be H? 
+	double Lmax=H*cfg.Hifactor;
+//	}
+	auto Lstep= (Lmax-Lmin)/num;
 	
 	dt=cfg.dts;
 	vec bedstab(cfg.Npx,0.0);
@@ -565,11 +569,12 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 		bedstab[i]=ampbeds*sin(1*2.0*M_PI/cfg.Npx*(i));
 	} 
 	for (int p=0;p<=num;p++){
-		//L=Hi/10+Lstep*(p+1);  //2013 1 31: OLAV (was L=Hi/10+Lstep*(p);)
-		//L=Hi/numStab+Lstep*(p); //2012 09 17: OLAV (was with /10., now with numStab)
-		//L=Hi*5+Lstep*(p); //2012 09 17: OLAV test
+//		if (cfg.Lrangefix){
+//			L=Lmin+Lstep*(p);
+//		}
+//		else {
 		L=H*cfg.Minfactor+Lstep*(p);  //OLAV: changed 2014 01 31 was L=Hi*5+Lstep*(p);
-//		L=Lmin+Lstep*(p);
+//		}
 		dx=L/cfg.Npx;
 
 		//cerr<<p<<" "<<L<<" "<<H<<" "<<dx<<endl;

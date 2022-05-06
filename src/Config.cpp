@@ -198,6 +198,7 @@ Config::Config(const std::string& path) : cfglog(new std::ofstream("out_config.t
 			ASSIGNDOUBLE(theta_min_S);
 			ASSIGNDOUBLE(theta_max_S);
 			ASSIGNDOUBLE(H_ref);
+			ASSIGNBOOL(Lrangefix);
 			//ASSIGNBOOL(keepsgrowing);
 
 			// Fall through
