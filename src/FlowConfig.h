@@ -17,7 +17,7 @@ public:
 	const double g;		// acceleration of gravity
 	const double F;		// Forcing term in the momentum equation
 	const double tresh;	// threshold accuracy for flow solver
-	const int max_it;		// maximum number of iterations for flow solver
+	const int max_it;	// maximum number of iterations for flow solver
 
 	FlowConfig(const Config& cfg);
 	FlowConfig(const FlowConfig&) = default;

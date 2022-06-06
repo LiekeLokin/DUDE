@@ -371,7 +371,9 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 
 		doCheckQsp(bedflow, H2O, sand, q_in, cfg);
 		vec u0_b(cfg.Npx);
+		vec U0_mean(cfg.Npx)
 		H2O.u_b(u0_b);
+		H2O.Umean(U0_mean);
 		if (updateMyH)
 			myH = H;
 		
@@ -419,19 +421,19 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		vec bss2(cfg.Npx);
 		vec fluxtot(cfg.Npx);
 		vec dhdx(cfg.Npx);
-		if (cfg.transport_eq==1 || cfg.transport_eq==3 ){
+		if (cfg.transport_eq==0 ||cfg.transport_eq==1 || cfg.transport_eq==3 ){
 			if (sepflag==0){
-				next=sand.update(u0_b,bss1,fluxtot,dhdx);
+				next=sand.update(u0_b,U0_mean,bss1,fluxtot,dhdx);
 				bss2=bss1;}
 			else if (sepflag==1){
-				next=sand.update_flowsep(u0_b,bss1,bss2,fluxtot,dhdx);}
+				next=sand.update_flowsep(u0_b,U0_mean,bss1,bss2,fluxtot,dhdx);}
 			}
 		else if (cfg.transport_eq==2) {
 			if (sepflag==0){
-				next=sand.update(u0_b,bss1,fluxtot,dhdx);
+				next=sand.update(u0_b,U0_mean,bss1,fluxtot,dhdx);
 				bss2=bss1;}
 			else if (sepflag==1){
-				next=sand.update_flowsep(u0_b,bss1,bss2,fluxtot,dhdx);}
+				next=sand.update_flowsep(u0_b,U0_mean,bss1,bss2,fluxtot,dhdx);}
 		}
 		
 		//cerr << "next: " << next[1] << " bint2: " << bint2 << endl; //OLAV 2014 03 31
@@ -564,6 +566,7 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 	vec bedstab(cfg.Npx,0.0);
 	vec newbed(cfg.Npx,0.0);
 	vec ubed(cfg.Npx,0.0);
+	vec U_mean(cfg.Npx,0.0);
 	vec dump1(cfg.Npx,0.); vec dump2(cfg.Npx,0.); vec dump3(cfg.Npx,0.);
 	const auto ampbeds = cfg.ampbeds_factor * cfg.D50;
 	for(int i=0;i<cfg.Npx;i++){
@@ -589,6 +592,7 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 			DUDE_LOG(info) << "Stab Analysys starts: " << SHOW_VAR(H);
 		}
 		H2O.u_b(ubed);
+		H2O.Umean(U_mean);
 #if 0
 		auto& mySand = sand;
 #else
@@ -596,7 +600,7 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 		bottom mySand(bcfg);
 		mySand.setSin(ampbeds, 1);
 #endif
-		newbed=mySand.update(ubed,dump1,dump2,dump3);
+		newbed=mySand.update(ubed,U_mean,dump1,dump2,dump3);
 		//TODO LL: Kijken welke modus groeit (fourier analyse)
 		double gri=(1/dt)*log(maxval(newbed)/ampbeds);
 		//TODO LL: double gri = sand.detGrow()
