@@ -21,7 +21,7 @@ flow::flow(const FlowConfig& cfg) : cfg(cfg),
 		iu(vec(nt, 0.0)),
 		beta(vec(2 * Npx, 0.0)),
 		alpha(vec(Npx * Npz, 0.0)),
-		u0(vec(Npz, 0.0)) {
+		u0(vec(Npz, 0.0)){
 	/*
 	Am=new spMat(Npz,Npz);
 
@@ -136,6 +136,24 @@ void flow::u_b(vec &u0) const {
 		u0[i]=fac*iu[o(0,i,0)];
 	}
 }
+
+void flow::Umean(const vec& bottom_state, vec &Umean) const {//LL: Umean is needed for the implementation of Engelund-Hansen
+	vec Umean(Npx,0.0);
+	double uu;
+	for(int i=0;i<Npx;i++){
+		double hi=(bottom_state[o2(i+1)]+bottom_state[i])/2; //Local bed elevation (dimensional)
+		double H_loc = H-hi; //Local water depth (dimensional)
+		double dz_loc = H_loc/Npz; //Local dz (dimensional)
+
+		for(int j=0;j<Npz;j++){
+			uu=0.5*(iu[o(j,i,0)]+iu[o(j,o2(i+1),0)])*beta[2*i]; //dimensional flow velocity in x-direction
+			Umean[i]+=uu*dz_loc;
+		}
+		Umean[i] = Umean[i]/H_loc;
+	}
+}
+
+
 
 void flow::write_velocities(double tijd, const vec& bottom_state, const vec& u0_b) const {
 	static ofstream outvelub("out_velub.txt");

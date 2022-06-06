@@ -60,6 +60,7 @@ double q_in = cfg.q_in1;
 
 flow H2O(flowConfig);
 bottom sand(bedConfig);
+Avx.resize(cfg.Npx);
 
 //if (cfg.dt_write==1.) {cerr<<endl<<endl<<endl<<endl<<endl<<"         ------ NOTE!! DT_WRITE==1!! -------"<<endl<<endl<<endl<<endl<<endl;}
 if (cfg.dt_write==1.)
@@ -370,7 +371,9 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 
 		doCheckQsp(bedflow, H2O, sand, q_in, cfg);
 		vec u0_b(cfg.Npx);
+		vec U0_mean(cfg.Npx)
 		H2O.u_b(u0_b);
+		H2O.Umean(U0_mean);
 		if (updateMyH)
 			myH = H;
 		
@@ -418,19 +421,19 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		vec bss2(cfg.Npx);
 		vec fluxtot(cfg.Npx);
 		vec dhdx(cfg.Npx);
-		if (cfg.transport_eq==1 || cfg.transport_eq==3 ){
+		if (cfg.transport_eq==0 ||cfg.transport_eq==1 || cfg.transport_eq==3 ){
 			if (sepflag==0){
-				next=sand.update(u0_b,bss1,fluxtot,dhdx);
+				next=sand.update(u0_b,U0_mean,bss1,fluxtot,dhdx);
 				bss2=bss1;}
 			else if (sepflag==1){
-				next=sand.update_flowsep(u0_b,bss1,bss2,fluxtot,dhdx);}
+				next=sand.update_flowsep(u0_b,U0_mean,bss1,bss2,fluxtot,dhdx);}
 			}
 		else if (cfg.transport_eq==2) {
 			if (sepflag==0){
-				next=sand.update(u0_b,bss1,fluxtot,dhdx);
+				next=sand.update(u0_b,U0_mean,bss1,fluxtot,dhdx);
 				bss2=bss1;}
 			else if (sepflag==1){
-				next=sand.update_flowsep(u0_b,bss1,bss2,fluxtot,dhdx);}
+				next=sand.update_flowsep(u0_b,U0_mean,bss1,bss2,fluxtot,dhdx);}
 		}
 		
 		//cerr << "next: " << next[1] << " bint2: " << bint2 << endl; //OLAV 2014 03 31
@@ -495,6 +498,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	  		//cerr<<"Hav very low, bed set to initial disturbance."<<endl<<endl;
 #endif
 	  	}
+	  	setS_Av(cfg, sand);
 	}
 	
     sand.writeBottom();
@@ -546,47 +550,49 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 	int num=cfg.numStab; int cols=4;
 	// JW vector<vector<double> > dta(num+1,cols);
 	vector<vector<double> > dta(num+1,vector<double>(cols));
-//	double Lmin = 0;
-//	double Lmax = 0;
-//
-//	if (cfg.Lrangefix==1){
-//		Lmin=cfg.Minfactor;
-//		Lmax=cfg.Hifactor;
-//	}
-//	else {
-	double Lmin=H*cfg.Minfactor;
-	double Lmax=H*cfg.Hifactor;
-//	}
-	auto Lstep= (Lmax-Lmin)/num;
+	double Lmin;
+	double Lmax;
+	if (cfg.Lrangefix){
+		Lmin=cfg.Minfactor;
+		Lmax=cfg.Hifactor;
+	}
+	else {
+		Lmin=H*cfg.Minfactor;
+		Lmax=H*cfg.Hifactor;
+	}
+	double Lstep= (Lmax-Lmin)/num;
 	
 	dt=cfg.dts;
 	vec bedstab(cfg.Npx,0.0);
 	vec newbed(cfg.Npx,0.0);
 	vec ubed(cfg.Npx,0.0);
+	vec U_mean(cfg.Npx,0.0);
 	vec dump1(cfg.Npx,0.); vec dump2(cfg.Npx,0.); vec dump3(cfg.Npx,0.);
 	const auto ampbeds = cfg.ampbeds_factor * cfg.D50;
 	for(int i=0;i<cfg.Npx;i++){
 		bedstab[i]=ampbeds*sin(1*2.0*M_PI/cfg.Npx*(i));
 	} 
 	for (int p=0;p<=num;p++){
-//		if (cfg.Lrangefix){
-//			L=Lmin+Lstep*(p);
-//		}
-//		else {
-		L=H*cfg.Minfactor+Lstep*(p);  //OLAV: changed 2014 01 31 was L=Hi*5+Lstep*(p);
-//		}
+		//L=Hi/10+Lstep*(p+1);  //2013 1 31: OLAV (was L=Hi/10+Lstep*(p);)
+		//L=Hi/numStab+Lstep*(p); //2012 09 17: OLAV (was with /10., now with numStab)
+		//L=Hi*5+Lstep*(p); //2012 09 17: OLAV test
+		if (cfg.Lrangefix){
+			L=Lmin+Lstep*(p);
+		}
+		else {
+			L=H*cfg.Minfactor+Lstep*(p);
+		}
 		dx=L/cfg.Npx;
 
-		//cerr<<p<<" "<<L<<" "<<H<<" "<<dx<<endl;
 		setS_Av(cfg, sand);
 		H2O.resetIu();
 		H2O.solve(bedstab);
 		if (p==0) {
 			doCheckQsp(bedstab, H2O, sand, q_in, cfg);
-			//cerr<<"H = "<<H<<"m"<<endl;
 			DUDE_LOG(info) << "Stab Analysys starts: " << SHOW_VAR(H);
 		}
 		H2O.u_b(ubed);
+		H2O.Umean(U_mean);
 #if 0
 		auto& mySand = sand;
 #else
@@ -594,16 +600,12 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 		bottom mySand(bcfg);
 		mySand.setSin(ampbeds, 1);
 #endif
-		newbed=mySand.update(ubed,dump1,dump2,dump3);
+		newbed=mySand.update(ubed,U_mean,dump1,dump2,dump3);
 		//TODO LL: Kijken welke modus groeit (fourier analyse)
 		double gri=(1/dt)*log(maxval(newbed)/ampbeds);
 		//TODO LL: double gri = sand.detGrow()
-		//cerr<<"gri: "<<gri<<endl;
 		double mig=mySand.detMigr(bedstab,newbed);
-		//cerr<<"mig: "<<mig<<endl<<endl;
-		
-		//cerr<<"ik kom hier p= " << p << endl;  //OLAV 2011 2 22 TEST
-		//cerr<<p<<" "<<L<<" "<<gri<<endl;
+
 		DUDE_LOG(debug) << SHOW_VAR(p) << SHOW_VAR(L) << SHOW_VAR(gri);
 		dta[p][0]=L; dta[p][1]=H; dta[p][2]=gri; dta[p][3]=mig;
 	}
@@ -611,35 +613,26 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 	double gr = -999;
 	int row = 0;
 	int iinit=0;
-	
-	//cerr<<"ik kom hier 3" << endl;  //OLAV 2011 2 22 TEST
-	
-	//OLAV 2012 09 17: commented this part away
-	// if (tijd==0 && readbed1==0){ // OLAV 2011 05 12
-                    
-	// while (dta[iinit][2]>0) { 
-          // //cerr<<"ik kom hier dta[iinit][2]= " << dta[iinit][2] << endl;
-          // iinit++;
-          // }
-    // } // OLAV 2011 05 12
-	//cerr<<"ik kom hier 4" << endl;  //OLAV 2011 2 22 TEST
-	
+
 	for(int i=iinit;i<=num;i++){
 			if (dta[i][2]>gr){
 					gr=dta[i][2];
 					row=i;
 			}
-	}	
-	// LL TODO: hier moet een warning komen die als row hierboven de laatste rij uit de dta is
-	// (of is gelijk aan NumStab), dan is er geen lokaal maximum gevonden (dus Hifactor is te klein)
+	}
+
+	if (row>num-1){
+		DUDE_LOG(warning) << "No real maximum found in Linstab; increase Hifactor";
+	}
+	else if (row<1){
+		DUDE_LOG(warning) << "No real maximum found in Linstab; decrease Minfactor";
+	}
+
 	L=dta[row][0];
 	H=dta[row][1];
 	dz=H/cfg.Npz;
 	dx=L/cfg.Npx;
 	setS_Av(cfg, sand);
-	//cerr<<"Finished the stability analysis"<<endl<<endl;
-	//cerr<<"L = "<<L<<endl;
-	//cerr<<"H = "<<H<<endl;
 	DUDE_LOG(info) << "Finished the stability analysis";
 	DUDE_LOG(info) << SHOW_VAR(L) << SHOW_VAR(H);
 
@@ -650,7 +643,7 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 	ofstream outstab(oss.str());
 	//outstab.precision(16);
 	const auto w = 15;
-	if (row == 0 || row > num)
+	if (row == 0 || row > num-1)
 		outstab << "# !! WARNING no real maximum";
 	outstab << endl;
 	outstab << "# t=" << tijd << " row=" << row << " L=" << L << " grow=" << gr << endl << endl;
@@ -698,13 +691,13 @@ void doCheckQsp(vec bedflow, flow& H2O, const bottom& sand, const double& q_in, 
 
 void setS_Av(const Config& cfg, const bottom& sand){
 	const auto ustar = sqrt(cfg.g * H * cfg.ii);
-	S = cfg.BETA1 * ustar;
+	S = cfg.BETA1 * ustar;//0.0001;
 	const auto Av = cfg.BETA2 * (1./6.) * cfg.kappa * H * ustar;
 
 	//DUDE_LOG(warning) << SHOW_VAR(Av);
 	auto dhdx = sand.get_dhdx();
 	for (auto i = 0 ; i < cfg.Npx; i++) {
-		Avx[i] = Av;// * (1 - dhdx[i]);
+		Avx[i] = Av * (1 + dhdx[i]);
 		//std::cout << std::setprecision(4) << Avx[i] << " ";
 	}
 	//std::cout << std::endl;

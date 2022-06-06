@@ -1120,25 +1120,13 @@ vec bottom::get_dhdx() const {
 	return dhdx;
 }
 
-void bottom::detQcr(const vec& ub, vec &dhdx) {
+void bottom::detQcr(const vec& ub, const vec& Umean, vec &dhdx) {
 	/* determine fluxes in case of flowsep some extra code is used*/
 	auto sepflag = fsz[nf - 2];
 	vec tau(Npx, 0.0);
+	const auto ustar = sqrt(cfg.g * H * cfg.ii);
 
-//        // ADDED 2011 2 25 (OLAV)
-//        ofstream outdebug;
-//	    outdebug.open ("out_debug1.txt", ofstream::out | ofstream::app);
-//	    outdebug.precision(16);
-//           ostringstream tmpbot10;
-//           tmpbot10 << "out_debug" << 1 << ".txt";
-//           string ofname10 = tmpbot10.str();
-//           ofstream outdebug(ofname10.c_str(),ios_base::out);
-//        // END ADDED 2011 2 25 (OLAV)
-// outdebug << "xsi= " << xsi << " o2(xsi+1)= " << o2(xsi+1) << " flux[o2(xsi+1)]= " << flux[o2(xsi+1)] << endl; // ADDED 2011 2 25 (OLAV)
-// ADDED 2011 2 25 (OLAV)	
-//    outdebug.close();
-// END ADDED 2011 2 25 (OLAV)
-               
+
 	for (auto i = 0; i < Npx; i++) {
 		tau[i] = S * ub[i];
 		dhdx[i] = (b[i] - b[o2(i - 1)]) / dx;
@@ -1147,9 +1135,13 @@ void bottom::detQcr(const vec& ub, vec &dhdx) {
 	for (auto i = 0; i < Npx; i++) {
 		flux[i] = 0.0;
 		auto taui = 0.5 * (tau[o2(i - 1)] + tau[i]);
-
-		// Meyer-Peter Müller (original)
-		if (cfg.transport_eq == 1 || cfg.transport_eq == 3) {
+		// 0: engelund hanssen
+		if (cfg.transport_eq == 0){
+			double fac = sqrt(cfg.g*cfg.delta*cfg.D50);
+			flux[i] = 0.05*cfg.D50*fac * pow(ustar/fac,3.)*pow(Umean[i]/fac,2.);
+		}
+		// 1: Meyer-Peter Müller (original), 3: Meyer-Peter Müller (steplength)
+		else if (cfg.transport_eq == 1 || cfg.transport_eq == 3) {
 			auto tauc = cfg.thetacr * cfg.g * cfg.delta * cfg.D50 * (1. + cfg.l2 * dhdx[i]) / sqrt(1. + dhdx[i] * dhdx[i]); //OLAV 2011 02 24
 			//ORIGINAL: double tauc=cfg.thetacr*g*(2.65-1.)*cfg.D50*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.))));
 
@@ -1196,21 +1188,6 @@ void bottom::detQcr(const vec& ub, vec &dhdx) {
 			}
 
 		} // CLOSES if(transport_eq == 2)
-		/*
-        else if(transport_eq == 2 ){
-		   //non-corrected tauc
-		   double tauc=cfg.thetacr*g*cfg.delta*cfg.D50; //OLAV 2013 07 08
-		   //corrected tauc
-		   //double tauc=cfg.thetacr*g*cfg.delta*cfg.D50*((1.+cfg.l2*dhdx[i])/(pow(1.+dhdx[i]*dhdx[i],(1./2.)))); //OLAV 2011 02 24
-
-		   double alpha_2 = correction*F0*pow(g*cfg.delta/cfg.D50,(1./2.));
-           if (tau[i]>tauc && taui>0.) {
-			   taui=max(taui,tauc); 
-			   double thetai = taui / (g*cfg.delta*cfg.D50);
-			   flux[i]=alpha_2*thetai*pow(1.-tauc/taui,3.);
-           }         
-        } // CLOSES if(transport_eq == 2) */
-
 	} // CLOSES for(int i=0;i<Npx;i++)
 
 	//Fluxes are determined, now optionally a lag is applied.
@@ -1311,7 +1288,7 @@ Vb routine in case with flow separation   : update_flowsep
 ======================================================
 */
 
-vec bottom::update(const vec& ub, vec &bss1, vec &fluxtot, vec &dhdx) {
+vec bottom::update(const vec& ub, const vec& Umean, vec &bss1, vec &fluxtot, vec &dhdx) {
 	/* bottom-update without flow separation */
 
 	for (auto i = 0; i < Npx; i++) {
@@ -1348,17 +1325,25 @@ vec bottom::update(const vec& ub, vec &bss1, vec &fluxtot, vec &dhdx) {
 	
 	for (auto t = 0; t < int(cfg.tt); t++){
 		//Joris: deze loop zit er in omdat expliciet niet al te grote tijdstappen aankan, moet nog aan getweekt worden.
-		detQcr(ub, dhdx);
+		detQcr(ub, Umean, dhdx);
 
-		if (cfg.transport_eq == 1 || cfg.transport_eq == 3) { //OLAV: 2013 05 22
+		if (cfg.transport_eq == 0){ // EH
+			for (auto i = 0; i < Npx; i++) {
+				b[i] -= ep * dt / cfg.tt / dx * (flux[o2(i + 1)]-flux[i]);
+				fluxtot[i] += flux[i] / cfg.tt * ep;
+			}
+		}
+
+		else if (cfg.transport_eq == 1 || cfg.transport_eq == 3) { //MPM, 1, without steplengthm 3 with steplength
 			for (auto i = 0; i < Npx; i++) {
 				b[i] -= ep * dt / cfg.tt / dx * (flux[o2(i + 1)]-flux[i]);
 				fluxtot[i] += flux[i] / cfg.tt * ep;
 			}
 		} //closes if(transport_eq == 1 || transport_eq == 3)
 
+
 		//OLAV: 2013 05 22 START
-		else if (cfg.transport_eq == 2){
+		else if (cfg.transport_eq == 2){// Nakagawa and Tsuijmoto
 
 			//Determine alpha and prepare distribution function if needed
 		if(cfg.alpha_varies==0 && t==0){
@@ -1542,12 +1527,6 @@ vec bottom::update(const vec& ub, vec &bss1, vec &fluxtot, vec &dhdx) {
 					}
 				}
 
-				// for(int i=0;i<Npx;i++){
-				// if(b[i]<minval){
-				// postr=i;
-				// minval=b[i];
-				// }
-				// }
 				for (auto i = poscr; i < poscr + Npx; i++) {
 
 					if ( i >Npx - 1) {
@@ -1621,30 +1600,9 @@ vec bottom::update(const vec& ub, vec &bss1, vec &fluxtot, vec &dhdx) {
 				double maxdh = 0.5 * (b[o2(poscr - 1)] - b[o2(poscr - 2)]);
 				int nsandvault = nsmooth - 1;
 				pos = poscr;
-				//double maxdh = b[o2(poscr-2)]-b[o2(poscr-3)];
-				//int nsandvault =nsmooth;
-				//pos = poscr-1;
 
 				double sandvault = 0.;
 				if (maxdh > 0){
-
-					// while(b[o2(pos)]-b[o2(pos-1)]>maxdh && pos<postr){
-					// sandvault = b[o2(pos)]-b[o2(pos-1)] - maxdh;
-					// b[o2(pos)] = b[o2(pos-1)]+maxdh;
-					// for(int i=pos+1;i<postr+1;i++){
-
-					// if (i>Npx-1){pos=i-Npx;}
-					// else{pos=i;}
-
-					// cerr << pos << " " ;
-
-					// b[pos]+=sandvault/nsandvault;
-					// }
-
-					// nsandvault-=1;
-					// pos+=1;
-					// }
-
 					if (b[o2(poscr)] - b[o2(poscr - 1)] > maxdh) { //then the angle towards the crest is too high
 						sandvault = b[o2(poscr)] - b[o2(poscr - 1)] - maxdh;
 						b[o2(poscr)] = b[o2(poscr - 1)] + maxdh;
@@ -1681,8 +1639,11 @@ vec bottom::update(const vec& ub, vec &bss1, vec &fluxtot, vec &dhdx) {
 	return newb;
 }
 
-vec bottom::update_flowsep(const vec& ub, vec &bss1, vec &bss2, vec &fluxtot, vec &q_spec){
+vec bottom::update_flowsep(const vec& ub, const vec& Umean, vec &bss1, vec &bss2, vec &fluxtot, vec &q_spec){
 	/* bottom-update with flow separation */
+	if (cfg.transport_eq == 0) {
+		DUDE_LOG(error) << "Flowseparation not possible with Engelund-Hansen";
+			}
 
 	for (auto i = 0; i < Npx; i++) {
 		bss1[i] = S * ub[i];
@@ -1735,7 +1696,7 @@ vec bottom::update_flowsep(const vec& ub, vec &bss1, vec &bss2, vec &fluxtot, ve
 	auto ep = 1 / (1 - cfg.epsilonp);
 	for (auto t = 0; t < int(cfg.tt); t++) {  //deze loop zit er in omdat expliciet niet al te grote tijdstappen aankan, moet nog aan getweekt worden.
 
-		detQcr(bss2, q_spec);
+		detQcr(bss2, Umean, q_spec);
 
 		auto nfsz=fsz[nf - 1];
 		int j = 0;

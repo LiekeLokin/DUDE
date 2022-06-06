@@ -24,6 +24,7 @@ BedConfig::BedConfig(const Config& cfg) :
 	nd(cfg.nd),
 	sepcritangle(cfg.sepcritangle),
 	g(cfg.g),
+	ii(cfg.ii),
 	tt(cfg.tt),
 	delta(cfg.denssand / cfg.denswater - 1),
 	epsilonp(cfg.epsilonp),

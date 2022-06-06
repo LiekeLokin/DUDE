@@ -35,6 +35,7 @@ public:
 	const int nd;			// number of dunes in domain
 	const double sepcritangle;// bed angle at which flow separation sets in
 	const double g;			// acceleration of gravity
+	const double ii;		// global bed slope
 	const double tt;		// splits up the timestep in tt parts, to make the transport calculations more stable
 	const double delta;		// delta parameter
 	const double epsilonp;	// porosity parameter
