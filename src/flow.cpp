@@ -138,7 +138,7 @@ void flow::u_b(vec &u0) const {
 }
 
 void flow::Umean(const vec& bottom_state, vec &Umean) const {//LL: Umean is needed for the implementation of Engelund-Hansen
-	vec Umean(Npx,0.0);
+	//vec Umean(Npx,0.0);
 	double uu;
 	for(int i=0;i<Npx;i++){
 		double hi=(bottom_state[o2(i+1)]+bottom_state[i])/2; //Local bed elevation (dimensional)

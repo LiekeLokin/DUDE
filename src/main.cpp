@@ -371,9 +371,9 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 
 		doCheckQsp(bedflow, H2O, sand, q_in, cfg);
 		vec u0_b(cfg.Npx);
-		vec U0_mean(cfg.Npx)
+		vec U0_mean(cfg.Npx);
 		H2O.u_b(u0_b);
-		H2O.Umean(U0_mean);
+		H2O.Umean(u0_b, U0_mean);
 		if (updateMyH)
 			myH = H;
 		
@@ -592,7 +592,7 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 			DUDE_LOG(info) << "Stab Analysys starts: " << SHOW_VAR(H);
 		}
 		H2O.u_b(ubed);
-		H2O.Umean(U_mean);
+		H2O.Umean(ubed, U_mean);
 #if 0
 		auto& mySand = sand;
 #else

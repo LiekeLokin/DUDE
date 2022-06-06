@@ -61,7 +61,7 @@ public:
 	vec getiu() const;
 	double check_qsp() const;
 	void u_b(vec &u0) const;
-	void flow::Umean(const vec& bottom_state, vec& Umean);
+	void Umean(const vec& bottom_state, vec& Umean) const;
 	void resetIu();
 	void resetIu(const vec& u);
 	//void u_anal(double eps);
