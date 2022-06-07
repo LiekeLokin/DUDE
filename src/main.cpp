@@ -373,7 +373,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		vec u0_b(cfg.Npx);
 		vec U0_mean(cfg.Npx);
 		H2O.u_b(u0_b);
-		H2O.Umean(u0_b, U0_mean);
+		H2O.Umean(sand.getShape(sepflag), U0_mean);
 		if (updateMyH)
 			myH = H;
 		
@@ -591,8 +591,6 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 			doCheckQsp(bedstab, H2O, sand, q_in, cfg);
 			DUDE_LOG(info) << "Stab Analysys starts: " << SHOW_VAR(H);
 		}
-		H2O.u_b(ubed);
-		H2O.Umean(ubed, U_mean);
 #if 0
 		auto& mySand = sand;
 #else
@@ -600,6 +598,8 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 		bottom mySand(bcfg);
 		mySand.setSin(ampbeds, 1);
 #endif
+		H2O.u_b(ubed);
+		H2O.Umean(mySand.getShape(0), U_mean);//Umean over the bed in the linstab, always without flow separation (therefore getShape(0))
 		newbed=mySand.update(ubed,U_mean,dump1,dump2,dump3);
 		//TODO LL: Kijken welke modus groeit (fourier analyse)
 		double gri=(1/dt)*log(maxval(newbed)/ampbeds);
