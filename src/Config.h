@@ -51,6 +51,7 @@ public:
 
 	double q_in1;
 	double H0;
+	double Lini;
 	double ii;
 	double D50;
 	double thetacr;

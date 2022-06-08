@@ -50,7 +50,7 @@ admin::Npx = cfg.Npx; // still necessary for admin::o2()
 // Initialize global variables
 H = cfg.H0;
 dt = cfg.dtr;
-L = 1.0;
+L = cfg.Lini;//1.0;
 dx = L / cfg.Npx;
 dz = H / cfg.Npz;
 tijd = 0.0;
@@ -306,6 +306,13 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 			//cerr << "dx: " << dx << endl;
 	        setS_Av(cfg, sand);
 	        dt=cfg.dtr;
+			doStab=0;
+        }
+        else if (cfg.SimpleLength == 2) {//don't change L
+        	dz=H/cfg.Npz;
+			dx=L/cfg.Npx;
+			setS_Av(cfg, sand);
+			dt=cfg.dtr;
 			doStab=0;
         }
 		assert(doStab==0);
@@ -591,6 +598,8 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 			doCheckQsp(bedstab, H2O, sand, q_in, cfg);
 			DUDE_LOG(info) << "Stab Analysys starts: " << SHOW_VAR(H);
 		}
+		H2O.u_b(ubed);
+		H2O.Umean(bedstab, U_mean);//Umean over the bed in the linstab
 #if 0
 		auto& mySand = sand;
 #else
@@ -598,8 +607,6 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 		bottom mySand(bcfg);
 		mySand.setSin(ampbeds, 1);
 #endif
-		H2O.u_b(ubed);
-		H2O.Umean(mySand.getShape(0), U_mean);//Umean over the bed in the linstab, always without flow separation (therefore getShape(0))
 		newbed=mySand.update(ubed,U_mean,dump1,dump2,dump3);
 		//TODO LL: Kijken welke modus groeit (fourier analyse)
 		double gri=(1/dt)*log(maxval(newbed)/ampbeds);
@@ -691,8 +698,8 @@ void doCheckQsp(vec bedflow, flow& H2O, const bottom& sand, const double& q_in, 
 
 void setS_Av(const Config& cfg, const bottom& sand){
 	const auto ustar = sqrt(cfg.g * H * cfg.ii);
-	S = cfg.BETA1 * ustar;//0.0001;
-	const auto Av = cfg.BETA2 * (1./6.) * cfg.kappa * H * ustar;
+	S = 0.01;//cfg.BETA1 * ustar;//0.0001;
+	const auto Av = 0.004;//cfg.BETA2 * (1./6.) * cfg.kappa * H * ustar;
 
 	//DUDE_LOG(warning) << SHOW_VAR(Av);
 	auto dhdx = sand.get_dhdx();
