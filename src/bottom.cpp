@@ -1642,8 +1642,9 @@ vec bottom::update(const vec& ub, const vec& Umean, vec &bss1, vec &fluxtot, vec
 vec bottom::update_flowsep(const vec& ub, const vec& Umean, vec &bss1, vec &bss2, vec &fluxtot, vec &q_spec){
 	/* bottom-update with flow separation */
 	if (cfg.transport_eq == 0) {
-		DUDE_LOG(error) << "Flowseparation not possible with Engelund-Hansen";
-			}
+		DUDE_LOG(fatal) << "Flowseparation not possible with Engelund-Hansen";
+		abort();
+	}
 
 	for (auto i = 0; i < Npx; i++) {
 		bss1[i] = S * ub[i];
