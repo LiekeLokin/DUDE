@@ -57,10 +57,10 @@ T Config::scale(T val, const std::string& what) const {
 	if (what == "min")
 		return val * 60.0;
 	if (what == "deg")
-		return val * M_PI / 180.0;
+		return val * D2R;
 	if (what == "mm")
 		return val * 1e-3;
-	warn("Unknown unit");
+	warn("Unknown unit: " + what);
 	return val;
 }
 
