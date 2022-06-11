@@ -10,9 +10,11 @@
 
 #include <string>
 #include <iosfwd>
+#include <cmath>
 
 class Config {
 	std::ofstream* cfglog;
+	const double D2R = M_PI / 180.0;
 	std::string line;
 	unsigned int lineno = 0u;
 	template <typename T>
@@ -21,78 +23,78 @@ class Config {
 	template <typename T>
 	T getValue(const std::string& name, const std::string& val);
 public:
-	bool DebugOutput;
-	std::string FileName;
-	std::string FileLevel;
-	std::string ConsoleLevel;
+	bool DebugOutput = false;
+	std::string FileName = "dude.log";
+	std::string FileLevel = "info";
+	std::string ConsoleLevel = "debug";
 
-	int Npx;
-	int Npz;
-	double dtr;
-	double dt_write;
-	double tend;
-	double ampbeds_factor;
-	bool AllowFlowSep;
-	bool AllowAvalanching;
-	int SimpleLength;
-	int SimpleLengthFactor;
-	int numStab;
-	int Hifactor;
-	int Minfactor;
-	double Hcrit_global;
-	int transport_eq;
-	int alpha_varies;
-	double alpha_lag;
-	bool moeilijkdoen;
-	double correction_NT;
-	int Npsl_min;
-	int stle_factor;
-	bool write_velocities;
+	int Npx = 120;
+	int Npz = 25;
+	double dtr = 240;
+	double dt_write = 240;
+	double tend = 3 * 60 * 60;
+	double ampbeds_factor = 100.1;
+	bool AllowFlowSep = false;
+	bool AllowAvalanching = true;
+	int SimpleLength = 0;
+	int SimpleLengthFactor = 7;
+	int numStab = 30;
+	int Hifactor = 15;
+	int Minfactor = 3;
+	double Hcrit_global = 5;
+	int transport_eq = 2;
+	int alpha_varies = 3;
+	double alpha_lag = 100;
+	bool moeilijkdoen = false;
+	double correction_NT = 1;
+	int Npsl_min = 40;
+	int stle_factor = 5;
+	bool write_velocities = false;
 
-	double q_in1;
-	double H0;
-	double Lini;
-	double ii;
-	double D50;
-	double thetacr;
-	double dts;
-	int nd;
+	double q_in1 = 6.25;
+	double H0 = 9.1;
+	double Lini = 1;
+	double ii = 1.1e-4;
+	double D50 = 0.18e-3;
+	double thetacr = 0.053;
+	double dts = 0.01;
+	int nd = 1;
 	std::string readbed;
 	std::string readfw;
 
-	double sepcritangle;
-	double g;
-	double kappa;
-	double tt;
-	double thresh;
-	int max_it;
+	double sepcritangle = 10 * D2R;
+	double g = 9.81;
+	double kappa = -0.407;
+	double tt = 100;
+	double thresh = 1e-8;
+	int max_it = 8;
 
-	double denswater;
-	double nu;
-	double BETA1;
-	double BETA2;
+	double denswater = 1000;
+	double nu = 1e-6;
+	double BETA1 = 0.245;
+	double BETA2 = 0.245;
 
-	double denssand;
-	double epsilonp;
-	double repose;
-	double m;
-	double be;
-	double F0;
-	double A2_geom;
-	double A3_geom;
-	double k2;
+	double denssand = 2650;
+	double epsilonp = 0.4;
+	double repose = -30 * D2R;
+	double m = 4;
+	double be = 1.5;
+	double F0 = 0.025;
+	double A2_geom = 45 * D2R;
+	double A3_geom = 30 * D2R;
+	double k2 = 0.7;
 
-	double alpha_2;
-	double alpha_min_SK;
-	double alpha_max_SK;
+	double alpha_2 = 3000;
+	double alpha_min_SK = 50;
+	double alpha_max_SK = 10000;
 
-	double alpha_min_S;
-	double alpha_max_S;
-	double theta_min_S;
-	double theta_max_S;
-	double H_ref;
+	double alpha_min_S = 50;
+	double alpha_max_S = 400;
+	double theta_min_S = 0.9;
+	double theta_max_S = 1.35;
+	double H_ref = 0.1166;
 //	bool keepsgrowing;
-	bool Lrangefix;
+	bool Lrangefix = false;
 
 	Config(const std::string& path = "config.cfg");
 	virtual ~Config() {}
