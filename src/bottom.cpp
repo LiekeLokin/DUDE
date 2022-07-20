@@ -1138,7 +1138,7 @@ void bottom::detQcr(const vec& ub, const vec& Umean, vec &dhdx) {
 		// 0: engelund hanssen
 		if (cfg.transport_eq == 0){
 			double fac = sqrt(cfg.g*cfg.delta*cfg.D50);
-			flux[i] = 0.05*cfg.D50*fac * pow(ustar/fac,3.)*pow(Umean[i]/fac,2.);
+			flux[i] = 0.05*cfg.D50*fac * pow(ustar/fac,3.)*pow(Umean[i]/fac,2.);// / (1. + cfg.l2 * dhdx[i]);//*(1-dhdx[i])
 		}
 		// 1: Meyer-Peter Müller (original), 3: Meyer-Peter Müller (steplength)
 		else if (cfg.transport_eq == 1 || cfg.transport_eq == 3) {
