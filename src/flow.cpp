@@ -140,10 +140,11 @@ void flow::u_b(vec &u0) const {
 void flow::Umean(const vec& bottom_state, vec &u_gem) const {//LL: Umean is needed for the implementation of Engelund-Hansen
 	for(int i=0;i<Npx;i++){
 		  for(int j=0;j<Npz;j++){
-			  u_gem[i]+=iu[o(j,i,0)];
+//			  u_gem[i] += 0.5*(iu[o(j,i,0)]+iu[o(j,o2(i+1),0)])*beta[2*i];
+			  u_gem[i]+=iu[o(j,i,0)]*beta[2*i+1];
 		  }
-		  u_gem[i]*=H/Npz;
-		  u_gem[i]+=iu[o(Npz-1,i,0)]*(iu[o(0,i,2)]+iu[o(0,o2(i-1),2)])/2.;
+		  u_gem[i]/=Npz;//*=H/Npz;
+//		  u_gem[i]+=iu[o(Npz-1,i,0)]*(iu[o(0,i,2)]+iu[o(0,o2(i-1),2)])/2.;
 
 	//vec Umean(Npx,0.0);
 //	double uu;
