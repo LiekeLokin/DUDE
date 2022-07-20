@@ -576,13 +576,19 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 	vec U_mean(cfg.Npx,0.0);
 	vec dump1(cfg.Npx,0.); vec dump2(cfg.Npx,0.); vec dump3(cfg.Npx,0.);
 	const auto ampbeds = cfg.ampbeds_factor * cfg.D50;
-	for(int i=0;i<cfg.Npx;i++){
-		bedstab[i]=ampbeds*sin(1*2.0*M_PI/cfg.Npx*(i));
-	} 
+//	for(int i=0;i<cfg.Npx;i++){
+//		bedstab[i]=ampbeds*sin(1*2.0*M_PI/cfg.Npx*(i));
+//	}
+#if 0
+		auto& mySand = sand;
+#else
+		const BedConfig bcfg(cfg);
+		bottom mySand(bcfg);
+		mySand.setSin(ampbeds, 1);
+#endif
+
+	bedstab = mySand.getShape(0);
 	for (int p=0;p<=num;p++){
-		//L=Hi/10+Lstep*(p+1);  //2013 1 31: OLAV (was L=Hi/10+Lstep*(p);)
-		//L=Hi/numStab+Lstep*(p); //2012 09 17: OLAV (was with /10., now with numStab)
-		//L=Hi*5+Lstep*(p); //2012 09 17: OLAV test
 		if (cfg.Lrangefix){
 			L=Lmin+Lstep*(p);
 		}
@@ -591,22 +597,16 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 		}
 		dx=L/cfg.Npx;
 
-		setS_Av(cfg, sand);
+		setS_Av(cfg, mySand);
 		H2O.resetIu();
 		H2O.solve(bedstab);
 		if (p==0) {
-			doCheckQsp(bedstab, H2O, sand, q_in, cfg);
+			doCheckQsp(bedstab, H2O, mySand, q_in, cfg);
 			DUDE_LOG(info) << "Stab Analysys starts: " << SHOW_VAR(H);
 		}
 		H2O.u_b(ubed);
 		H2O.Umean(bedstab, U_mean);//Umean over the bed in the linstab
-#if 0
-		auto& mySand = sand;
-#else
-		const BedConfig bcfg(cfg);
-		bottom mySand(bcfg);
-		mySand.setSin(ampbeds, 1);
-#endif
+
 		newbed=mySand.update(ubed,U_mean,dump1,dump2,dump3);
 		//TODO LL: Kijken welke modus groeit (fourier analyse)
 		double gri=(1/dt)*log(maxval(newbed)/ampbeds);
