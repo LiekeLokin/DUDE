@@ -1125,7 +1125,7 @@ void bottom::detQcr(const vec& ub, const vec& Umean, vec &dhdx) {
 	auto sepflag = fsz[nf - 2];
 	vec tau(Npx, 0.0);
 	const auto ustar = sqrt(cfg.g * H * cfg.ii);
-
+	const auto fac = sqrt(cfg.g*cfg.delta*cfg.D50);
 
 	for (auto i = 0; i < Npx; i++) {
 		tau[i] = S * ub[i];
@@ -1135,9 +1135,8 @@ void bottom::detQcr(const vec& ub, const vec& Umean, vec &dhdx) {
 	for (auto i = 0; i < Npx; i++) {
 		flux[i] = 0.0;
 		auto taui = 0.5 * (tau[o2(i - 1)] + tau[i]);
-		// 0: engelund hanssen
+		// 0: engelund hansen
 		if (cfg.transport_eq == 0){
-			double fac = sqrt(cfg.g*cfg.delta*cfg.D50);
 			flux[i] = 0.05*cfg.D50*fac * pow(ustar/fac,3.)*pow(Umean[i]/fac,2.);
 		}
 		// 1: Meyer-Peter Müller (original), 3: Meyer-Peter Müller (steplength)
@@ -1327,10 +1326,14 @@ vec bottom::update(const vec& ub, const vec& Umean, vec &bss1, vec &fluxtot, vec
 		//Joris: deze loop zit er in omdat expliciet niet al te grote tijdstappen aankan, moet nog aan getweekt worden.
 		detQcr(ub, Umean, dhdx);
 
-		if (cfg.transport_eq == 0){ // EH
+		if (cfg.transport_eq == 0){
+			double dflux;// EH
 			for (auto i = 0; i < Npx; i++) {
-				b[i] -= ep * dt / cfg.tt / dx * (flux[o2(i + 1)]-flux[i]);
+				dflux = flux[o2(i + 1)]-flux[i];
+				// have to smooth dflux? == really small values possible
+				b[i] -= ep * dt / cfg.tt / dx * dflux;
 				fluxtot[i] += flux[i] / cfg.tt * ep;
+
 			}
 		}
 

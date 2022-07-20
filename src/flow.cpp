@@ -137,27 +137,27 @@ void flow::u_b(vec &u0) const {
 	}
 }
 
-void flow::Umean(const vec& bottom_state, vec &u_gem) const {//LL: Umean is needed for the implementation of Engelund-Hansen
-	for(int i=0;i<Npx;i++){
-		  for(int j=0;j<Npz;j++){
-			  u_gem[i]+=iu[o(j,i,0)];
-		  }
-		  u_gem[i]*=H/Npz;
-		  u_gem[i]+=iu[o(Npz-1,i,0)]*(iu[o(0,i,2)]+iu[o(0,o2(i-1),2)])/2.;
+void flow::Umean(const vec& bottom_state, vec &Umean) const {//LL: Umean is needed for the implementation of Engelund-Hansen
+//	for(int i=0;i<Npx;i++){
+//		  for(int j=0;j<Npz;j++){
+//			  u_gem[i]+=iu[o(j,i,0)];
+//		  }
+//		  u_gem[i]*=H/Npz;
+//		  u_gem[i]+=iu[o(Npz-1,i,0)]*(iu[o(0,i,2)]+iu[o(0,o2(i-1),2)])/2.;
 
 	//vec Umean(Npx,0.0);
-//	double uu;
-//	for(int i=0;i<Npx;i++){
-////		double hi=(bottom_state[o2(i+1)]+bottom_state[i])/2; //Local bed elevation (dimensional)
-////		double H_loc = H-hi; //Local water depth (dimensional)
-////		double dz_loc = H_loc/Npz; //Local dz (dimensional)
-//
-//		for(int j=0;j<Npz;j++){
-//			uu=0.5*(iu[o(j,i,0)]+iu[o(j,o2(i+1),0)])*beta[2*i]; //dimensional flow velocity in x-direction
-//			Umean[i]+=uu;//*dz_loc;
-//		}
-//		Umean[i] /= Npz;
-////		Umean[i] = Umean[i]/H_loc;
+	double uu;
+	for(int i=0;i<Npx;i++){
+//		double hi=(bottom_state[o2(i+1)]+bottom_state[i])/2; //Local bed elevation (dimensional)
+//		double H_loc = H-hi; //Local water depth (dimensional)
+//		double dz_loc = H_loc/Npz; //Local dz (dimensional)
+
+		for(int j=0;j<Npz;j++){
+			uu=0.5*(iu[o(j,i,0)]+iu[o(j,o2(i+1),0)])*beta[2*i]; //dimensional flow velocity in x-direction at water level point
+			Umean[i]+=uu;//*dz_loc;
+		}
+		Umean[i] /= Npz;
+//		Umean[i] = Umean[i]/H_loc;
 	}
 }
 
