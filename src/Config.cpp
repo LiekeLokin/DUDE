@@ -179,6 +179,7 @@ Config::Config(const std::string& path) : cfglog(new std::ofstream("out_config.t
 			ASSIGNDOUBLE(nu);
 			ASSIGNDOUBLE(BETA1);
 			ASSIGNDOUBLE(BETA2);
+			ASSIGNBOOL(S_Av_const)
 
 			ASSIGNDOUBLE(denssand);
 			ASSIGNDOUBLE(epsilonp);

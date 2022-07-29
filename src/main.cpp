@@ -697,15 +697,25 @@ void doCheckQsp(vec bedflow, flow& H2O, const bottom& sand, const double& q_in, 
 }
 
 void setS_Av(const Config& cfg, const bottom& sand){
-	const auto ustar = sqrt(cfg.g * H * cfg.ii);
-	S = 0.01;//cfg.BETA1 * ustar;//0.0001;
-	const auto Av = 0.004;//cfg.BETA2 * (1./6.) * cfg.kappa * H * ustar;
+	if (cfg.S_Av_const){
+		S = 0.01;//0.0001;//cfg.BETA1;//
+		const auto Av = 0.004;//cfg.BETA2;//
+		auto dhdx = sand.get_dhdx();
+		for (auto i = 0 ; i < cfg.Npx; i++) {
+			Avx[i] = Av * (1 + dhdx[i]);
+		}
+	}
+	else {
+		const auto ustar = sqrt(cfg.g * H * cfg.ii);
+		S = cfg.BETA1 * ustar;
+		const auto Av = cfg.BETA2 * (1./6.) * cfg.kappa * H * ustar;
 
-	//DUDE_LOG(warning) << SHOW_VAR(Av);
-	auto dhdx = sand.get_dhdx();
-	for (auto i = 0 ; i < cfg.Npx; i++) {
-		Avx[i] = Av * (1 + dhdx[i]);
-		//std::cout << std::setprecision(4) << Avx[i] << " ";
+		//DUDE_LOG(warning) << SHOW_VAR(Av);
+		auto dhdx = sand.get_dhdx();
+		for (auto i = 0 ; i < cfg.Npx; i++) {
+			Avx[i] = Av;// * (1 + dhdx[i]);
+//		std::cout << std::setprecision(4) << Avx[i] << " ";
+		}
 	}
 	//std::cout << std::endl;
 }
