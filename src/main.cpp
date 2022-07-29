@@ -50,7 +50,7 @@ admin::Npx = cfg.Npx; // still necessary for admin::o2()
 // Initialize global variables
 H = cfg.H0;
 dt = cfg.dtr;
-L = cfg.Lini;
+L = cfg.Lini;//1.0;
 dx = L / cfg.Npx;
 dz = H / cfg.Npz;
 tijd = 0.0;
@@ -308,6 +308,13 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	        dt=cfg.dtr;
 			doStab=0;
         }
+        else if (cfg.SimpleLength == 2) {//don't change L
+        	dz=H/cfg.Npz;
+			dx=L/cfg.Npx;
+			setS_Av(cfg, sand);
+			dt=cfg.dtr;
+			doStab=0;
+        }
 		assert(doStab==0);
 
 		//q_in=qa[i];
@@ -373,7 +380,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		vec u0_b(cfg.Npx);
 		vec U0_mean(cfg.Npx);
 		H2O.u_b(u0_b);
-		H2O.Umean(u0_b, U0_mean);
+		H2O.Umean(sand.getShape(sepflag), U0_mean);
 		if (updateMyH)
 			myH = H;
 		
@@ -592,7 +599,7 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 			DUDE_LOG(info) << "Stab Analysys starts: " << SHOW_VAR(H);
 		}
 		H2O.u_b(ubed);
-		H2O.Umean(ubed, U_mean);
+		H2O.Umean(bedstab, U_mean);//Umean over the bed in the linstab
 #if 0
 		auto& mySand = sand;
 #else
@@ -690,15 +697,25 @@ void doCheckQsp(vec bedflow, flow& H2O, const bottom& sand, const double& q_in, 
 }
 
 void setS_Av(const Config& cfg, const bottom& sand){
-	const auto ustar = sqrt(cfg.g * H * cfg.ii);
-	S = cfg.BETA1 * ustar;//0.0001;
-	const auto Av = cfg.BETA2 * (1./6.) * cfg.kappa * H * ustar;
+	if (cfg.S_Av_const){
+		S = 0.01;//0.0001;//cfg.BETA1;//
+		const auto Av = 0.004;//cfg.BETA2;//
+		auto dhdx = sand.get_dhdx();
+		for (auto i = 0 ; i < cfg.Npx; i++) {
+			Avx[i] = Av * (1 + dhdx[i]);
+		}
+	}
+	else {
+		const auto ustar = sqrt(cfg.g * H * cfg.ii);
+		S = cfg.BETA1 * ustar;
+		const auto Av = cfg.BETA2 * (1./6.) * cfg.kappa * H * ustar;
 
-	//DUDE_LOG(warning) << SHOW_VAR(Av);
-	auto dhdx = sand.get_dhdx();
-	for (auto i = 0 ; i < cfg.Npx; i++) {
-		Avx[i] = Av;// * (1 + dhdx[i]);
-		//std::cout << std::setprecision(4) << Avx[i] << " ";
+		//DUDE_LOG(warning) << SHOW_VAR(Av);
+		auto dhdx = sand.get_dhdx();
+		for (auto i = 0 ; i < cfg.Npx; i++) {
+			Avx[i] = Av;// * (1 + dhdx[i]);
+//		std::cout << std::setprecision(4) << Avx[i] << " ";
+		}
 	}
 	//std::cout << std::endl;
 }
