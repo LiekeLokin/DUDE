@@ -697,7 +697,7 @@ void setS_Av(const Config& cfg, const bottom& sand){
 	//DUDE_LOG(warning) << SHOW_VAR(Av);
 	auto dhdx = sand.get_dhdx();
 	for (auto i = 0 ; i < cfg.Npx; i++) {
-		Avx[i] = Av * (1 + dhdx[i]);
+		Avx[i] = Av;// * (1 + dhdx[i]);
 		//std::cout << std::setprecision(4) << Avx[i] << " ";
 	}
 	//std::cout << std::endl;
