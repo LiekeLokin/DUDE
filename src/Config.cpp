@@ -163,6 +163,7 @@ Config::Config(const std::string& path) : cfglog(new std::ofstream("out_config.t
 			ASSIGNDOUBLE(H0);
 			ASSIGNDOUBLE(ii);
 			ASSIGNDOUBLE(D50);
+			ASSIGNDOUBLE(Lini);
 			ASSIGNDOUBLE(thetacr);
 			ASSIGNDOUBLE(dts);
 			ASSIGNINT(nd);

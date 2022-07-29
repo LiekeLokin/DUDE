@@ -53,6 +53,7 @@ public:
 	double H0;
 	double ii;
 	double D50;
+	double Lini;
 	double thetacr;
 	double dts;
 	int nd;

@@ -50,7 +50,7 @@ admin::Npx = cfg.Npx; // still necessary for admin::o2()
 // Initialize global variables
 H = cfg.H0;
 dt = cfg.dtr;
-L = 1.0;
+L = cfg.Lini;
 dx = L / cfg.Npx;
 dz = H / cfg.Npz;
 tijd = 0.0;
