@@ -495,7 +495,7 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	  	//cerr<<"bodem ge update met (L2) : "<<norm<<" tot (L2) : "<<L2(next)<<endl<<endl;
 
 	  	write_teller+=1;
-	  	if(Hav<.5*ampbeds) {
+	  	if(Hav<cfg.bedResetFac*ampbeds) {
 #if 0
 	  		cerr<<"Dune height very low: " << Hav <<" , bailing out."<<endl<<endl;
 	  		break;

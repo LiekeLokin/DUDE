@@ -142,6 +142,7 @@ Config::Config(const std::string& path) : cfglog(new std::ofstream("out_config.t
 			ASSIGNDOUBLE(dt_write);
 			ASSIGNDOUBLE(tend);
 			ASSIGNDOUBLE(ampbeds_factor);
+			ASSIGNDOUBLE(bedResetFac);
 			ASSIGNBOOL(AllowFlowSep);
 			ASSIGNBOOL(AllowAvalanching);
 			ASSIGNINT(SimpleLength);

@@ -34,6 +34,7 @@ public:
 	double dt_write = 240;
 	double tend = 3 * 60 * 60;
 	double ampbeds_factor = 100.1;
+	double bedResetFac = 0.5;
 	bool AllowFlowSep = false;
 	bool AllowAvalanching = true;
 	int SimpleLength = 0;
