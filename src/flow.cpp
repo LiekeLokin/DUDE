@@ -141,15 +141,15 @@ void flow::Umean(const vec& bottom_state, vec &Umean) const {//LL: Umean is need
 	//vec Umean(Npx,0.0);
 	double uu;
 	for(int i=0;i<Npx;i++){
-		double hi=(bottom_state[o2(i+1)]+bottom_state[i])/2; //Local bed elevation (dimensional)
-		double H_loc = H-hi; //Local water depth (dimensional)
-		double dz_loc = H_loc/Npz; //Local dz (dimensional)
+//		double hi=(bottom_state[o2(i+1)]+bottom_state[i])/2; //Local bed elevation (dimensional)
+//		double H_loc = H-hi; //Local water depth (dimensional)
+//		double dz_loc = H_loc/Npz; //Local dz (dimensional)
 
 		for(int j=0;j<Npz;j++){
 			uu=0.5*(iu[o(j,i,0)]+iu[o(j,o2(i+1),0)])*beta[2*i]; //dimensional flow velocity in x-direction
-			Umean[i]+=uu*dz_loc;
+			Umean[i]+=uu;//*dz_loc;
 		}
-		Umean[i] = Umean[i]/H_loc;
+		Umean[i] /= Npz;//Umean[i]/H_loc;
 	}
 }
 
