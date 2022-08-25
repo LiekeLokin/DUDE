@@ -1124,7 +1124,7 @@ void bottom::detQcr(const vec& ub, const vec& Umean, vec &dhdx) {
 	/* determine fluxes in case of flowsep some extra code is used*/
 	auto sepflag = fsz[nf - 2];
 	vec tau(Npx, 0.0);
-	const auto ustar = sqrt(cfg.g * H * cfg.ii);
+//	const auto ustar = sqrt(cfg.g * H * cfg.ii);
 
 
 	for (auto i = 0; i < Npx; i++) {
@@ -1137,8 +1137,14 @@ void bottom::detQcr(const vec& ub, const vec& Umean, vec &dhdx) {
 		auto taui = 0.5 * (tau[o2(i - 1)] + tau[i]);
 		// 0: engelund hanssen
 		if (cfg.transport_eq == 0){
+			double ustar = sqrt(cfg.g * H * cfg.ii);
 			double fac = sqrt(cfg.g*cfg.delta*cfg.D50);
-			flux[i] = 0.05*cfg.D50*fac * pow(ustar/fac,3.)*pow(Umean[i]/fac,2.);
+			flux[i] += 0.05*cfg.D50*fac * pow(ustar/fac,3.)*pow(Umean[i]/fac,2.); //ustarub[i]
+//			flux[i] += 0.05*cfg.D50*fac * pow(ub[i]/fac,3.)*pow(Umean[i]/fac,2.); //ustarub[i]
+
+//			double fac = cfg.g*cfg.delta*cfg.D50;
+//			flux[i] += 0.05*pow(tau[i]/(1000*fac),2.5)*pow(Umean[i]/(cfg.g*H*cfg.ii),2)*sqrt(fac);
+
 		}
 		// 1: Meyer-Peter Müller (original), 3: Meyer-Peter Müller (steplength)
 		else if (cfg.transport_eq == 1 || cfg.transport_eq == 3) {
@@ -1328,6 +1334,7 @@ vec bottom::update(const vec& ub, const vec& Umean, vec &bss1, vec &fluxtot, vec
 		detQcr(ub, Umean, dhdx);
 
 		if (cfg.transport_eq == 0){ // EH
+			flux = smooth(flux);
 			for (auto i = 0; i < Npx; i++) {
 				b[i] -= ep * dt / cfg.tt / dx * (flux[o2(i + 1)]-flux[i]);
 				fluxtot[i] += flux[i] / cfg.tt * ep;
