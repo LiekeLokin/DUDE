@@ -1131,7 +1131,7 @@ void bottom::detQcr(const vec& ub, const vec& Umean, vec &dhdx) {
 		tau[i] = S * ub[i];
 		dhdx[i] = (b[i] - b[o2(i - 1)]) / dx;
 	}
-    
+	auto UmeanSmooth = smooth(Umean);
 	for (auto i = 0; i < Npx; i++) {
 		flux[i] = 0.0;
 		auto taui = 0.5 * (tau[o2(i - 1)] + tau[i]);
@@ -1139,8 +1139,8 @@ void bottom::detQcr(const vec& ub, const vec& Umean, vec &dhdx) {
 		if (cfg.transport_eq == 0){
 			double ustar = sqrt(cfg.g * H * cfg.ii);
 			double fac = sqrt(cfg.g*cfg.delta*cfg.D50);
-			flux[i] += 0.05*cfg.D50*fac * pow(ustar/fac,3.)*pow(Umean[i]/fac,2.); //ustarub[i]
-//			flux[i] += 0.05*cfg.D50*fac * pow(ub[i]/fac,3.)*pow(Umean[i]/fac,2.); //ustarub[i]
+			flux[i] += 0.05*cfg.D50*fac * pow(ustar/fac,3.)*pow(UmeanSmooth[i]/fac,2.); //ustarub[i]
+//			flux[i] += 0.05*cfg.D50*fac * pow(tau[i]/fac,3.)*pow(UmeanSmooth[i]/fac,2.); //ustarub[i]
 
 //			double fac = cfg.g*cfg.delta*cfg.D50;
 //			flux[i] += 0.05*pow(tau[i]/(1000*fac),2.5)*pow(Umean[i]/(cfg.g*H*cfg.ii),2)*sqrt(fac);

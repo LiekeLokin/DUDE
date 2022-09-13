@@ -707,7 +707,7 @@ void setS_Av(const Config& cfg, const bottom& sand){
 		const auto Av = 0.004;//cfg.BETA2;//
 		auto dhdx = sand.get_dhdx();
 		for (auto i = 0 ; i < cfg.Npx; i++) {
-			Avx[i] = Av * (1 + dhdx[i]);
+			Avx[i] = Av;// * (1 + dhdx[i]);
 		}
 	}
 	else {
