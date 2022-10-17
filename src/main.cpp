@@ -379,6 +379,9 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		}
 
 		doCheckQsp(bedflow, H2O, sand, q_in, cfg);
+		if ((H >= 100*q_in) || (H <= 0.01*q_in)) {
+			DUDE_LOG(fatal) << "Water depth out of bounds, H: " << H;
+		}
 		vec u0_b(cfg.Npx);
 		vec U0_mean(cfg.Npx);
 		H2O.u_b(u0_b);
