@@ -1341,7 +1341,7 @@ vec bottom::update(const vec& ub, const vec& Umean, vec &bss1, vec &fluxtot, vec
 			}
 		}
 
-		else if (cfg.transport_eq == 1 || cfg.transport_eq == 3) { //MPM, 1, without steplengthm 3 with steplength
+		else if (cfg.transport_eq == 1 || cfg.transport_eq == 3) { //MPM, 1, without steplength 3 with steplength
 			for (auto i = 0; i < Npx; i++) {
 				b[i] -= ep * dt / cfg.tt / dx * (flux[o2(i + 1)]-flux[i]);
 				fluxtot[i] += flux[i] / cfg.tt * ep;

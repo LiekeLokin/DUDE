@@ -507,7 +507,8 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 	  		break;
 #else
 	  		sand.setSin(ampbeds,1);
-	  		DUDE_LOG(warning) << "Hav very low, bed set to initial disturbance.";
+	  		DUDE_LOG(fatal) << "Hav very low, bed set to initial disturbance.";
+	  		abort();
 	  		//cerr<<"Hav very low, bed set to initial disturbance."<<endl<<endl;
 #endif
 	  	}
