@@ -1201,7 +1201,7 @@ void bottom::detQcr(const vec& ub, const vec& Umean, vec &dhdx) {
 
 		double meanstle1;  // OLAV 2014 02 25
 		if (cfg.alpha_varies > 0) {
-			auto alpha_lag1 = detAlphaLag(ub, cfg.alpha_varies, 0);
+			auto alpha_lag1 = detAlphaLag(ub, cfg.alpha_varies, 1);
 			meanstle1 = alpha_lag1 * cfg.D50;
 		} 
 		else {
@@ -1361,7 +1361,7 @@ vec bottom::update(const vec& ub, const vec& Umean, vec &bss1, vec &fluxtot, vec
 		if(cfg.alpha_varies!=0){
 //		if(cfg.alpha_varies==1 || cfg.alpha_varies == 2 || cfg.alpha_varies == 3){
 				//Determine alpha
-				alpha_lag1 = detAlphaLag(ub,cfg.alpha_varies,t);
+				alpha_lag1 = detAlphaLag(ub,cfg.alpha_varies,1);
 
 				//Determine distribution
 				distribute = detDistributeFunc(alpha_lag1, dx);
