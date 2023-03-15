@@ -52,6 +52,7 @@ public:
 	int stle_factor = 5;
 	bool write_velocities = false;
 
+	bool use_H_only = false;
 	double q_in1 = 6.25;
 	double H0 = 9.1;
 	double Lini = 1;

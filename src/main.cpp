@@ -672,6 +672,10 @@ void doStabAnalysis(flow& H2O, bottom& sand, const double& q_in, const Config& c
 }
 
 void doCheckQsp(vec bedflow, flow& H2O, const bottom& sand, const double& q_in, const Config& cfg){
+
+	if (cfg.use_H_only)
+		return;
+
 	//checken van de specifieke afvoer
 	double q_sp=H2O.check_qsp();
 	DUDE_LOG(info) << "check of specific discharge: " << SHOW_VAR(q_sp);
@@ -690,6 +694,7 @@ void doCheckQsp(vec bedflow, flow& H2O, const bottom& sand, const double& q_in, 
 		double q_cor=fabs(q_dif/(H*10.));
 		if (q_dif<0.) H+=q_cor;
 		else if (q_dif>0.) H-=q_cor;
+		assert(H > 0);
 		dz=H/double(cfg.Npz);
 		setS_Av(cfg, sand);
 		//n_it_fl=H2O.solve_gm(sand.getShape(sepflag),20);

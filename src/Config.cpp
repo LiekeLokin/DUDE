@@ -160,6 +160,7 @@ Config::Config(const std::string& path) : cfglog(new std::ofstream("out_config.t
 			ASSIGNINT(stle_factor);
 			ASSIGNBOOL(write_velocities);
 
+			ASSIGNBOOL(use_H_only);
 			ASSIGNDOUBLE(q_in1);
 			ASSIGNDOUBLE(H0);
 			ASSIGNDOUBLE(ii);
