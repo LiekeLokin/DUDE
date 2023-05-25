@@ -392,9 +392,13 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		
 		//cerr << "current: " << current[0] << " bedflow: " << bedflow[0] << endl; //OLAV 2014 03 31
 
-		if (write_teller == cfg.dt_write / dt) {
+		if (write_teller == cfg.dt_write / dt){
+			if (cfg.use_H_only)
+				q_in = H2O.check_qsp();
+
 			if (cfg.write_velocities)
 				H2O.write_velocities(tijd, sand.getShape(sepflag), u0_b);
+
 			//H2O.write_zeta(tijd);
 			const auto &stateZeta = H2O.getZeta();
 			outzeta << tijd << " ";
@@ -709,6 +713,10 @@ void doCheckQsp(vec bedflow, flow& H2O, const bottom& sand, const double& q_in, 
 		DUDE_LOG(info) << q_tel << " rechecks of specific discharge: " << SHOW_VAR(q_dif);
 		//cerr<<q_tel<<" rechecks of specific discharge: q_dif="<<q_dif<<endl;
 	}
+	if ((H >= 100*q_in) || (H <= 0.01*q_in)) {
+		DUDE_LOG(fatal) << "Water depth out of bounds, H: " << H;
+		abort();
+		}
 }
 
 void setS_Av(const Config& cfg, const bottom& sand){
