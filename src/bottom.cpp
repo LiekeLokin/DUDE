@@ -1635,8 +1635,8 @@ vec bottom::update(const vec& ub, const vec& Umean, vec &bss1, vec &fluxtot, vec
 
 	} // closes for(int t=0;t<int(cfg.tt);t++){
 	
-	//avalanching protocol
-	if (cfg.transport_eq == 2 && cfg.AllowAvalanching == 1) {
+	//avalanching protocol for all transport equations
+	if (cfg.AllowAvalanching == 1) {
 		avalanche(); 
 	}
 			

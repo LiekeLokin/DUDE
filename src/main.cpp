@@ -141,9 +141,9 @@ for (int p=1;p<=1;p++){				//superloop!!!!!!!!!!!!
 		//cerr<<"S : "<<S<<endl;
 		
 		//avalanching protocol
-		// if(transport_eq == 2 && AllowAvalanching == 1){
-		// avalanche(); 
-		// }
+//		 if(cfg.AllowAvalanching == 1){
+//		 sand.avalanche();
+//		 }
 	}
 	else {
 		if (!cfg.readfw.empty()){
