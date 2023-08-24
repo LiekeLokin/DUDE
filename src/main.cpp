@@ -721,8 +721,8 @@ void doCheckQsp(vec bedflow, flow& H2O, const bottom& sand, const double& q_in, 
 
 void setS_Av(const Config& cfg, const bottom& sand){
 	if (cfg.S_Av_const){
-		S = 0.01;//0.0001;//cfg.BETA1;//
-		const auto Av = 0.004;//cfg.BETA2;//
+		S = cfg.S;//0.01;//0.0001;//cfg.BETA1;//
+		const auto Av = cfg.Av;//0.004;//cfg.BETA2;//
 		auto dhdx = sand.get_dhdx();
 		for (auto i = 0 ; i < cfg.Npx; i++) {
 			Avx[i] = Av;// * (1 + dhdx[i]);

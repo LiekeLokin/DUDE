@@ -76,6 +76,8 @@ public:
 	double BETA1 = 0.245;
 	double BETA2 = 0.245;
 	bool S_Av_const = 0;
+	double S = 0.01;
+	double Av = 0.004;
 
 	double denssand = 2650;
 	double epsilonp = 0.4;
