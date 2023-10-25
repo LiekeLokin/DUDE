@@ -211,11 +211,17 @@ Config::Config(const std::string& path) : cfglog(new std::ofstream("out_config.t
 			warn("Unknown number parameter");
 			continue;
 		} else if (std::regex_search(line, what, string_param_expr)) {
+			// Make sure that any boolean parameters are checked here as well,
+			// since they can also be strings, line 'True' or 'false'
 			ASSIGNBOOL(DebugOutput);
 			ASSIGNBOOL(AllowFlowSep);
 			ASSIGNBOOL(AllowAvalanching);
 			ASSIGNBOOL(moeilijkdoen);
 			ASSIGNBOOL(write_velocities);
+			ASSIGNBOOL(use_H_only);
+			ASSIGNBOOL(S_Av_const);
+			ASSIGNBOOL(Lrangefix);
+
 			ASSIGNSTRING(FileName);
 			ASSIGNSTRING(FileLevel);
 			ASSIGNSTRING(ConsoleLevel);
